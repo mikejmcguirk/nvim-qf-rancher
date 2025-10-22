@@ -506,11 +506,12 @@ function M._open_item_to_win(item, opts)
 end
 
 ---@param win integer
+---@param always? boolean
 ---@return nil
-function M._do_zzze(win)
+function M._do_zzze(win, always)
     ey._validate_win(win)
 
-    if eu._get_g_var("qfr_skip_zzze") then return end
+    if not (eu._get_g_var("qfr_auto_center_result") or always) then return end
 
     api.nvim_win_call(win, function()
         api.nvim_cmd({ cmd = "normal", args = { "zz" }, bang = true }, {})

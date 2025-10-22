@@ -135,7 +135,7 @@ end
 function M.handle_new_same_title(output_opts)
     ey._validate_output_opts(output_opts)
 
-    if not eu._get_g_var("qfr_reuse_same_title") then return output_opts end
+    if not eu._get_g_var("qfr_reuse_title") then return output_opts end
 
     if output_opts.action ~= " " then return output_opts end
     local what = output_opts.what

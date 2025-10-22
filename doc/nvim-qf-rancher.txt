@@ -3,8 +3,8 @@ Error list husbandry                                       *nvim-qf-rancher.txt*
 
 Nvim Quickfix Rancher provides a stable of tools for taming the quickfix
 and location lists:
-- Auto opening and closing of list windows at logical points across
-  tabpages
+- Auto opening, closing, and resizing of list windows at logical points
+  and across tabpages
 - Wrapping and convenience functions for list and stack navigation
 - Autocommands to stop automatic copying of location lists to new windows,
   as well as putting location lists without a home window out to pasture
@@ -20,18 +20,275 @@ and location lists:
 Installation                                           *qf-rancher-installation*
 
 ==============================================================================
-Configuration                                                *qf-rancher-config*
+Configuration                                                       *qfr-config*
 
 Qfr is configured using vim.g variables. For lazy.nvim users, make sure to
 set thse in the "init" section of your plugin spec
-qfr_auto_open_changes (boolean, default true): Always open the list when
-its contents are changed
 
-QfRancherMapData                                              *QfRancherMapData*
-     Mode(s), Plug Map, User Map, Desc, Action
+qfr_auto_center_result                                  *qfr_auto_center_result*
+
+    (Default true) Qfr commands will auto-center opened buffers
+
+    Type: ~
+        string
+
+
+qfr_auto_open_changes                                    *qfr_auto_open_changes*
+
+    (Default true) Always open the list when its contents are changed
+
+    Type: ~
+        boolean
+
+
+qfr_auto_list_height                                      *qfr_auto_list_height*
+
+    (Default true) When the list is opened, its contents changed, or the
+    stack number changed, re-size it to match the amount of entries. Max
+    automatic height is 10
+
+    Type: ~
+        boolean
+
+
+qfr_close_on_stack_clear                              *qfr_close_on_stack_clear*
+
+    (Default true) Automatically close the list if the entire stack is cleared
+
+    Type: ~
+        boolean
+
+
+qfr_create_loclist_autocmds                        *qfr_create_loclist_autocmds*
+
+    (Default true) On startup, create autocmds to manage the following:
+    - Prevent split windows from inheriting the original window's location
+      list
+    - When a non-list window is closed, automatically close and clear its
+      associated location lists
+    These autocmds are contained in the augroup "qfr-loclist-group"
+
+    Type: ~
+        boolean
+
+
+qfr_debug_assertions                                      *qfr_debug_assertions*
+
+    (Default false) Enables extra type checking and logical assertions. This
+    can affect performance, as individual list items will have extra
+    validation
+
+    Type: ~
+        boolean
+
+
+qfr_save_views                                                  *qfr_save_views*
+
+    (Default true) Save views of other windows in the same tab when
+    the list is open, closed, or resized. This option is ignored if
+    splitkeep is set for screen or topline
+
+    Type: ~
+        boolean
+
+
+Qf Rancher provides a qf.lua ftplugin file to customize list behavior
+TODO: ref ftplugin section
+Customize which ftplugin features to use with the options below
+
+qfr_ftplugin_demap                                          *qfr_ftplugin_demap*
+
+    (Default true) Disable the following defaults in lists:
+    - <C-w>s (split)
+    - <C-w>v (vsplit)
+    - <C-i> / <C-o> (jumplist navigation)
+
+    Type: ~
+        boolean
+
+
+qfr_ftplugin_keymap                                        *qfr_ftplugin_keymap*
+
+    (Default true) Set ftplugin list keymaps
+    TODO: Reference ftplugin section
+    TODO: Note that these are the ack style maps + other lineage
+
+    Type: ~
+        boolean
+
+
+qfr_ftplugin_set_opts                                    *qfr_ftplugin_set_opts*
+
+    (Default true) Set the following options in lists:
+    - buflisted = false
+    - colorcolumn = ""
+    - list = false
+    - spell = false
+
+    Type: ~
+        boolean
+
+
+qfr_grepprg                                                        *qfr_grepprg*
+
+    (Default "rg") Set the grepprg used for Rancher's grep functions
+    "rg" and "grep" are available
+
+    Type: ~
+        string
+
+
+qfr_map_set_defaults                                      *qfr_map_set_defaults*
+
+    (Default true) Set default keymaps (excluding ftplugin maps)
+    TODO: link to default keymaps section
+
+    Type: ~
+        string
+
+
+All prefixes must be single-length, alpha character strings. If this
+validation fails, the default value will be used. Any upper-case prefixes
+will be casted to lowercase
+
+qfr_map_qf_prefix                                            *qfr_map_qf_prefix*
+
+    (Default "q") Prefix for quickfix operations
+
+    Type: ~
+        string
+
+
+qfr_map_ll_prefix                                            *qfr_map_ll_prefix*
+
+    (Default "l") Prefix for location list operations
+
+    Type: ~
+        string
+
+
+qfr_map_diag_prefix                                        *qfr_map_diag_prefix*
+
+    (Default "i") Prefix for diagnostic functions
+
+    Type: ~
+        string
+
+
+qfr_map_keep_prefix                                        *qfr_map_keep_prefix*
+
+    (Default "k") Prefix for filter keep functions
+
+    Type: ~
+        string
+
+
+qfr_map_remove_prefix                                    *qfr_map_remove_prefix*
+
+    (Default "r") Prefix for filter remove functions
+
+    Type: ~
+        string
+
+
+qfr_map_grep_prefix                                        *qfr_map_grep_prefix*
+
+    (Default "g") Prefix for grep operations
+
+    Type: ~
+        string
+
+
+qfr_map_sort_prefix                                        *qfr_map_sort_prefix*
+
+    (Default "t") Prefix for sort operations
+
+    Type: ~
+        string
+
+
+Control the preview window with the options below
+TODO: link to preview win section
+
+qfr_preview_border                                          *qfr_preview_border*
+
+    (Default "single") Set the preview window border. See :h 'winborder' for
+    more info
 
     Variants: ~
+        ("")
+        ("bold")
+        ("double")
+        ("none")
+        ("rounded")
+        ("shadow")
+        ("single")
+        ("solid")
+        ("An eight element string[] table")
 
+
+qfr_preview_debounce                                      *qfr_preview_debounce*
+
+    (Default 100) Minimum interval in ms between preview window updates
+    The default is 100 to accomodate slower systems/HDs. On a reasonable
+    system, it should be possible to go down to 50ms before flicker/stutter
+    start to appear. This behavior also depends on the size of the file(s)
+    being scrolled through
+
+    Type: ~
+        string
+
+
+qfr_preview_show_title                                  *qfr_preview_show_title*
+
+    (Default true) Show title in the preview window
+
+    Type: ~
+        string
+
+
+qfr_preview_title_pos                                    *qfr_preview_title_pos*
+
+    (Default "left") If show_title is true, control where it shows
+
+    Type: ~
+        string
+
+
+qfr_preview_winblend                                      *qfr_preview_winblend*
+
+    (Default 0) Set the winblend of the preview win (see :h winblend)
+
+    Type: ~
+        integer
+
+
+qfr_qfsplit                                                        *qfr_qfsplit*
+
+    (Default "botright") Set the split the quickfix list opens to
+
+    Variants: ~
+        ("aboveleft")
+        ("belowright")
+        ("topleft")
+        ("botright")
+
+
+qfr_reuse_title                                                *qfr_reuse_title*
+
+    (Default true) When running a Qfr cmd to gather new entries, look for
+    destination lists to re-use based on title
+
+    Type: ~
+        boolean
+
+
+qfr_set_default_cmds                                      *qfr_set_default_cmds*
+
+    (Default true) Create Qfr's default commands
+
+    Type: ~
+        boolean
 
 
 ==============================================================================

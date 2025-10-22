@@ -311,11 +311,13 @@ M._severity_unmap = {
 
 -- :h 'winborder'
 -- PR: This feels like something you could put into vim.validate. Or at least a type annotation
+-- NOTE/PR: The win config API keyset does not include "bold"
+-- NOTE/PR: "" is also an acceptable option not noted in the keyset
 
----@alias QfrBorder "double"|"none"|"rounded"|"shadow"|"single"|"solid"|string[]
+---@alias QfrBorder ""|"bold"|"double"|"none"|"rounded"|"shadow"|"single"|"solid"|string[]
 
 ---@type string[]
-local valid_borders = { "double", "none", "rounded", "shadow", "single", "solid" }
+local valid_borders = { "", "bold", "double", "none", "rounded", "shadow", "single", "solid" }
 
 ---@param border QfrBorder
 ---@return nil

@@ -36,8 +36,8 @@ local fn = vim.fn
 ---@brief [[
 ---Nvim Quickfix Rancher provides a stable of tools for taming the quickfix
 ---and location lists:
----- Auto opening and closing of list windows at logical points across
----  tabpages
+---- Auto opening, closing, and resizing of list windows at logical points
+---  and across tabpages
 ---- Wrapping and convenience functions for list and stack navigation
 ---- Autocommands to stop automatic copying of location lists to new windows,
 ---  as well as putting location lists without a home window out to pasture
@@ -50,66 +50,184 @@ local fn = vim.fn
 ---- Capabilities are extensible and available from the cmd line
 ---@brief ]]
 
--- ============
--- == G VARS ==
--- ============
-
--- MID: Create specific validator functions for these where appropriate
 
 ---@mod qf-rancher-installation Installation
 ---TODO:
 
----@mod qf-rancher-config Configuration
+---@mod qfr-config Configuration
 
 ---@brief [[
 ---Qfr is configured using vim.g variables. For lazy.nvim users, make sure to
 ---set thse in the "init" section of your plugin spec
----TODO: aliases should work for var docs
----qfr_auto_open_changes (boolean, default true): Always open the list when
----its contents are changed
 ---@brief ]]
+
+-- MID: Create specific validator functions for these where appropriate
+
 -- stylua: ignore
 _G._QFR_G_VAR_MAP = {
+---
+---(Default true) Qfr commands will auto-center opened buffers
+---@alias qfr_auto_center_result string
+qfr_auto_center_result = { { "boolean" }, false },
+---
+---(Default true) Always open the list when its contents are changed
+---@alias qfr_auto_open_changes boolean
 qfr_auto_open_changes = { { "boolean" }, true },
-
-    qfr_auto_list_height = { { "boolean" }, true },
-    -- DOCUMENT:
-    -- - If splitkeep is set to screen or topline, that will take precedence
-    -- - If splitkeep is set for cursor, and this option is true, rancher will save and restore
-    --      views where necessary
-    -- - If this is off and splitkeep is set for cursor, you get Nvim default behavior
-    qfr_always_save_views = { { "boolean" }, true },
-    qfr_debug_assertions = { { "boolean" }, false },
-    qfr_close_on_stack_clear = { { "boolean" }, true },
-    qfr_create_autocmds = { { "boolean" }, true },
-
-    qfr_ftplugin_demap = { { "boolean" }, true },
-    qfr_ftplugin_keymap = { { "boolean" }, true },
-    qfr_ftplugin_set_opts = { { "boolean" }, true },
-
-    qfr_grepprg = { { "string" }, "rg" },
-
-    qfr_map_set_defaults = { { "boolean" }, true },
-    qfr_map_ll_prefix = { { "string" }, "l" },
-    qfr_map_qf_prefix = { { "string" }, "q" },
-    qfr_map_diag_prefix = { { "string" }, "i" },
-    qfr_map_keep_prefix = { { "string" }, "k" },
-    qfr_map_remove_prefix = { { "string" }, "r" },
-    qfr_map_grep_prefix = { { "string" }, "g" },
-    qfr_map_sort_prefix = { { "string" }, "t" },
-
-    qfr_preview_border = { { "string", "table" }, "single" },
-    -- DOCUMENT: Default is 100 to accomodate slower systems/HDs. 50 should be fine if you have an
-    -- SSD/reasonably fast computer. Below that more risk of things getting choppy
-    qfr_preview_debounce = { { "number" }, 100 },
-    qfr_preview_show_title = { { "boolean" }, true },
-    qfr_preview_title_pos = { { "string" }, "left" },
-    qfr_preview_winblend = { { "number" }, 0 },
-
-    qfr_qfsplit = { { "string" }, "botright" },
-    qfr_reuse_same_title = { { "boolean" }, true },
-    qfr_set_default_cmds = { { "boolean" }, true },
-    qfr_skip_zzze = { { "boolean" }, false },
+---
+---(Default true) When the list is opened, its contents changed, or the
+---stack number changed, re-size it to match the amount of entries. Max
+---automatic height is 10
+---@alias qfr_auto_list_height boolean
+qfr_auto_list_height = { { "boolean" }, true },
+---
+---(Default true) Automatically close the list if the entire stack is cleared
+---@alias qfr_close_on_stack_clear boolean
+qfr_close_on_stack_clear = { { "boolean" }, true },
+---
+---(Default true) On startup, create autocmds to manage the following:
+---- Prevent split windows from inheriting the original window's location
+---  list
+---- When a non-list window is closed, automatically close and clear its
+---  associated location lists
+---These autocmds are contained in the augroup "qfr-loclist-group"
+---@alias qfr_create_loclist_autocmds boolean
+qfr_create_loclist_autocmds = { { "boolean" }, true },
+---
+---(Default false) Enables extra type checking and logical assertions. This
+---can affect performance, as individual list items will have extra
+---validation
+---@alias qfr_debug_assertions boolean
+qfr_debug_assertions = { { "boolean" }, false },
+---
+---(Default true) Save views of other windows in the same tab when
+---the list is open, closed, or resized. This option is ignored if
+---splitkeep is set for screen or topline
+---@alias qfr_save_views boolean
+qfr_save_views = { { "boolean" }, true },
+---@brief [[
+---Qf Rancher provides a qf.lua ftplugin file to customize list behavior
+---TODO: ref ftplugin section
+---Customize which ftplugin features to use with the options below
+---@brief ]]
+---
+---(Default true) Disable the following defaults in lists:
+---- <C-w>s (split)
+---- <C-w>v (vsplit)
+---- <C-i> / <C-o> (jumplist navigation)
+---@alias qfr_ftplugin_demap boolean
+qfr_ftplugin_demap = { { "boolean" }, true },
+---
+---(Default true) Set ftplugin list keymaps
+---TODO: Reference ftplugin section
+---TODO: Note that these are the ack style maps + other lineage
+---@alias qfr_ftplugin_keymap boolean
+qfr_ftplugin_keymap = { { "boolean" }, true },
+---
+---(Default true) Set the following options in lists:
+---- buflisted = false
+---- colorcolumn = ""
+---- list = false
+---- spell = false
+---@alias qfr_ftplugin_set_opts boolean
+qfr_ftplugin_set_opts = { { "boolean" }, true },
+---
+---(Default "rg") Set the grepprg used for Rancher's grep functions
+---"rg" and "grep" are available
+---@alias qfr_grepprg string
+qfr_grepprg = { { "string" }, "rg" },
+---
+---(Default true) Set default keymaps (excluding ftplugin maps)
+---TODO: link to default keymaps section
+---@alias qfr_map_set_defaults string
+qfr_map_set_defaults = { { "boolean" }, true },
+---@brief [[
+---All prefixes must be single-length, alpha character strings. If this
+---validation fails, the default value will be used. Any upper-case prefixes
+---will be casted to lowercase
+---@brief ]]
+---
+---(Default "q") Prefix for quickfix operations
+---@alias qfr_map_qf_prefix string
+qfr_map_qf_prefix = { { "string" }, "q" },
+---
+---(Default "l") Prefix for location list operations
+---@alias qfr_map_ll_prefix string
+qfr_map_ll_prefix = { { "string" }, "l" },
+---
+---(Default "i") Prefix for diagnostic functions
+---@alias qfr_map_diag_prefix string
+qfr_map_diag_prefix = { { "string" }, "i" },
+---
+---(Default "k") Prefix for filter keep functions
+---@alias qfr_map_keep_prefix string
+qfr_map_keep_prefix = { { "string" }, "k" },
+---
+---(Default "r") Prefix for filter remove functions
+---@alias qfr_map_remove_prefix string
+qfr_map_remove_prefix = { { "string" }, "r" },
+---
+---(Default "g") Prefix for grep operations
+---@alias qfr_map_grep_prefix string
+qfr_map_grep_prefix = { { "string" }, "g" },
+---
+---(Default "t") Prefix for sort operations
+---@alias qfr_map_sort_prefix string
+qfr_map_sort_prefix = { { "string" }, "t" },
+---@brief [[
+---Control the preview window with the options below
+---TODO: link to preview win section
+---@brief ]]
+---
+---(Default "single") Set the preview window border. See :h 'winborder' for
+---more info
+---@alias qfr_preview_border
+---| ''
+---| 'bold'
+---| 'double'
+---| 'none'
+---| 'rounded'
+---| 'shadow'
+---| 'single'
+---| 'solid'
+---| 'An eight element string[] table'
+qfr_preview_border = { { "string", "table" }, "single" },
+---
+---(Default 100) Minimum interval in ms between preview window updates
+---The default is 100 to accomodate slower systems/HDs. On a reasonable
+---system, it should be possible to go down to 50ms before flicker/stutter
+---start to appear. This behavior also depends on the size of the file(s)
+---being scrolled through
+---@alias qfr_preview_debounce string
+qfr_preview_debounce = { { "number" }, 100 },
+---
+---(Default true) Show title in the preview window
+---@alias qfr_preview_show_title string
+qfr_preview_show_title = { { "boolean" }, true },
+---
+---(Default "left") If show_title is true, control where it shows
+---@alias qfr_preview_title_pos string "center"|"left"|"right"
+qfr_preview_title_pos = { { "string" }, "left" },
+---
+---(Default 0) Set the winblend of the preview win (see :h winblend)
+---@alias qfr_preview_winblend integer
+qfr_preview_winblend = { { "number" }, 0 },
+---
+---(Default "botright") Set the split the quickfix list opens to
+---@alias qfr_qfsplit
+---| 'aboveleft'
+---| 'belowright'
+---| 'topleft'
+---| 'botright'
+qfr_qfsplit = { { "string" }, "botright" },
+---
+---(Default true) When running a Qfr cmd to gather new entries, look for
+---destination lists to re-use based on title
+---@alias qfr_reuse_title boolean
+qfr_reuse_title = { { "boolean" }, true },
+---
+---(Default true) Create Qfr's default commands
+---@alias qfr_set_default_cmds boolean
+qfr_set_default_cmds = { { "boolean" }, true },
 } ---@type table<string, {[1]:string[], [2]: any}>
 
 for k, v in pairs(_QFR_G_VAR_MAP) do
@@ -117,7 +235,7 @@ for k, v in pairs(_QFR_G_VAR_MAP) do
     if not vim.tbl_contains(v[1], type(cur_g_val)) then vim.api.nvim_set_var(k, v[2]) end
 end
 
-if vim.g.qfr_create_autocmds then
+if vim.g.qfr_create_loclist_autocmds then
     local qfr_loclist_group = vim.api.nvim_create_augroup("qfr-loclist-group", { clear = true })
 
     api.nvim_create_autocmd("WinNew", {
@@ -245,7 +363,7 @@ local function replace_loclist()
 end
 
 --- Mode(s), Plug Map, User Map, Desc, Action
----@alias QfRancherMapData{[1]:string[], [2]:string, [3]:string, [4]: string, [5]: function}
+--- @alias QfRancherMapData{[1]:string[], [2]:string, [3]:string, [4]: string, [5]: function}
 
 -- stylua: ignore
 ---@type QfRancherMapData[]

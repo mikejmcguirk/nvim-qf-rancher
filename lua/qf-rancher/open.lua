@@ -32,7 +32,7 @@ end
 ---@return vim.fn.winsaveview.ret[]
 local function get_views(wins)
     local views = {} ---@type vim.fn.winsaveview.ret[]
-    if not eu._get_g_var("qfr_always_save_views") then return views end
+    if not eu._get_g_var("qfr_save_views") then return views end
 
     ---@type string
     local splitkeep = api.nvim_get_option_value("splitkeep", { scope = "global" })
@@ -180,6 +180,14 @@ end
 
 -- MID: "get_filtered_tabpage_wins" might be a useful util function
 
+-- MID: Outline this at some point. Unsure if modules should be split based on function or
+-- data type
+local valid_splits = { "aboveleft", "belowright", "topleft", "botright" } ---@type string[]
+local function get_qfsplit()
+    local g_split = eu._get_g_var("qfr_qfsplit")
+    return vim.tbl_contains(valid_splits, g_split) and g_split or "botright"
+end
+
 ---@param opts QfrListOpenOpts
 ---@return boolean
 function Open._open_qflist(opts)
@@ -203,9 +211,8 @@ function Open._open_qflist(opts)
     end
 
     local height = resolve_height_for_list(nil, opts.height)
-    local split = eu._get_g_var("qfr_qfsplit") ---@type string
     ---@diagnostic disable: missing-fields
-    api.nvim_cmd({ cmd = "copen", count = height, mods = { split = split } }, {})
+    api.nvim_cmd({ cmd = "copen", count = height, mods = { split = get_qfsplit() } }, {})
     return open_cleanup(views, opts.keep_win, cur_win)
 end
 

@@ -239,6 +239,7 @@ local function get_title_cfg(item_buf)
 
     local preview_name = api.nvim_buf_get_name(item_buf) ---@type string
     local relative_name = fn.fnamemodify(preview_name, ":.") ---@type string
+    -- TODO: Need validation for title_pos
     local g_title_pos = eu._get_g_var("qfr_preview_title_pos") ---@type QfrTitlePos
     return { title = relative_name, title_pos = g_title_pos }
 end
@@ -750,7 +751,7 @@ function Preview._update_preview_win_buf()
     api.nvim_win_set_config(preview_state.preview_win, get_title_cfg(item.bufnr))
 
     eu._protected_set_cursor(preview_state.preview_win, eu._qf_pos_to_cur_pos(item.lnum, item.col))
-    eu._do_zzze(preview_state.preview_win)
+    eu._do_zzze(preview_state.preview_win, true)
 
     start_timer()
 end
@@ -762,7 +763,7 @@ function Preview.update_preview_win_pos()
     local win_cfg = get_win_cfg(preview_state.list_win) ---@type vim.api.keyset.win_config
     api.nvim_win_set_config(preview_state.preview_win, win_cfg)
 
-    eu._do_zzze(preview_state.preview_win)
+    eu._do_zzze(preview_state.preview_win, true)
 end
 
 ---@param list_win integer
@@ -778,11 +779,11 @@ function Preview.open_preview_win(list_win)
     -- Do this first in anticipation of future async file read
     local preview_buf = get_preview_buf(item) ---@type integer
     local win_cfg = get_win_cfg(list_win, item.bufnr) ---@type vim.api.keyset.win_config
-    local preview_win = create_preview_win(win_cfg, preview_buf)
+    local preview_win = create_preview_win(win_cfg, preview_buf) ---@type integer
     preview_state:set(list_win, preview_win)
 
     eu._protected_set_cursor(preview_state.preview_win, eu._qf_pos_to_cur_pos(item.lnum, item.col))
-    eu._do_zzze(preview_state.preview_win)
+    eu._do_zzze(preview_state.preview_win, true)
     create_autocmds()
 
     start_timer()
