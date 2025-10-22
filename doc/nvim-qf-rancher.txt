@@ -1,6 +1,32 @@
 ==============================================================================
 Error list husbandry                                       *nvim-qf-rancher.txt*
 
+Nvim Quickfix Rancher provides a stable of tools for taming the quickfix
+and location lists:
+- Auto opening and closing of list windows at logical points across
+  tabpages
+- Wrapping and convenience functions for list and stack navigation
+- Autocommands to stop automatic copying of location lists to new windows,
+  as well as putting location lists without a home window out to pasture
+- Preview window for list items
+- Built-in functions for lassoing diagnostics by all severities, including
+  highest only
+- Filter and sort functions
+- A variey of grep functions built on rg as a default, with grep available
+  as a backup
+- Capabilities are extensible and available from the cmd line
+
+==============================================================================
+Installation                                           *qf-rancher-installation*
+
+==============================================================================
+Configuration                                                *qf-rancher-config*
+
+Qfr is configured using vim.g variables. For lazy.nvim users, make sure to
+set thse in the "init" section of your plugin spec
+qfr_auto_open_changes (boolean, default true): Always open the list when
+its contents are changed
+
 QfRancherMapData                                              *QfRancherMapData*
      Mode(s), Plug Map, User Map, Desc, Action
 

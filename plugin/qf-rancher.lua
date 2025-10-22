@@ -33,6 +33,22 @@ local api = vim.api
 local fn = vim.fn
 
 ---@mod nvim-qf-rancher.txt Error list husbandry
+---@brief [[
+---Nvim Quickfix Rancher provides a stable of tools for taming the quickfix
+---and location lists:
+---- Auto opening and closing of list windows at logical points across
+---  tabpages
+---- Wrapping and convenience functions for list and stack navigation
+---- Autocommands to stop automatic copying of location lists to new windows,
+---  as well as putting location lists without a home window out to pasture
+---- Preview window for list items
+---- Built-in functions for lassoing diagnostics by all severities, including
+---  highest only
+---- Filter and sort functions
+---- A variey of grep functions built on rg as a default, with grep available
+---  as a backup
+---- Capabilities are extensible and available from the cmd line
+---@brief ]]
 
 -- ============
 -- == G VARS ==
@@ -40,10 +56,22 @@ local fn = vim.fn
 
 -- MID: Create specific validator functions for these where appropriate
 
--- DOCUMENT: What these vars do
+---@mod qf-rancher-installation Installation
+---TODO:
 
+---@mod qf-rancher-config Configuration
+
+---@brief [[
+---Qfr is configured using vim.g variables. For lazy.nvim users, make sure to
+---set thse in the "init" section of your plugin spec
+---TODO: aliases should work for var docs
+---qfr_auto_open_changes (boolean, default true): Always open the list when
+---its contents are changed
+---@brief ]]
+-- stylua: ignore
 _G._QFR_G_VAR_MAP = {
-    qfr_auto_open_changes = { { "boolean" }, true },
+qfr_auto_open_changes = { { "boolean" }, true },
+
     qfr_auto_list_height = { { "boolean" }, true },
     -- DOCUMENT:
     -- - If splitkeep is set to screen or topline, that will take precedence
@@ -129,8 +157,6 @@ end
 -- NOTE: In order for the defer require to work, all function calls must be inside of
 -- anonymous functions. If you pass, for example, eo.closeqflist as a function reference, eo
 -- needs to be evaluated at command creation
-
-local api = vim.api
 
 ------------------------
 -- Map and Cmd Pieces --
