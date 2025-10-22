@@ -1,6 +1,4 @@
--- ===========================
--- == NVIM QUICKFIX RANCHER ==
--- ===========================
+_G.QFR_MAX_HEIGHT = 10
 
 ---https://github.com/tjdevries/lazy-require.nvim/blob/master/lua/lazy-require.lua
 ---@param require_path string
@@ -26,8 +24,6 @@ local en = Qfr_Defer_Require("qf-rancher.nav-action") ---@type QfRancherNav
 local eo = Qfr_Defer_Require("qf-rancher.open") ---@type QfrOpen
 local ep = Qfr_Defer_Require("qf-rancher.preview") ---@type QfRancherPreview
 local es = Qfr_Defer_Require("qf-rancher.sort") ---@type QfRancherSort
-
-_G.QFR_MAX_HEIGHT = 10
 
 local api = vim.api
 local fn = vim.fn
@@ -135,44 +131,6 @@ qfr_ftplugin_set_opts = { { "boolean" }, true },
 ---"rg" and "grep" are available
 ---@alias qfr_grepprg string
 qfr_grepprg = { { "string" }, "rg" },
----
----(Default true) Set default keymaps (excluding ftplugin maps)
----TODO: link to default keymaps section
----@alias qfr_map_set_defaults string
-qfr_map_set_defaults = { { "boolean" }, true },
----@brief [[
----All prefixes must be single-length, alpha character strings. If this
----validation fails, the default value will be used. Any upper-case prefixes
----will be casted to lowercase
----@brief ]]
----
----(Default "q") Prefix for quickfix operations
----@alias qfr_map_qf_prefix string
-qfr_map_qf_prefix = { { "string" }, "q" },
----
----(Default "l") Prefix for location list operations
----@alias qfr_map_ll_prefix string
-qfr_map_ll_prefix = { { "string" }, "l" },
----
----(Default "i") Prefix for diagnostic functions
----@alias qfr_map_diag_prefix string
-qfr_map_diag_prefix = { { "string" }, "i" },
----
----(Default "k") Prefix for filter keep functions
----@alias qfr_map_keep_prefix string
-qfr_map_keep_prefix = { { "string" }, "k" },
----
----(Default "r") Prefix for filter remove functions
----@alias qfr_map_remove_prefix string
-qfr_map_remove_prefix = { { "string" }, "r" },
----
----(Default "g") Prefix for grep operations
----@alias qfr_map_grep_prefix string
-qfr_map_grep_prefix = { { "string" }, "g" },
----
----(Default "t") Prefix for sort operations
----@alias qfr_map_sort_prefix string
-qfr_map_sort_prefix = { { "string" }, "t" },
 ---@brief [[
 ---Control the preview window with the options below
 ---TODO: link to preview win section
@@ -228,6 +186,11 @@ qfr_reuse_title = { { "boolean" }, true },
 ---(Default true) Create Qfr's default commands
 ---@alias qfr_set_default_cmds boolean
 qfr_set_default_cmds = { { "boolean" }, true },
+---
+---(Default true) Set default keymaps (excluding ftplugin maps)
+---TODO: link to default keymaps section
+---@alias qfr_set_default_maps string
+qfr_set_default_maps = { { "boolean" }, true },
 } ---@type table<string, {[1]:string[], [2]: any}>
 
 for k, v in pairs(_QFR_G_VAR_MAP) do
@@ -283,48 +246,27 @@ end
 local nn = { "n" } ---@type string[]
 local nx = { "n", "x" } ---@type string[]
 
--- DOCUMENT: how prefixes are validated
-
----@param prefix string
----@return boolean
-local function validate_prefix(prefix)
-    if #prefix ~= 1 then return false end
-    if prefix:match("^[%a]+$") == nil then return false end
-    return true
-end
-
--- MID: Not the greatest way to do this. If this gets combined with the main setup file, then
--- try to put together the validations more
-
-local qp = string.lower(vim.g.qfr_map_qf_prefix) ---@type string
-qp = validate_prefix(qp) and qp or _QFR_G_VAR_MAP["qfr_map_qf_prefix"][2]
+local qp = "q" ---@type string
 local ql = "<leader>" .. qp ---@type string
 local qP = string.upper(qp) ---@type string
 
-local lp = string.lower(vim.g.qfr_map_ll_prefix) ---@type string
-lp = validate_prefix(lp) and lp or _QFR_G_VAR_MAP["qfr_map_ll_prefix"][2]
+local lp = "l" ---@type string
 local ll = "<leader>" .. lp ---@type string
 local lP = string.upper(lp) ---@type string
 
-local dp = string.lower(vim.g.qfr_map_diag_prefix) ---@type string
-dp = validate_prefix(dp) and dp or _QFR_G_VAR_MAP["qfr_map_diag_prefix"][2]
-local kp = string.lower(vim.g.qfr_map_keep_prefix) ---@type string
-kp = validate_prefix(kp) and kp or _QFR_G_VAR_MAP["qfr_map_keep_prefix"][2]
-local rp = string.lower(vim.g.qfr_map_remove_prefix) ---@type string
-rp = validate_prefix(rp) and rp or _QFR_G_VAR_MAP["qfr_map_remove_prefix"][2]
-local gp = string.lower(vim.g.qfr_map_grep_prefix) ---@type string
-gp = validate_prefix(gp) and gp or _QFR_G_VAR_MAP["qfr_map_grep_prefix"][2]
-local sp = string.lower(vim.g.qfr_map_sort_prefix) ---@type string
-sp = validate_prefix(sp) and sp or _QFR_G_VAR_MAP["qfr_map_sort_prefix"][2]
+local dp = "i" ---@type string
+local kp = "k" ---@type string
+local rp = "r" ---@type string
+local gp = "g" ---@type string
+local sp = "t" ---@type string
 
-local sc = " (smartcase)" ---@type string
+local vc = " (vimcase)" ---@type string
 local rx = " (regex)" ---@type string
 
 local vimcase = { input_type = "vimcase" } ---@type QfrInputOpts
 local regex = { input_type = "regex" } ---@type QfrInputOpts
 
 local ds = vim.diagnostic.severity
-
 local sys_opt = { timeout = 4000 } ---@type QfrSystemOpts
 
 ---@return integer
@@ -372,14 +314,14 @@ local qfr_maps = {
     -- == GREP ==
     -- ==========
 
-    { nx, "<Plug>(qfr-grep-cwd)",    ql..gp.."d", "Qgrep CWD"..sc,       function() eg.grep("cwd", vimcase, sys_opt, new_qflist()) end },
+    { nx, "<Plug>(qfr-grep-cwd)",    ql..gp.."d", "Qgrep CWD"..vc,       function() eg.grep("cwd", vimcase, sys_opt, new_qflist()) end },
     { nx, "<Plug>(qfr-grep-cwdX)",   ql..gp.."D", "Qgrep CWD"..rx,       function() eg.grep("cwd", regex, sys_opt, new_qflist()) end },
-    { nx, "<Plug>(qfr-grep-help)",   ql..gp.."h", "Qgrep help"..sc,      function() eg.grep("help", vimcase, sys_opt, new_qflist()) end },
+    { nx, "<Plug>(qfr-grep-help)",   ql..gp.."h", "Qgrep help"..vc,      function() eg.grep("help", vimcase, sys_opt, new_qflist()) end },
     { nx, "<Plug>(qfr-grep-helpX)",  ql..gp.."H", "Qgrep help"..rx,      function() eg.grep("help", regex, sys_opt, new_qflist()) end },
 
-    { nx, "<Plug>(qfr-lgrep-cwd)",   ll..gp.."d", "Lgrep CWD"..sc,       function() eg.grep("cwd", vimcase, sys_opt, new_loclist()) end },
+    { nx, "<Plug>(qfr-lgrep-cwd)",   ll..gp.."d", "Lgrep CWD"..vc,       function() eg.grep("cwd", vimcase, sys_opt, new_loclist()) end },
     { nx, "<Plug>(qfr-lgrep-cwdX)",  ll..gp.."D", "Lgrep CWD"..rx,       function() eg.grep("cwd", regex, sys_opt, new_loclist()) end },
-    { nx, "<Plug>(qfr-lgrep-help)",  ll..gp.."h", "Lgrep help"..sc,      function() eg.grep("help", vimcase, sys_opt, new_loclist()) end },
+    { nx, "<Plug>(qfr-lgrep-help)",  ll..gp.."h", "Lgrep help"..vc,      function() eg.grep("help", vimcase, sys_opt, new_loclist()) end },
     { nx, "<Plug>(qfr-lgrep-helpX)", ll..gp.."H", "Lgrep help"..rx,      function() eg.grep("help", regex, sys_opt, new_loclist()) end },
 
     -- =======================
@@ -431,61 +373,61 @@ local qfr_buf_maps = {
 
     -- Cfilter --
 
-    { nx, "<Plug>(qfr-Qfilter-cfilter)",   ql..kp.."l", "Qfilter cfilter"..sc,  function() ef.filter("cfilter", true, vimcase, replace_qflist()) end },
-    { nx, "<Plug>(qfr-Qfilter!-cfilter)",  ql..rp.."l", "Qfilter! cfilter"..sc, function() ef.filter("cfilter", false, vimcase, replace_qflist()) end },
+    { nx, "<Plug>(qfr-Qfilter-cfilter)",   ql..kp.."l", "Qfilter cfilter"..vc,  function() ef.filter("cfilter", true, vimcase, replace_qflist()) end },
+    { nx, "<Plug>(qfr-Qfilter!-cfilter)",  ql..rp.."l", "Qfilter! cfilter"..vc, function() ef.filter("cfilter", false, vimcase, replace_qflist()) end },
     { nx, "<Plug>(qfr-Qfilter-cfilterX)",  ql..kp.."L", "Qfilter cfilter"..rx,  function() ef.filter("cfilter", true, regex, replace_qflist()) end },
     { nx, "<Plug>(qfr-Qfilter!-cfilterX)", ql..rp.."L", "Qfilter! cfilter"..rx, function() ef.filter("cfilter", false, regex, replace_qflist()) end },
 
-    { nx, "<Plug>(qfr-Lfilter-cfilter)",   ll..kp.."l", "Lfilter cfilter"..sc,  function() ef.filter("cfilter", true, vimcase, replace_loclist()) end },
-    { nx, "<Plug>(qfr-Lfilter!-cfilter)",  ll..rp.."l", "Lfilter! cfilter"..sc, function() ef.filter("cfilter", false, vimcase, replace_loclist()) end },
+    { nx, "<Plug>(qfr-Lfilter-cfilter)",   ll..kp.."l", "Lfilter cfilter"..vc,  function() ef.filter("cfilter", true, vimcase, replace_loclist()) end },
+    { nx, "<Plug>(qfr-Lfilter!-cfilter)",  ll..rp.."l", "Lfilter! cfilter"..vc, function() ef.filter("cfilter", false, vimcase, replace_loclist()) end },
     { nx, "<Plug>(qfr-Lfilter-cfilterX)",  ll..kp.."L", "Lfilter cfilter"..rx,  function() ef.filter("cfilter", true, regex, replace_loclist()) end },
     { nx, "<Plug>(qfr-Lfilter!-cfilterX)", ll..rp.."L", "Lfilter! cfilter"..rx, function() ef.filter("cfilter", false, regex, replace_loclist()) end },
 
     -- Fname --
 
-    { nx, "<Plug>(qfr-Qfilter-fname)",     ql..kp.."f", "Qfilter fname"..sc,    function() ef.filter("fname", true, vimcase, replace_qflist()) end },
-    { nx, "<Plug>(qfr-Qfilter!-fname)",    ql..rp.."f", "Qfilter! fname"..sc,   function() ef.filter("fname", false, vimcase, replace_qflist()) end },
+    { nx, "<Plug>(qfr-Qfilter-fname)",     ql..kp.."f", "Qfilter fname"..vc,    function() ef.filter("fname", true, vimcase, replace_qflist()) end },
+    { nx, "<Plug>(qfr-Qfilter!-fname)",    ql..rp.."f", "Qfilter! fname"..vc,   function() ef.filter("fname", false, vimcase, replace_qflist()) end },
     { nx, "<Plug>(qfr-Qfilter-fnameX)",    ql..kp.."F", "Qfilter fname"..rx,    function() ef.filter("fname", true, regex, replace_qflist()) end },
     { nx, "<Plug>(qfr-Qfilter!-fnameX)",   ql..rp.."F", "Qfilter! fname"..rx,   function() ef.filter("fname", false, regex, replace_qflist()) end },
 
-    { nx, "<Plug>(qfr-Lfilter-fname)",     ll..kp.."f", "Lfilter fname"..sc,    function() ef.filter("fname", true, vimcase, replace_loclist()) end },
-    { nx, "<Plug>(qfr-Lfilter!-fname)",    ll..rp.."f", "Lfilter! fname"..sc,   function() ef.filter("fname", false, vimcase, replace_loclist()) end },
+    { nx, "<Plug>(qfr-Lfilter-fname)",     ll..kp.."f", "Lfilter fname"..vc,    function() ef.filter("fname", true, vimcase, replace_loclist()) end },
+    { nx, "<Plug>(qfr-Lfilter!-fname)",    ll..rp.."f", "Lfilter! fname"..vc,   function() ef.filter("fname", false, vimcase, replace_loclist()) end },
     { nx, "<Plug>(qfr-Lfilter-fnameX)",    ll..kp.."F", "Lfilter fname"..rx,    function() ef.filter("fname", true, regex, replace_loclist()) end },
     { nx, "<Plug>(qfr-Lfilter!-fnameX)",   ll..rp.."F", "Lfilter! fname"..rx,   function() ef.filter("fname", false, regex, replace_loclist()) end },
 
     -- Text --
 
-    { nx, "<Plug>(qfr-Qfilter-text)",      ql..kp.."e", "Qfilter text"..sc,     function() ef.filter("text", true, vimcase, replace_qflist()) end },
-    { nx, "<Plug>(qfr-Qfilter!-text)",     ql..rp.."e", "Qfilter! text"..sc,    function() ef.filter("text", false, vimcase, replace_qflist()) end },
+    { nx, "<Plug>(qfr-Qfilter-text)",      ql..kp.."e", "Qfilter text"..vc,     function() ef.filter("text", true, vimcase, replace_qflist()) end },
+    { nx, "<Plug>(qfr-Qfilter!-text)",     ql..rp.."e", "Qfilter! text"..vc,    function() ef.filter("text", false, vimcase, replace_qflist()) end },
     { nx, "<Plug>(qfr-Qfilter-textX)",     ql..kp.."E", "Qfilter text"..rx,     function() ef.filter("text", true, regex, replace_qflist()) end },
     { nx, "<Plug>(qfr-Qfilter!-textX)",    ql..rp.."E", "Qfilter! text"..rx,    function() ef.filter("text", false, regex, replace_qflist()) end },
 
-    { nx, "<Plug>(qfr-Lfilter-text)",      ll..kp.."e", "Lfilter text"..sc,     function() ef.filter("text", true, vimcase, replace_loclist()) end },
-    { nx, "<Plug>(qfr-Lfilter!-text)",     ll..rp.."e", "Lfilter! text"..sc,    function() ef.filter("text", false, vimcase, replace_loclist()) end },
+    { nx, "<Plug>(qfr-Lfilter-text)",      ll..kp.."e", "Lfilter text"..vc,     function() ef.filter("text", true, vimcase, replace_loclist()) end },
+    { nx, "<Plug>(qfr-Lfilter!-text)",     ll..rp.."e", "Lfilter! text"..vc,    function() ef.filter("text", false, vimcase, replace_loclist()) end },
     { nx, "<Plug>(qfr-Lfilter-textX)",     ll..kp.."E", "Lfilter text"..rx,     function() ef.filter("text", true, regex, replace_loclist()) end },
     { nx, "<Plug>(qfr-Lfilter!-textX)",    ll..rp.."E", "Lfilter! text"..rx,    function() ef.filter("text", false, regex, replace_loclist()) end },
 
     -- Lnum --
 
-    { nx, "<Plug>(qfr-Qfilter-lnum)",      ql..kp.."n", "Qfilter lnum"..sc,     function() ef.filter("lnum", true, vimcase, replace_qflist()) end },
-    { nx, "<Plug>(qfr-Qfilter!-lnum)",     ql..rp.."n", "Qfilter! lnum"..sc,    function() ef.filter("lnum", false, vimcase, replace_qflist()) end },
+    { nx, "<Plug>(qfr-Qfilter-lnum)",      ql..kp.."n", "Qfilter lnum"..vc,     function() ef.filter("lnum", true, vimcase, replace_qflist()) end },
+    { nx, "<Plug>(qfr-Qfilter!-lnum)",     ql..rp.."n", "Qfilter! lnum"..vc,    function() ef.filter("lnum", false, vimcase, replace_qflist()) end },
     { nx, "<Plug>(qfr-Qfilter-lnumX)",     ql..kp.."N", "Qfilter lnum"..rx,     function() ef.filter("lnum", true, regex, replace_qflist()) end },
     { nx, "<Plug>(qfr-Qfilter!-lnumX)",    ql..rp.."N", "Qfilter! lnum"..rx,    function() ef.filter("lnum", false, regex, replace_qflist()) end },
 
-    { nx, "<Plug>(qfr-Lfilter-lnum)",      ll..kp.."n", "Lfilter lnum"..sc,     function() ef.filter("lnum", true, vimcase, replace_loclist()) end },
-    { nx, "<Plug>(qfr-Lfilter!-lnum)",     ll..rp.."n", "Lfilter! lnum"..sc,    function() ef.filter("lnum", false, vimcase, replace_loclist()) end },
+    { nx, "<Plug>(qfr-Lfilter-lnum)",      ll..kp.."n", "Lfilter lnum"..vc,     function() ef.filter("lnum", true, vimcase, replace_loclist()) end },
+    { nx, "<Plug>(qfr-Lfilter!-lnum)",     ll..rp.."n", "Lfilter! lnum"..vc,    function() ef.filter("lnum", false, vimcase, replace_loclist()) end },
     { nx, "<Plug>(qfr-Lfilter-lnumX)",     ll..kp.."N", "Lfilter lnum"..rx,     function() ef.filter("lnum", true, regex, replace_loclist()) end },
     { nx, "<Plug>(qfr-Lfilter!-lnumX)",    ll..rp.."N", "Lfilter! lnum"..rx,    function() ef.filter("lnum", false, regex, replace_loclist()) end },
 
     -- Type --
 
-    { nx, "<Plug>(qfr-Qfilter-type)",      ql..kp.."t", "Qfilter type"..sc,     function() ef.filter("type", true, vimcase, replace_qflist()) end },
-    { nx, "<Plug>(qfr-Qfilter!-type)",     ql..rp.."t", "Qfilter! type"..sc,    function() ef.filter("type", false, vimcase, replace_qflist()) end },
+    { nx, "<Plug>(qfr-Qfilter-type)",      ql..kp.."t", "Qfilter type"..vc,     function() ef.filter("type", true, vimcase, replace_qflist()) end },
+    { nx, "<Plug>(qfr-Qfilter!-type)",     ql..rp.."t", "Qfilter! type"..vc,    function() ef.filter("type", false, vimcase, replace_qflist()) end },
     { nx, "<Plug>(qfr-Qfilter-typeX)",     ql..kp.."T", "Qfilter type"..rx,     function() ef.filter("type", true, regex, replace_qflist()) end },
     { nx, "<Plug>(qfr-Qfilter!-typeX)",    ql..rp.."T", "Qfilter! type"..rx,    function() ef.filter("type", false, regex, replace_qflist()) end },
 
-    { nx, "<Plug>(qfr-Lfilter-type)",      ll..kp.."t", "Lfilter type"..sc,     function() ef.filter("type", true, vimcase, replace_loclist()) end },
-    { nx, "<Plug>(qfr-Lfilter!-type)",     ll..rp.."t", "Lfilter! type"..sc,    function() ef.filter("type", false, vimcase, replace_loclist()) end },
+    { nx, "<Plug>(qfr-Lfilter-type)",      ll..kp.."t", "Lfilter type"..vc,     function() ef.filter("type", true, vimcase, replace_loclist()) end },
+    { nx, "<Plug>(qfr-Lfilter!-type)",     ll..rp.."t", "Lfilter! type"..vc,    function() ef.filter("type", false, vimcase, replace_loclist()) end },
     { nx, "<Plug>(qfr-Lfilter-typeX)",     ll..kp.."T", "Lfilter type"..rx,     function() ef.filter("type", true, regex, replace_loclist()) end },
     { nx, "<Plug>(qfr-Lfilter!-typeX)",    ll..rp.."T", "Lfilter! type"..rx,    function() ef.filter("type", false, regex, replace_loclist()) end },
 
@@ -493,9 +435,9 @@ local qfr_buf_maps = {
     -- == GREP ==
     -- ==========
 
-    { nx, "<Plug>(qfr-grep-bufs)",   ql..gp.."u", "Qgrep open bufs"..sc, function() eg.grep("bufs", vimcase, sys_opt, new_qflist()) end },
+    { nx, "<Plug>(qfr-grep-bufs)",   ql..gp.."u", "Qgrep open bufs"..vc, function() eg.grep("bufs", vimcase, sys_opt, new_qflist()) end },
     { nx, "<Plug>(qfr-grep-bufsX)",  ql..gp.."U", "Qgrep open bufs"..rx, function() eg.grep("bufs", regex, sys_opt, new_qflist()) end },
-    { nx, "<Plug>(qfr-lgrep-cbuf)",  ll..gp.."u", "Lgrep cur buf"..sc,   function() eg.grep("cbuf", vimcase, sys_opt, new_loclist()) end },
+    { nx, "<Plug>(qfr-lgrep-cbuf)",  ll..gp.."u", "Lgrep cur buf"..vc,   function() eg.grep("cbuf", vimcase, sys_opt, new_loclist()) end },
     { nx, "<Plug>(qfr-lgrep-cbufX)", ll..gp.."U", "Lgrep cur buf"..rx,   function() eg.grep("cbuf", regex, sys_opt, new_loclist()) end },
 
     -- ================
@@ -612,7 +554,7 @@ for _, map in ipairs(qfr_buf_maps) do
 end
 
 -- Don't use the util g_var wrapper here to avoid a require
-if vim.g.qfr_map_set_defaults then
+if vim.g.qfr_set_default_maps then
     for _, map in ipairs(qfr_maps) do
         for _, mode in ipairs(map[1]) do
             api.nvim_set_keymap(mode, map[3], map[2], {
@@ -892,7 +834,7 @@ end
 -- NOTES:
 -- - Any space breaks in annotation comments are intentional to make lemmy-ehlp ignore them
 
--- TODO: Create docgen script. 'lemmy-help -l "compact" [fnames] > output.txt'
+-- TODO: Move to vimcast: https://github.com/mrcjkb/vimcats
 
 -- DOCUMENT: For cmd mappings, document what cmd opts they expect to be available
 

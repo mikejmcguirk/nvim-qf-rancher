@@ -138,75 +138,6 @@ qfr_grepprg                                                        *qfr_grepprg*
         string
 
 
-qfr_map_set_defaults                                      *qfr_map_set_defaults*
-
-    (Default true) Set default keymaps (excluding ftplugin maps)
-    TODO: link to default keymaps section
-
-    Type: ~
-        string
-
-
-All prefixes must be single-length, alpha character strings. If this
-validation fails, the default value will be used. Any upper-case prefixes
-will be casted to lowercase
-
-qfr_map_qf_prefix                                            *qfr_map_qf_prefix*
-
-    (Default "q") Prefix for quickfix operations
-
-    Type: ~
-        string
-
-
-qfr_map_ll_prefix                                            *qfr_map_ll_prefix*
-
-    (Default "l") Prefix for location list operations
-
-    Type: ~
-        string
-
-
-qfr_map_diag_prefix                                        *qfr_map_diag_prefix*
-
-    (Default "i") Prefix for diagnostic functions
-
-    Type: ~
-        string
-
-
-qfr_map_keep_prefix                                        *qfr_map_keep_prefix*
-
-    (Default "k") Prefix for filter keep functions
-
-    Type: ~
-        string
-
-
-qfr_map_remove_prefix                                    *qfr_map_remove_prefix*
-
-    (Default "r") Prefix for filter remove functions
-
-    Type: ~
-        string
-
-
-qfr_map_grep_prefix                                        *qfr_map_grep_prefix*
-
-    (Default "g") Prefix for grep operations
-
-    Type: ~
-        string
-
-
-qfr_map_sort_prefix                                        *qfr_map_sort_prefix*
-
-    (Default "t") Prefix for sort operations
-
-    Type: ~
-        string
-
-
 Control the preview window with the options below
 TODO: link to preview win section
 
@@ -289,6 +220,15 @@ qfr_set_default_cmds                                      *qfr_set_default_cmds*
 
     Type: ~
         boolean
+
+
+qfr_set_default_maps                                      *qfr_set_default_maps*
+
+    (Default true) Set default keymaps (excluding ftplugin maps)
+    TODO: link to default keymaps section
+
+    Type: ~
+        string
 
 
 ==============================================================================
