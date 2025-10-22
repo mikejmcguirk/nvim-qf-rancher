@@ -1,0 +1,62 @@
+==============================================================================
+Error list husbandry                                       *nvim-qf-rancher.txt*
+
+QfRancherMapData                                              *QfRancherMapData*
+     Mode(s), Plug Map, User Map, Desc, Action
+
+    Variants: ~
+
+
+
+==============================================================================
+Open, close, and resize list wins                                         *Open*
+
+Open.open_qflist_cmd({cargs})                             *Open.open_qflist_cmd*
+
+    Parameters: ~
+        {cargs}  (vim.api.keyset.create_user_command.command_args)
+
+    Returns: ~
+        (nil)
+
+
+Open.open_loclist_cmd({cargs})                           *Open.open_loclist_cmd*
+
+    Parameters: ~
+        {cargs}  (vim.api.keyset.create_user_command.command_args)
+
+    Returns: ~
+        (nil)
+
+
+Open.close_qflist_cmd()                                  *Open.close_qflist_cmd*
+
+    Returns: ~
+        (nil)
+
+
+Open.close_loclist_cmd()                                *Open.close_loclist_cmd*
+
+    Returns: ~
+        (nil)
+
+
+Open.toggle_qflist_cmd({cargs})                         *Open.toggle_qflist_cmd*
+
+    Parameters: ~
+        {cargs}  (vim.api.keyset.create_user_command.command_args)
+
+    Returns: ~
+        (nil)
+
+
+Open.toggle_loclist_cmd({cargs})                       *Open.toggle_loclist_cmd*
+
+    Parameters: ~
+        {cargs}  (vim.api.keyset.create_user_command.command_args)
+
+    Returns: ~
+        (nil)
+
+
+vim:tw=78:ts=8:noet:ft=help:norl:

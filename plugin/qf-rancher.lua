@@ -32,7 +32,7 @@ _G.QFR_MAX_HEIGHT = 10
 local api = vim.api
 local fn = vim.fn
 
----@mod NvimQfRancher Error list husbandry
+---@mod nvim-qf-rancher.txt Error list husbandry
 
 -- ============
 -- == G VARS ==
@@ -743,7 +743,7 @@ if vim.g.qfr_set_default_cmds then
     end, { count = 0, nargs = "?", desc = "Delete one or all lists from the loclist stack" })
 end
 
----@export NvimQfRancher
+---@export nvim-qf-rancher
 
 -- NOTES:
 -- - Any space breaks in annotation comments are intentional to make lemmy-ehlp ignore them
