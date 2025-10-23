@@ -19,7 +19,7 @@ local ef = maps_defer_require("qf-rancher.filter") ---@type QfrFilter
 local eg = maps_defer_require("qf-rancher.grep") ---@type QfrGrep
 local ei = maps_defer_require("qf-rancher.filetype-funcs") ---@type QfRancherFiletypeFuncs
 local en = maps_defer_require("qf-rancher.nav-action") ---@type QfRancherNav
-local eo = maps_defer_require("qf-rancher.open") ---@type QfrOpen
+local rw = maps_defer_require("qf-rancher.windows") ---@type QfrWins
 local ep = maps_defer_require("qf-rancher.preview") ---@type QfRancherPreview
 local es = maps_defer_require("qf-rancher.sort") ---@type QfRancherSort
 
@@ -85,24 +85,38 @@ local function replace_loclist()
 end
 
 -- Mode(s), Plug Map, User Map, Desc, Action
---- @alias QfRancherMapData{[1]:string[], [2]:string, [3]:string, [4]: string, [5]: function}
+--- @alias QfrMapData{ [1]:string[], [2]:string, [3]:string, [4]: string, [5]: function }
+
+-- Cmd, Function, cmd args
+--- @alias QfrCmdData{ [1]:string, [2]:function, [3]:vim.api.keyset.user_command }
 
 -- stylua: ignore
----@type QfRancherMapData[]
+---@type QfrMapData[]
+M.qfr_win_maps = {
+{ nn, "<Plug>(qfr-open-qf-list)",     ql.."p", "Open the quickfix list to [count] height (focus if already open)", function() rw._open_qflist({ height = vim.v.count }) end },
+{ nn, "<Plug>(qfr-open-qf-list-max)", ql.."P", "Open the quickfix list to max height",                             function() rw._open_qflist({ height = QFR_MAX_HEIGHT }) end },
+{ nn, "<Plug>(qfr-close-qf-list)",    ql.."o", "Close the quickfix list",                                          function() rw._close_qflist() end },
+{ nn, "<Plug>(qfr-toggle-qf-list)",   ql..qp,  "Toggle the quickfix list (count sets height on open)",             function() rw._toggle_qflist({})  end },
+{ nn, "<Plug>(qfr-open-loclist)",     ll.."p", "Open the location list to [count] height (focus if already open)", function() rw._open_loclist(cur_win(), { height = vim.v.count }) end },
+{ nn, "<Plug>(qfr-open-loclist-max)", ll.."P", "Open the location list to max height",                             function() rw._open_loclist(cur_win(), { height = QFR_MAX_HEIGHT }) end },
+{ nn, "<Plug>(qfr-close-loclist)",    ll.."o", "Close the location list",                                          function() rw._close_loclist(cur_win()) end },
+{ nn, "<Plug>(qfr-toggle-loclist)",   ll..lp,  "Toggle the location list (count sets height on open)",             function() rw._toggle_loclist(cur_win(), {}) end },
+}
+
+-- stylua: ignore
+---@type QfrCmdData[]
+M.qfr_win_cmds = {
+{ "Qopen",   function(cargs) rw.open_qflist_cmd(cargs) end,    { count = 0, desc = "Open the quickfix list to [count] height (focus if already open)" } },
+{ "Qclose",  function() rw.close_qflist_cmd() end,             { desc = "Close the Quickfix list" } },
+{ "Qtoggle", function(cargs) rw.toggle_qflist_cmd(cargs) end,  { count = 0, desc = "Toggle the quickfix list (count sets height on open)" } },
+{ "Lopen",   function(cargs) rw.open_loclist_cmd(cargs) end,   { count = 0, desc = "Open the location list to [count] height (focus if already open)" } },
+{ "Lclose",  function() rw.close_loclist_cmd() end,            { desc = "Close the location List" } },
+{ "Ltoggle", function(cargs) rw.toggle_loclist_cmd(cargs) end, { count = 0, desc = "Toggle the location list (count sets height on open)" } },
+}
+
+-- stylua: ignore
+---@type QfrMapData[]
 M.qfr_maps = {
--- =======================
--- == OPEN/CLOSE/RESIZE ==
--- =======================
-
-{ nn, "<Plug>(qfr-open-qf-list)",     ql.."p", "Open the quickfix list",               function() eo._open_qflist({ height = vim.v.count }) end },
-{ nn, "<Plug>(qfr-open-qf-list-max)", ql.."P", "Open the quickfix list to max height", function() eo._open_qflist({ height = QFR_MAX_HEIGHT }) end },
-{ nn, "<Plug>(qfr-close-qf-list)",    ql.."o", "Close the quickfix list",              function() eo._close_qflist() end },
-{ nn, "<Plug>(qfr-toggle-qf-list)",   ql..qp, "Toggle the quickfix list",             function() eo._toggle_qflist({})  end },
-{ nn, "<Plug>(qfr-open-loclist)",     ll.."p", "Open the location list",               function() eo._open_loclist(cur_win(), { height = vim.v.count }) end },
-{ nn, "<Plug>(qfr-open-loclist-max)", ll.."P", "Open the location list to max height", function() eo._open_loclist(cur_win(), { height = QFR_MAX_HEIGHT }) end },
-{ nn, "<Plug>(qfr-close-loclist)",    ll.."o", "Close the location list",              function() eo._close_loclist(cur_win()) end },
-{ nn, "<Plug>(qfr-toggle-loclist)",   ll..lp, "Toggle the location list",             function() eo._toggle_loclist(cur_win(), {}) end },
-
 -- ==========
 -- == GREP ==
 -- ==========
@@ -119,7 +133,7 @@ M.qfr_maps = {
 }
 
 -- stylua: ignore
----@type QfRancherMapData[]
+---@type QfrMapData[]
 M.qfr_buf_maps = {
 -- ==========
 -- == GREP ==
@@ -290,7 +304,7 @@ M.qfr_buf_maps = {
 }
 
 -- stylua: ignore
-M.ftplugin_maps = {
+M.qfr_ftplugin_maps = {
 { nn, "<Plug>(qfr-list-del-one)",               function() ei._del_one_list_item() end,          "Delete the current list line" },
 { xx, "<Plug>(qfr-list-visual-del)",            function() ei._visual_del() end,                 "Delete a visual line selection" },
 { nn, "<Plug>(qfr-list-toggle-preview)",        function() ep.toggle_preview_win(cur_win()) end, "Toggle the preview win" },
@@ -314,79 +328,68 @@ M.cmds = {
 -- == DIAGS ==
 -- ============
 
-{"Qdiag", function(cargs) ed.q_diag_cmd(cargs) end, { bang = true, count = 0, nargs = "*", desc = "Send diags to the Quickfix list" }},
-{"Ldiag", function(cargs) ed.l_diag_cmd(cargs) end, { bang = true, count = 0, nargs = "*", desc = "Send buf diags to the Location list" }},
+{ "Qdiag", function(cargs) ed.q_diag_cmd(cargs) end, { bang = true, count = 0, nargs = "*", desc = "Send diags to the Quickfix list" } },
+{ "Ldiag", function(cargs) ed.l_diag_cmd(cargs) end, { bang = true, count = 0, nargs = "*", desc = "Send buf diags to the Location list" } },
 
 -- ============
 -- == FILTER ==
 -- ============
 
-{"Qfilter", function(cargs) ef.q_filter_cmd(cargs) end, { bang = true, count = true, nargs = "*", desc = "Sort quickfix items" }},
-{"Lfilter", function(cargs) ef.l_filter_cmd(cargs) end, { bang = true, count = true, nargs = "*", desc = "Sort loclist items" }},
+{ "Qfilter", function(cargs) ef.q_filter_cmd(cargs) end, { bang = true, count = true, nargs = "*", desc = "Sort quickfix items" } },
+{ "Lfilter", function(cargs) ef.l_filter_cmd(cargs) end, { bang = true, count = true, nargs = "*", desc = "Sort loclist items" } },
 
 -- ==========
 -- == GREP ==
 -- ==========
 
-{"Qgrep", function(cargs) eg.q_grep_cmd(cargs) end, { count = true, nargs = "*", desc = "Grep to the quickfix list" }},
-{"Lgrep", function(cargs) eg.l_grep_cmd(cargs) end, { count = true, nargs = "*", desc = "Grep to the location list" }},
-
--- =======================
--- == OPEN/CLOSE/TOGGLE ==
--- =======================
-
-{"Qopen", function(cargs) eo.open_qflist_cmd(cargs) end, { count = 0, desc = "Open the Quickfix list" }},
-{"Lopen", function(cargs) eo.open_loclist_cmd(cargs) end, { count = 0, desc = "Open the Location List" }},
-{"Qclose", function() eo.close_qflist_cmd() end, { desc = "Close the Quickfix list" }},
-{"Lclose", function() eo.close_loclist_cmd() end, { desc = "Close the Location List" }},
-{"Qtoggle", function(cargs) eo.toggle_qflist_cmd(cargs) end, { count = 0, desc = "Toggle the Quickfix list" }},
-{"Ltoggle", function(cargs) eo.toggle_loclist_cmd(cargs) end, { count = 0, desc = "Toggle the Location List" }},
+{ "Qgrep", function(cargs) eg.q_grep_cmd(cargs) end, { count = true, nargs = "*", desc = "Grep to the quickfix list" } },
+{ "Lgrep", function(cargs) eg.l_grep_cmd(cargs) end, { count = true, nargs = "*", desc = "Grep to the location list" } },
 
 -- ================
 -- == NAV/ACTION ==
 -- ================
 
-{"Qprev", function(cargs) en.q_prev_cmd(cargs) end, { count = 0, desc = "Go to a previous qf entry" }},
-{"Qnext", function(cargs) en.q_next_cmd(cargs) end, { count = 0, desc = "Go to a later qf entry" }},
-{"Qrewind", function(cargs) en.q_rewind_cmd(cargs) end, { count = 0, desc = "Go to the first or count qf entry" }},
-{"Qlast", function(cargs) en.q_last_cmd(cargs) end, { count = 0, desc = "Go to the last or count qf entry" }},
-{"Qq", function(cargs) en.q_q_cmd(cargs) end, { count = 0, desc = "Go to the current qf entry" }},
-{"Qpfile", function(cargs) en.q_pfile_cmd(cargs) end, { count = 0, desc = "Go to the previous qf file" }},
-{"Qnfile", function(cargs) en.q_nfile_cmd(cargs) end, { count = 0, desc = "Go to the next qf file" }},
-{"Lprev", function(cargs) en.l_prev_cmd(cargs) end, { count = 0, desc = "Go to a previous loclist entry" }},
-{"Lnext", function(cargs) en.l_next_cmd(cargs) end, { count = 0, desc = "Go to a later loclist entry" }},
-{"Lrewind", function(cargs) en.l_rewind_cmd(cargs) end, { count = 0, desc = "Go to the first or count loclist entry" }},
-{"Llast", function(cargs) en.l_last_cmd(cargs) end, { count = 0, desc = "Go to the last or count loclist entry" }},
-{"Ll", function(cargs) en.l_l_cmd(cargs) end, { count = 0, desc = "Go to the current loclist entry" }},
-{"Lpfile", function(cargs) en.l_pfile_cmd(cargs) end, { count = 0, desc = "Go to the previous loclist file" }},
-{"Lnfile", function(cargs) en.l_nfile_cmd(cargs) end, { count = 0, desc = "Go to the next loclist file" }},
+{ "Qprev", function(cargs) en.q_prev_cmd(cargs) end, { count = 0, desc = "Go to a previous qf entry" } },
+{ "Qnext", function(cargs) en.q_next_cmd(cargs) end, { count = 0, desc = "Go to a later qf entry" } },
+{ "Qrewind", function(cargs) en.q_rewind_cmd(cargs) end, { count = 0, desc = "Go to the first or count qf entry" } },
+{ "Qlast", function(cargs) en.q_last_cmd(cargs) end, { count = 0, desc = "Go to the last or count qf entry" } },
+{ "Qq", function(cargs) en.q_q_cmd(cargs) end, { count = 0, desc = "Go to the current qf entry" } },
+{ "Qpfile", function(cargs) en.q_pfile_cmd(cargs) end, { count = 0, desc = "Go to the previous qf file" } },
+{ "Qnfile", function(cargs) en.q_nfile_cmd(cargs) end, { count = 0, desc = "Go to the next qf file" } },
+{ "Lprev", function(cargs) en.l_prev_cmd(cargs) end, { count = 0, desc = "Go to a previous loclist entry" } },
+{ "Lnext", function(cargs) en.l_next_cmd(cargs) end, { count = 0, desc = "Go to a later loclist entry" } },
+{ "Lrewind", function(cargs) en.l_rewind_cmd(cargs) end, { count = 0, desc = "Go to the first or count loclist entry" } },
+{ "Llast", function(cargs) en.l_last_cmd(cargs) end, { count = 0, desc = "Go to the last or count loclist entry" } },
+{ "Ll", function(cargs) en.l_l_cmd(cargs) end, { count = 0, desc = "Go to the current loclist entry" } },
+{ "Lpfile", function(cargs) en.l_pfile_cmd(cargs) end, { count = 0, desc = "Go to the previous loclist file" } },
+{ "Lnfile", function(cargs) en.l_nfile_cmd(cargs) end, { count = 0, desc = "Go to the next loclist file" } },
 
 -- ==========
 -- == SORT ==
 -- ==========
 
-{"Qsort", function(cargs) es.q_sort(cargs) end, { bang = true, count = 0, nargs = 1 }},
-{"Lsort", function(cargs) es.l_sort(cargs) end, { bang = true, count = 0, nargs = 1 }},
+{ "Qsort", function(cargs) es.q_sort(cargs) end, { bang = true, count = 0, nargs = 1 } },
+{ "Lsort", function(cargs) es.l_sort(cargs) end, { bang = true, count = 0, nargs = 1 } },
 
 -- ===========
 -- == STACK ==
 -- ===========
 
-{"Qolder", function(cargs) ea.q_older_cmd(cargs) end, { count = 0, desc = "Go to an older qflist" }},
-{"Qnewer", function(cargs) ea.q_newer_cmd(cargs) end, { count = 0, desc = "Go to a newer qflist" }},
-{"Qhistory", function(cargs) ea.q_history_cmd(cargs) end, { count = 0, desc = "View or jump within the quickfix history" }},
-{"Qdelete", function(cargs) ea.q_delete_cmd(cargs) end, { count = 0, nargs = "?", desc = "Delete one or all lists from the quickfix stack" }},
-{"Lolder", function(cargs) ea._l_older_cmd(cargs) end, { count = 0, desc = "Go to an older location list" }},
-{"Lnewer", function(cargs) ea._l_newer_cmd(cargs) end, { count = 0, desc = "Go to a newer location list" }},
-{"Lhistory", function(cargs) ea.l_history_cmd(cargs) end, { count = 0, desc = "View or jump within the loclist history" }},
-{"Ldelete", function(cargs) ea.l_delete_cmd(cargs) end, { count = 0, nargs = "?", desc = "Delete one or all lists from the loclist stack" }},
+{ "Qolder", function(cargs) ea.q_older_cmd(cargs) end, { count = 0, desc = "Go to an older qflist" } },
+{ "Qnewer", function(cargs) ea.q_newer_cmd(cargs) end, { count = 0, desc = "Go to a newer qflist" } },
+{ "Qhistory", function(cargs) ea.q_history_cmd(cargs) end, { count = 0, desc = "View or jump within the quickfix history" } },
+{ "Qdelete", function(cargs) ea.q_delete_cmd(cargs) end, { count = 0, nargs = "?", desc = "Delete one or all lists from the quickfix stack" } },
+{ "Lolder", function(cargs) ea._l_older_cmd(cargs) end, { count = 0, desc = "Go to an older location list" } },
+{ "Lnewer", function(cargs) ea._l_newer_cmd(cargs) end, { count = 0, desc = "Go to a newer location list" } },
+{ "Lhistory", function(cargs) ea.l_history_cmd(cargs) end, { count = 0, desc = "View or jump within the loclist history" } },
+{ "Ldelete", function(cargs) ea.l_delete_cmd(cargs) end, { count = 0, nargs = "?", desc = "Delete one or all lists from the loclist stack" } },
 }
 
 -- NOTE: This table needs to be separate or else the plug mapping pass will map "<nop>", which
 -- causes multiple problems
 
 -- stylua: ignore
----@type QfRancherMapData[]
+---@type QfrMapData[]
 M.default_masks = {
     { nx, "<nop>", ql,     "Avoid falling back to defaults", nil },
     { nx, "<nop>", ll,     "Avoid falling back to defaults", nil },

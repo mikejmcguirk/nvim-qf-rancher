@@ -15,10 +15,13 @@ function _G.Qfr_Defer_Require(require_path)
     })
 end
 
-local eo = Qfr_Defer_Require("qf-rancher.open") ---@type QfrOpen
+-- TODO: Go through all the defer requires in the project and rename them
+local rw = Qfr_Defer_Require("qf-rancher.windows") ---@type QfrWins
 
 local api = vim.api
 local fn = vim.fn
+
+-- LOW: The g variable docs could also be automatically generated
 
 ---@mod nvim-qf-rancher.txt Error list husbandry
 ---@brief [[
@@ -218,7 +221,7 @@ if vim.g.qfr_create_loclist_autocmds then
             if api.nvim_get_option_value("buftype", { buf = buf }) == "quickfix" then return end
 
             vim.schedule(function()
-                eo._close_loclists_by_qf_id(qf_id, { all_tabpages = true })
+                rw._close_loclists_by_qf_id(qf_id, { all_tabpages = true })
             end)
         end,
     })
@@ -244,47 +247,44 @@ end
 -- a struct of arrays organization, which would save a small amount of time, especially if more
 -- defaults are added
 
+-- TODO: I think these table listings can be created in the maps file itself, but want to
+-- do a few more in case a gotcha comes up
+
 local maps = require("qf-rancher.maps")
+local tbls_for_plugs = {
+    maps.qfr_maps,
+    maps.qfr_buf_maps,
+    maps.qfr_win_maps,
+    maps.qfr_ftplugin_maps,
+}
 
 -- Create plug maps
-for _, map in ipairs(maps.qfr_maps) do
-    for _, mode in ipairs(map[1]) do
-        api.nvim_set_keymap(mode, map[2], "", {
-            callback = map[5],
-            desc = map[4],
-            noremap = true,
-        })
-    end
-end
-
-for _, map in ipairs(maps.qfr_buf_maps) do
-    for _, mode in ipairs(map[1]) do
-        api.nvim_set_keymap(mode, map[2], "", {
-            callback = map[5],
-            desc = map[4],
-            noremap = true,
-        })
-    end
-end
-
-for _, map in ipairs(maps.ftplugin_maps) do
-    for _, mode in ipairs(map[1]) do
-        api.nvim_set_keymap(mode, map[2], "", {
-            callback = map[3],
-            desc = map[4],
-            noremap = true,
-        })
+for _, tbl in ipairs(tbls_for_plugs) do
+    for _, map in ipairs(tbl) do
+        for _, mode in ipairs(map[1]) do
+            api.nvim_set_keymap(mode, map[2], "", {
+                callback = map[5],
+                desc = map[4],
+                noremap = true,
+            })
+        end
     end
 end
 
 if vim.g.qfr_set_default_maps then
-    -- Create maps that need to be available at UIEnter
-    for _, map in ipairs(maps.qfr_maps) do
-        for _, mode in ipairs(map[1]) do
-            api.nvim_set_keymap(mode, map[3], map[2], {
-                desc = map[4],
-                noremap = true,
-            })
+    local tbls_for_uienter = {
+        maps.qfr_maps,
+        maps.qfr_win_maps,
+    }
+
+    for _, tbl in ipairs(tbls_for_uienter) do
+        for _, map in ipairs(tbl) do
+            for _, mode in ipairs(map[1]) do
+                api.nvim_set_keymap(mode, map[3], map[2], {
+                    desc = map[4],
+                    noremap = true,
+                })
+            end
         end
     end
 
@@ -297,6 +297,9 @@ if vim.g.qfr_set_default_maps then
         end
     end
 
+    -- TODO: Will need tbls_for_bufnew here as well
+
+    -- DOCUMENT: this behavior
     -- Defer creation of maps that can wait for a buffer to be opened
     api.nvim_create_autocmd({ "BufNew", "BufReadPre" }, {
         group = api.nvim_create_augroup("qfr-buf-maps", {}),
@@ -316,8 +319,15 @@ if vim.g.qfr_set_default_maps then
 end
 
 if vim.g.qfr_set_default_cmds then
-    for _, cmd in ipairs(maps.cmds) do
-        api.nvim_create_user_command(cmd[1], cmd[2], cmd[3])
+    local cmd_tbls = {
+        maps.cmds,
+        maps.qfr_win_cmds,
+    }
+
+    for _, tbl in ipairs(cmd_tbls) do
+        for _, cmd in ipairs(tbl) do
+            api.nvim_create_user_command(cmd[1], cmd[2], cmd[3])
+        end
     end
 end
 

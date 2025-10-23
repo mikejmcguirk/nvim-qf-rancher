@@ -1,4 +1,4 @@
-local eo = Qfr_Defer_Require("qf-rancher.open") --- @type QfrOpen
+local eo = Qfr_Defer_Require("qf-rancher.windows") --- @type QfrWins
 
 local api = vim.api
 local bufmap = api.nvim_buf_set_keymap
@@ -10,7 +10,6 @@ end
 
 -- NOTE: To avoid requires, don't use util g_var function
 
--- DOCUMENT: Which options are set
 if vim.g.qfr_ftplugin_set_opts then
     api.nvim_set_option_value("buflisted", false, { buf = 0 })
     api.nvim_set_option_value("cc", "", { scope = "local" })
@@ -18,7 +17,6 @@ if vim.g.qfr_ftplugin_set_opts then
     api.nvim_set_option_value("spell", false, { scope = "local" })
 end
 
--- DOCUMENT: which defaults are removed
 if vim.g.qfr_ftplugin_demap then
     bufmap(0, "n", "<C-w>v", "<nop>", { noremap = true, nowait = true })
     bufmap(0, "n", "<C-w><C-v>", "<nop>", { noremap = true, nowait = true })
