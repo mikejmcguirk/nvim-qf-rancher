@@ -33,22 +33,10 @@ if not vim.g.qfr_ftplugin_keymap then return end
 
 local in_loclist = fn.win_gettype(0) == "loclist" --- @type boolean
 
--- Just copy the mapping logic since we don't want to require external modules here
-
----@param prefix string
----@return boolean
-local function validate_prefix(prefix)
-    if #prefix ~= 1 then return false end
-    if prefix:match("^[%a]+$") == nil then return false end
-    return true
-end
-
-local qp = string.lower(vim.g.qfr_map_qf_prefix) ---@type string
-qp = validate_prefix(qp) and qp or _QFR_G_VAR_MAP["qfr_map_qf_prefix"][2]
+local qp = "q" ---@type string
 local ql = "<leader>" .. qp ---@type string
 
-local lp = string.lower(vim.g.qfr_map_ll_prefix) ---@type string
-lp = validate_prefix(lp) and lp or _QFR_G_VAR_MAP["qfr_map_ll_prefix"][2]
+local lp = "l" ---@type string
 local ll = "<leader>" .. lp ---@type string
 
 local ip = in_loclist and lp or qp
