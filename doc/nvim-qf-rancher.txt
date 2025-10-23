@@ -282,4 +282,374 @@ Open.toggle_loclist_cmd({cargs})                       *Open.toggle_loclist_cmd*
         (nil)
 
 
+==============================================================================
+Qf Rancher Keymaps                                          *qf-rancher-keymaps*
+
+
+Modes: { n }, Plug: <Plug>(qfr-open-qf-list), Default: <leader>qp
+ Desc: Open the quickfix list
+
+Modes: { n }, Plug: <Plug>(qfr-open-qf-list-max), Default: <leader>qP
+ Desc: Open the quickfix list to max height
+
+Modes: { n }, Plug: <Plug>(qfr-close-qf-list), Default: <leader>qo
+ Desc: Close the quickfix list
+
+Modes: { n }, Plug: <Plug>(qfr-toggle-qf-list), Default: <leader>qq
+ Desc: Toggle the quickfix list
+
+Modes: { n }, Plug: <Plug>(qfr-open-loclist), Default: <leader>lp
+ Desc: Open the location list
+
+Modes: { n }, Plug: <Plug>(qfr-open-loclist-max), Default: <leader>lP
+ Desc: Open the location list to max height
+
+Modes: { n }, Plug: <Plug>(qfr-close-loclist), Default: <leader>lo
+ Desc: Close the location list
+
+Modes: { n }, Plug: <Plug>(qfr-toggle-loclist), Default: <leader>ll
+ Desc: Toggle the location list
+
+Modes: { n, x }, Plug: <Plug>(qfr-grep-cwd), Default: <leader>qgd
+ Desc: Qgrep CWD (vimcase)
+
+Modes: { n, x }, Plug: <Plug>(qfr-grep-cwdX), Default: <leader>qgD
+ Desc: Qgrep CWD (regex)
+
+Modes: { n, x }, Plug: <Plug>(qfr-grep-help), Default: <leader>qgh
+ Desc: Qgrep help (vimcase)
+
+Modes: { n, x }, Plug: <Plug>(qfr-grep-helpX), Default: <leader>qgH
+ Desc: Qgrep help (regex)
+
+Modes: { n, x }, Plug: <Plug>(qfr-lgrep-cwd), Default: <leader>lgd
+ Desc: Lgrep CWD (vimcase)
+
+Modes: { n, x }, Plug: <Plug>(qfr-lgrep-cwdX), Default: <leader>lgD
+ Desc: Lgrep CWD (regex)
+
+Modes: { n, x }, Plug: <Plug>(qfr-lgrep-help), Default: <leader>lgh
+ Desc: Lgrep help (vimcase)
+
+Modes: { n, x }, Plug: <Plug>(qfr-lgrep-helpX), Default: <leader>lgH
+ Desc: Lgrep help (regex)
+
+Modes: { n, x }, Plug: <Plug>(qfr-grep-bufs), Default: <leader>qgu
+ Desc: Qgrep open bufs (vimcase)
+
+Modes: { n, x }, Plug: <Plug>(qfr-grep-bufsX), Default: <leader>qgU
+ Desc: Qgrep open bufs (regex)
+
+Modes: { n, x }, Plug: <Plug>(qfr-lgrep-cbuf), Default: <leader>lgu
+ Desc: Lgrep cur buf (vimcase)
+
+Modes: { n, x }, Plug: <Plug>(qfr-lgrep-cbufX), Default: <leader>lgU
+ Desc: Lgrep cur buf (regex)
+
+Modes: { n }, Plug: <Plug>(qfr-Qdiags-hint), Default: <leader>qin
+ Desc: All buffer diagnostics min hint
+
+Modes: { n }, Plug: <Plug>(qfr-Qdiags-info), Default: <leader>qif
+ Desc: All buffer diagnostics min info
+
+Modes: { n }, Plug: <Plug>(qfr-Qdiags-warn), Default: <leader>qiw
+ Desc: All buffer diagnostics min warn
+
+Modes: { n }, Plug: <Plug>(qfr-Qdiags-error), Default: <leader>qie
+ Desc: All buffer diagnostics min error
+
+Modes: { n }, Plug: <Plug>(qfr-Qdiags-top), Default: <leader>qit
+ Desc: All buffer diagnostics top severity
+
+Modes: { n }, Plug: <Plug>(qfr-Qdiags-HINT), Default: <leader>qiN
+ Desc: All buffer diagnostics only hint
+
+Modes: { n }, Plug: <Plug>(qfr-Qdiags-INFO), Default: <leader>qiF
+ Desc: All buffer diagnostics only info
+
+Modes: { n }, Plug: <Plug>(qfr-Qdiags-WARN), Default: <leader>qiW
+ Desc: All buffer diagnostics only warn
+
+Modes: { n }, Plug: <Plug>(qfr-Qdiags-ERROR), Default: <leader>qiE
+ Desc: All buffer diagnostics only error
+
+Modes: { n }, Plug: <Plug>(qfr-Ldiags-hint), Default: <leader>lin
+ Desc: Cur buf diagnostics min hint
+
+Modes: { n }, Plug: <Plug>(qfr-Ldiags-info), Default: <leader>lif
+ Desc: Cur buf diagnostics min info
+
+Modes: { n }, Plug: <Plug>(qfr-Ldiags-warn), Default: <leader>liw
+ Desc: Cur buf diagnostics min warn
+
+Modes: { n }, Plug: <Plug>(qfr-Ldiags-error), Default: <leader>lie
+ Desc: Cur buf diagnostics min error
+
+Modes: { n }, Plug: <Plug>(qfr-Ldiags-top), Default: <leader>lit
+ Desc: Cur buf diagnostics top severity
+
+Modes: { n }, Plug: <Plug>(qfr-Ldiags-HINT), Default: <leader>liN
+ Desc: Cur buf diagnostics only hint
+
+Modes: { n }, Plug: <Plug>(qfr-Ldiags-INFO), Default: <leader>liF
+ Desc: Cur buf diagnostics only info
+
+Modes: { n }, Plug: <Plug>(qfr-Ldiags-WARN), Default: <leader>liW
+ Desc: Cur buf diagnostics only warn
+
+Modes: { n }, Plug: <Plug>(qfr-Ldiags-ERROR), Default: <leader>liE
+ Desc: Cur buf diagnostics only error
+
+Modes: { n, x }, Plug: <Plug>(qfr-Qfilter-cfilter), Default: <leader>qkl
+ Desc: Qfilter cfilter (vimcase)
+
+Modes: { n, x }, Plug: <Plug>(qfr-Qfilter!-cfilter), Default: <leader>qrl
+ Desc: Qfilter! cfilter (vimcase)
+
+Modes: { n, x }, Plug: <Plug>(qfr-Qfilter-cfilterX), Default: <leader>qkL
+ Desc: Qfilter cfilter (regex)
+
+Modes: { n, x }, Plug: <Plug>(qfr-Qfilter!-cfilterX), Default: <leader>qrL
+ Desc: Qfilter! cfilter (regex)
+
+Modes: { n, x }, Plug: <Plug>(qfr-Lfilter-cfilter), Default: <leader>lkl
+ Desc: Lfilter cfilter (vimcase)
+
+Modes: { n, x }, Plug: <Plug>(qfr-Lfilter!-cfilter), Default: <leader>lrl
+ Desc: Lfilter! cfilter (vimcase)
+
+Modes: { n, x }, Plug: <Plug>(qfr-Lfilter-cfilterX), Default: <leader>lkL
+ Desc: Lfilter cfilter (regex)
+
+Modes: { n, x }, Plug: <Plug>(qfr-Lfilter!-cfilterX), Default: <leader>lrL
+ Desc: Lfilter! cfilter (regex)
+
+Modes: { n, x }, Plug: <Plug>(qfr-Qfilter-fname), Default: <leader>qkf
+ Desc: Qfilter fname (vimcase)
+
+Modes: { n, x }, Plug: <Plug>(qfr-Qfilter!-fname), Default: <leader>qrf
+ Desc: Qfilter! fname (vimcase)
+
+Modes: { n, x }, Plug: <Plug>(qfr-Qfilter-fnameX), Default: <leader>qkF
+ Desc: Qfilter fname (regex)
+
+Modes: { n, x }, Plug: <Plug>(qfr-Qfilter!-fnameX), Default: <leader>qrF
+ Desc: Qfilter! fname (regex)
+
+Modes: { n, x }, Plug: <Plug>(qfr-Lfilter-fname), Default: <leader>lkf
+ Desc: Lfilter fname (vimcase)
+
+Modes: { n, x }, Plug: <Plug>(qfr-Lfilter!-fname), Default: <leader>lrf
+ Desc: Lfilter! fname (vimcase)
+
+Modes: { n, x }, Plug: <Plug>(qfr-Lfilter-fnameX), Default: <leader>lkF
+ Desc: Lfilter fname (regex)
+
+Modes: { n, x }, Plug: <Plug>(qfr-Lfilter!-fnameX), Default: <leader>lrF
+ Desc: Lfilter! fname (regex)
+
+Modes: { n, x }, Plug: <Plug>(qfr-Qfilter-text), Default: <leader>qke
+ Desc: Qfilter text (vimcase)
+
+Modes: { n, x }, Plug: <Plug>(qfr-Qfilter!-text), Default: <leader>qre
+ Desc: Qfilter! text (vimcase)
+
+Modes: { n, x }, Plug: <Plug>(qfr-Qfilter-textX), Default: <leader>qkE
+ Desc: Qfilter text (regex)
+
+Modes: { n, x }, Plug: <Plug>(qfr-Qfilter!-textX), Default: <leader>qrE
+ Desc: Qfilter! text (regex)
+
+Modes: { n, x }, Plug: <Plug>(qfr-Lfilter-text), Default: <leader>lke
+ Desc: Lfilter text (vimcase)
+
+Modes: { n, x }, Plug: <Plug>(qfr-Lfilter!-text), Default: <leader>lre
+ Desc: Lfilter! text (vimcase)
+
+Modes: { n, x }, Plug: <Plug>(qfr-Lfilter-textX), Default: <leader>lkE
+ Desc: Lfilter text (regex)
+
+Modes: { n, x }, Plug: <Plug>(qfr-Lfilter!-textX), Default: <leader>lrE
+ Desc: Lfilter! text (regex)
+
+Modes: { n, x }, Plug: <Plug>(qfr-Qfilter-lnum), Default: <leader>qkn
+ Desc: Qfilter lnum (vimcase)
+
+Modes: { n, x }, Plug: <Plug>(qfr-Qfilter!-lnum), Default: <leader>qrn
+ Desc: Qfilter! lnum (vimcase)
+
+Modes: { n, x }, Plug: <Plug>(qfr-Qfilter-lnumX), Default: <leader>qkN
+ Desc: Qfilter lnum (regex)
+
+Modes: { n, x }, Plug: <Plug>(qfr-Qfilter!-lnumX), Default: <leader>qrN
+ Desc: Qfilter! lnum (regex)
+
+Modes: { n, x }, Plug: <Plug>(qfr-Lfilter-lnum), Default: <leader>lkn
+ Desc: Lfilter lnum (vimcase)
+
+Modes: { n, x }, Plug: <Plug>(qfr-Lfilter!-lnum), Default: <leader>lrn
+ Desc: Lfilter! lnum (vimcase)
+
+Modes: { n, x }, Plug: <Plug>(qfr-Lfilter-lnumX), Default: <leader>lkN
+ Desc: Lfilter lnum (regex)
+
+Modes: { n, x }, Plug: <Plug>(qfr-Lfilter!-lnumX), Default: <leader>lrN
+ Desc: Lfilter! lnum (regex)
+
+Modes: { n, x }, Plug: <Plug>(qfr-Qfilter-type), Default: <leader>qkt
+ Desc: Qfilter type (vimcase)
+
+Modes: { n, x }, Plug: <Plug>(qfr-Qfilter!-type), Default: <leader>qrt
+ Desc: Qfilter! type (vimcase)
+
+Modes: { n, x }, Plug: <Plug>(qfr-Qfilter-typeX), Default: <leader>qkT
+ Desc: Qfilter type (regex)
+
+Modes: { n, x }, Plug: <Plug>(qfr-Qfilter!-typeX), Default: <leader>qrT
+ Desc: Qfilter! type (regex)
+
+Modes: { n, x }, Plug: <Plug>(qfr-Lfilter-type), Default: <leader>lkt
+ Desc: Lfilter type (vimcase)
+
+Modes: { n, x }, Plug: <Plug>(qfr-Lfilter!-type), Default: <leader>lrt
+ Desc: Lfilter! type (vimcase)
+
+Modes: { n, x }, Plug: <Plug>(qfr-Lfilter-typeX), Default: <leader>lkT
+ Desc: Lfilter type (regex)
+
+Modes: { n, x }, Plug: <Plug>(qfr-Lfilter!-typeX), Default: <leader>lrT
+ Desc: Lfilter! type (regex)
+
+Modes: { n }, Plug: <Plug>(qfr-qf-prev), Default: [q
+ Desc: Go to a previous qf entry
+
+Modes: { n }, Plug: <Plug>(qfr-qf-next), Default: ]q
+ Desc: Go to a later qf entry
+
+Modes: { n }, Plug: <Plug>(qfr-qf-rewind), Default: [Q
+ Desc: Go to the first qf entry
+
+Modes: { n }, Plug: <Plug>(qfr-qf-last), Default: ]Q
+ Desc: Go to the last qf entry
+
+Modes: { n }, Plug: <Plug>(qfr-qf-pfile), Default: [<C-q>
+ Desc: Go to the previous qf file
+
+Modes: { n }, Plug: <Plug>(qfr-qf-nfile), Default: ]<C-q>
+ Desc: Go to the next qf file
+
+Modes: { n }, Plug: <Plug>(qfr-ll-prev), Default: [l
+ Desc: Go to a previous loclist entry
+
+Modes: { n }, Plug: <Plug>(qfr-ll-next), Default: ]l
+ Desc: Go to a later loclist entry
+
+Modes: { n }, Plug: <Plug>(qfr-ll-rewind), Default: [L
+ Desc: Go to the first loclist entry
+
+Modes: { n }, Plug: <Plug>(qfr-ll-last), Default: ]L
+ Desc: Go to the last loclist entry
+
+Modes: { n }, Plug: <Plug>(qfr-ll-pfile), Default: [<C-l>
+ Desc: Go to the previous loclist file
+
+Modes: { n }, Plug: <Plug>(qfr-ll-nfile), Default: ]<C-l>
+ Desc: Go to the next loclist file
+
+Modes: { n }, Plug: <Plug>(qfr-qsort-fname-asc), Default: <leader>qtf
+ Desc: Qsort by fname asc
+
+Modes: { n }, Plug: <Plug>(qfr-qsort-fname-desc), Default: <leader>qtF
+ Desc: Qsort by fname desc
+
+Modes: { n }, Plug: <Plug>(qfr-qsort-fname-diag-asc), Default: <leader>qtif
+ Desc: Qsort by fname_diag asc
+
+Modes: { n }, Plug: <Plug>(qfr-qsort-fname-diag-desc), Default: <leader>qtiF
+ Desc: Qsort by fname_diag desc
+
+Modes: { n }, Plug: <Plug>(qfr-qsort-severity-asc), Default: <leader>qtis
+ Desc: Qsort by severity asc
+
+Modes: { n }, Plug: <Plug>(qfr-qsort-severity-desc), Default: <leader>qtiS
+ Desc: Qsort by severity desc
+
+Modes: { n }, Plug: <Plug>(qfr-qsort-text-asc), Default: <leader>qte
+ Desc: Qsort by text asc
+
+Modes: { n }, Plug: <Plug>(qfr-qsort-text-desc), Default: <leader>qtE
+ Desc: Qsort by text desc
+
+Modes: { n }, Plug: <Plug>(qfr-qsort-type-asc), Default: <leader>qtt
+ Desc: Qsort by type asc
+
+Modes: { n }, Plug: <Plug>(qfr-qsort-type-desc), Default: <leader>qtT
+ Desc: Qsort by type desc
+
+Modes: { n }, Plug: <Plug>(qfr-lsort-fname-asc), Default: <leader>ltf
+ Desc: Lsort by fname asc
+
+Modes: { n }, Plug: <Plug>(qfr-lsort-fname-desc), Default: <leader>ltF
+ Desc: Lsort by fname desc
+
+Modes: { n }, Plug: <Plug>(qfr-lsort-fname-diag-asc), Default: <leader>ltif
+ Desc: Lsort by fname_diag asc
+
+Modes: { n }, Plug: <Plug>(qfr-lsort-fname-diag-desc), Default: <leader>ltiF
+ Desc: Lsort by fname_diag desc
+
+Modes: { n }, Plug: <Plug>(qfr-lsort-severity-asc), Default: <leader>ltis
+ Desc: Lsort by severity asc
+
+Modes: { n }, Plug: <Plug>(qfr-lsort-severity-desc), Default: <leader>ltiS
+ Desc: Lsort by severity desc
+
+Modes: { n }, Plug: <Plug>(qfr-lsort-text-asc), Default: <leader>lte
+ Desc: Lsort by text asc
+
+Modes: { n }, Plug: <Plug>(qfr-lsort-text-desc), Default: <leader>ltE
+ Desc: Lsort by text desc
+
+Modes: { n }, Plug: <Plug>(qfr-lsort-type-asc), Default: <leader>ltt
+ Desc: Lsort by type asc
+
+Modes: { n }, Plug: <Plug>(qfr-lsort-type-desc), Default: <leader>ltT
+ Desc: Lsort by type desc
+
+Modes: { n }, Plug: <Plug>(qfr-qf-older), Default: <leader>q[
+ Desc: Go to an older qflist
+
+Modes: { n }, Plug: <Plug>(qfr-qf-newer), Default: <leader>q]
+ Desc: Go to a newer qflist
+
+Modes: { n }, Plug: <Plug>(qfr-qf-history), Default: <leader>qQ
+ Desc: View or jump within the quickfix history
+
+Modes: { n }, Plug: <Plug>(qfr-qf-history-open), Default: <leader>q<C-q>
+ Desc: Open and jump within the quickfix history
+
+Modes: { n }, Plug: <Plug>(qfr-qf-del), Default: <leader>qe
+ Desc: Delete a list from the quickfix stack
+
+Modes: { n }, Plug: <Plug>(qfr-qf-del-all), Default: <leader>qE
+ Desc: Delete all items from the quickfix stack
+
+Modes: { n }, Plug: <Plug>(qfr-ll-older), Default: <leader>l[
+ Desc: Go to an older location list
+
+Modes: { n }, Plug: <Plug>(qfr-ll-newer), Default: <leader>l]
+ Desc: Go to a newer location list
+
+Modes: { n }, Plug: <Plug>(qfr-ll-history), Default: <leader>lL
+ Desc: View or jump within the loclist history
+
+Modes: { n }, Plug: <Plug>(qfr-ll-history-open), Default: <leader>l<C-l>
+ Desc: Open and jump within the loclist history
+
+Modes: { n }, Plug: <Plug>(qfr-ll-del), Default: <leader>le
+ Desc: Delete a list from the loclist stack
+
+Modes: { n }, Plug: <Plug>(qfr-ll-del-all), Default: <leader>lE
+ Desc: Delete all items from the loclist stack
+
 vim:tw=78:ts=8:noet:ft=help:norl:

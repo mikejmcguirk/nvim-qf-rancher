@@ -1,3 +1,4 @@
 {
-  "diagnostics.disable": ["trailing-space"]
+  "diagnostics.disable": ["trailing-space",
+        "different-requires"]
 }
