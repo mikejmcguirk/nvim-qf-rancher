@@ -21,12 +21,7 @@ end
 local maps_tbls = require("lua.qf-rancher.maps")
 local doc_tbls = maps_tbls.doc_tbls ---@type { [1]: string, [2]:QfrMapData[], [3]: QfrCmdData[] }[]
 local doc_paths = {} ---@type {[1]:string, [2]:string[] }[]
-local cmd_parts = {
-    "lemmy-help",
-    "-l",
-    '"compact"',
-    "plugin/qf-rancher.lua",
-} ---@type string[]
+local cmd_parts = { "lemmy-help", "-l", '"compact"', "plugin/qf-rancher.lua" } ---@type string[]
 
 for _, tbl in ipairs(doc_tbls) do
     local map_tbl = tbl[2] ---@type QfrMapData[]
@@ -35,9 +30,12 @@ for _, tbl in ipairs(doc_tbls) do
     local lines = {} ---@type string[]
     ---@type string
     local modname = "qf-rancher-" .. tbl[1] .. "-controls" ---@type string
+    local modtag = "qfr-" .. tbl[1] .. "-controls" ---@type string
     local titlecase = string.upper(string.sub(tbl[1], 1, 1)) .. string.sub(tbl[1], 2)
     lines[#lines + 1] = "---@mod " .. modname .. " Qfr " .. titlecase .. " Controls"
+    lines[#lines + 1] = "---@tag " .. modtag
     lines[#lines + 1] = "---@brief [["
+    lines[#lines + 1] = "---"
 
     for _, map in ipairs(map_tbl) do
         add_map(map, lines)

@@ -6,6 +6,11 @@ local api = vim.api
 local fn = vim.fn
 
 ---@mod Window Open, close, and resize list wins
+---@tag qf-rancher-window
+---@tag qfr-window
+---@brief [[
+---
+---@brief ]]
 
 --- @class QfrWins
 local Window = {}

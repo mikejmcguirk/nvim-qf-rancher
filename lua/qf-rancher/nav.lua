@@ -6,6 +6,11 @@ local api = vim.api
 local fn = vim.fn
 
 ---@mod Nav Navigate lists
+---@tag qf-rancher-nav
+---@tag qfr-nav
+---@brief [[
+---
+---@brief ]]
 
 --- @class QfRancherNav
 local Nav = {}

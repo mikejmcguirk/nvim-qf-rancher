@@ -43,11 +43,14 @@ local fn = vim.fn
 
 
 ---@mod qf-rancher-installation Installation
+---@tag qfr-installation
 ---TODO:
 
----@mod qfr-config Configuration
+---@mod qf-rancher-config Configuration
+---@tag qfr-config
 
 ---@brief [[
+---
 ---Qfr is configured using vim.g variables. For lazy.nvim users, make sure to
 ---set thse in the "init" section of your plugin spec
 ---@brief ]]
