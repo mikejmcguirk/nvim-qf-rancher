@@ -92,7 +92,7 @@ local function handle_orphan(list_win, buf_win, finish)
     et._set_stack(buf_win, stack)
 
     api.nvim_set_current_win(buf_win)
-    eo._open_loclist(buf_win, { keep_win = finish == "focusWin" })
+    eo.open_loclist(buf_win, { keep_win = finish == "focusWin" })
 
     if eu._get_g_var("qfr_debug_assertions") then
         local cur_win = api.nvim_get_current_win() ---@type integer

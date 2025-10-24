@@ -563,11 +563,6 @@ end
 -- == OPEN TYPES ==
 -- ================
 
----@class QfrListOpenOpts
----@field height? integer
----@field keep_win? boolean
----@field nop_if_open? boolean
-
 ---@param open_opts QfrListOpenOpts
 ---@return nil
 function M._validate_open_opts(open_opts)

@@ -354,11 +354,11 @@ end
 -- - :h compiler-select
 -- MID: Add ftplugin files that use rancher, such as make commands piped to the system module
 -- MID: The open mappings and such should work in visual mode
+
 -- LOW: If we explore the idea of editing the qf buffer, the best way to do it seems to be to
 -- treat "edit mode" as a distinct thing, where it can then be saved and propagate the changes
 -- - https://github.com/gabrielpoca/replacer.nvim
 -- - https://github.com/stefandtw/quickfix-reflector.vim
-
 -- LOW: A way to copy/replace/merge whole lists
 -- LOW: Is there a way to bridge lists between the qf and loclists?
 -- LOW: View adjustments should take into account scrolloff and screenlines so that if the
@@ -378,6 +378,12 @@ end
 -- LOW: General cmd parsing: https://github.com/niuiic/quickfix.nvim
 -- LOW: Somehow auto-generate the keymaps. Would help with docgen
 -- LOW: Use a g:var to control regex case sensitivity
+-- LOW: The in-process LSP idea is interesting for how to work with the qflist. You could make
+-- code actions based on LSP entries. For example, rather than having to run a filter cmd, you
+-- could use gra then chose to remove all entries from that buffer. Or you could put sorts behind
+-- code actions. It would be useful to see them all in a menu. The idea of having hover windows
+-- in the qflist is also interesting, to show more info about the entry, but I'm not sure you
+-- need the lsp for that
 
 -- DOCUMENT: vim.regex currently uses case sensitive default behavior
 -- DOCUMENT: cmds are not designed to be run in visual mode

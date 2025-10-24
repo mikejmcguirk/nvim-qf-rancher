@@ -96,13 +96,13 @@ M.doc_tbls = {} ---@type { [1]: string, [2]:QfrMapData[], [3]: QfrCmdData[] }[]
 -- stylua: ignore
 ---@type QfrMapData[]
 M.qfr_win_maps = {
-{ nn, "<Plug>(qfr-open-qf-list)",     ql.."p", "Open the quickfix list to [count] height (focus if already open)", function() rw._open_qflist({ height = vim.v.count }) end },
-{ nn, "<Plug>(qfr-open-qf-list-max)", ql.."P", "Open the quickfix list to max height",                             function() rw._open_qflist({ height = QFR_MAX_HEIGHT }) end },
-{ nn, "<Plug>(qfr-close-qf-list)",    ql.."o", "Close the quickfix list",                                          function() rw._close_qflist() end },
+{ nn, "<Plug>(qfr-open-qf-list)",     ql.."p", "Open the quickfix list to [count] height (focus if already open)", function() rw.open_qflist({ height = vim.v.count }) end },
+{ nn, "<Plug>(qfr-open-qf-list-max)", ql.."P", "Open the quickfix list to max height",                             function() rw.open_qflist({ height = QFR_MAX_HEIGHT }) end },
+{ nn, "<Plug>(qfr-close-qf-list)",    ql.."o", "Close the quickfix list",                                          function() rw.close_qflist() end },
 { nn, "<Plug>(qfr-toggle-qf-list)",   ql..qp,  "Toggle the quickfix list (count sets height on open)",             function() rw._toggle_qflist({})  end },
-{ nn, "<Plug>(qfr-open-loclist)",     ll.."p", "Open the location list to [count] height (focus if already open)", function() rw._open_loclist(cur_win(), { height = vim.v.count }) end },
-{ nn, "<Plug>(qfr-open-loclist-max)", ll.."P", "Open the location list to max height",                             function() rw._open_loclist(cur_win(), { height = QFR_MAX_HEIGHT }) end },
-{ nn, "<Plug>(qfr-close-loclist)",    ll.."o", "Close the location list",                                          function() rw._close_loclist(cur_win()) end },
+{ nn, "<Plug>(qfr-open-loclist)",     ll.."p", "Open the location list to [count] height (focus if already open)", function() rw.open_loclist(cur_win(), { height = vim.v.count }) end },
+{ nn, "<Plug>(qfr-open-loclist-max)", ll.."P", "Open the location list to max height",                             function() rw.open_loclist(cur_win(), { height = QFR_MAX_HEIGHT }) end },
+{ nn, "<Plug>(qfr-close-loclist)",    ll.."o", "Close the location list",                                          function() rw.close_loclist(cur_win()) end },
 { nn, "<Plug>(qfr-toggle-loclist)",   ll..lp,  "Toggle the location list (count sets height on open)",             function() rw._toggle_loclist(cur_win(), {}) end },
 }
 

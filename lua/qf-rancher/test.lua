@@ -31,7 +31,7 @@ local function base_open_qflist()
     assert(start_wintype ~= "quickfix")
     local start_win = vim.api.nvim_get_current_win()
 
-    require("qf-rancher.window")._open_qflist({ keep_win = false })
+    require("qf-rancher.window").open_qflist({ keep_win = false })
 
     assert(vim.fn.win_gettype() == "quickfix")
     assert(vim.api.nvim_get_current_win() ~= start_wintype)
@@ -42,7 +42,7 @@ local function open_qflist_keep_win()
     assert(start_wintype ~= "quickfix")
     local start_win = vim.api.nvim_get_current_win()
 
-    require("qf-rancher.window")._open_qflist({ keep_win = true })
+    require("qf-rancher.window").open_qflist({ keep_win = true })
 
     assert(vim.fn.win_gettype() == start_wintype)
     assert(vim.api.nvim_get_current_win() == start_win)

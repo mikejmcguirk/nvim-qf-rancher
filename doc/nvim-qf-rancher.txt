@@ -278,6 +278,146 @@ Cmd: Ltoggle
 Desc: Toggle the location list (count sets height on open)
 
 ==============================================================================
-Open, close, and resize list wins                                         *Open*
+Open, close, and resize list wins                                       *Window*
+
+QfrListOpenOpts                                                *QfrListOpenOpts*
+
+    Fields: ~
+        {height?}       (integer) Height the list should be set to
+        {keep_win?}     (boolean) Stay in current window when opening the list?
+        {nop_if_open?}  (boolean) Do not print messages or focus on the list win
+
+
+Window.open_qflist({opts})                                  *Window.open_qflist*
+    - If any location lists are open in the same tabpage, they will be
+      automatically closed before the qflist is opened
+    - If the quickfix list is already open, it will be focused
+    - If a height is provided, and "nop_if_open" is not true, the qflist will
+      be resized regardless of whether or not it is already open
+
+    Parameters: ~
+        {opts}  (QfrListOpenOpts)
+
+    Returns: ~
+        (boolean)
+
+
+Window.open_loclist({src_win}, {opts})                     *Window.open_loclist*
+    - If no location list is present for the source window, the function will
+      exit
+    - If the quickfix list is open in the same tabpage, it will be closed
+      before the location list is opened
+    - If the location list is already open, it will be focused
+    - If a height is provided, and "nop_if_open" is not true, the location
+      list will be resized regardless of whether or not it is already open
+
+    Parameters: ~
+        {src_win}  (integer) Location list window context
+        {opts}     (QfrListOpenOpts)
+
+    Returns: ~
+        (boolean)
+
+
+Window.close_qflist()                                      *Window.close_qflist*
+    - If switchbuf contains uselast, focus will be changed to the alternate
+      window if it is available
+
+    Returns: ~
+        (boolean)
+
+
+Window.close_loclist({src_win})                           *Window.close_loclist*
+    -If switchbuf contains uselast, focus will be changed to the alternate
+     window if it is available
+    - All location list windows sharing a |quickfix-ID| with the current
+      window context will also be closed
+
+    Parameters: ~
+        {src_win}  (integer) Location list window context
+
+    Returns: ~
+        (boolean)
+
+
+Window._toggle_qflist({opts})                            *Window._toggle_qflist*
+    opts.nop_if_open will be automatically set to true
+
+    Parameters: ~
+        {opts}  (QfrListOpenOpts)
+
+    Returns: ~
+        (nil)
+
+
+                                                        *Window._toggle_loclist*
+Window._toggle_loclist({src_win}, {opts})
+    opts.nop_if_open will be automatically set to true
+
+    Parameters: ~
+        {src_win}  (integer)
+        {opts}     (QfrListOpenOpts)
+
+    Returns: ~
+        (nil)
+
+
+Window.open_qflist_cmd({cargs})                         *Window.open_qflist_cmd*
+    Callback function for mapping quickfix open to a command. Expects
+    count = 0 in the user_command table
+
+    Parameters: ~
+        {cargs}  (vim.api.keyset.create_user_command.command_args)
+
+    Returns: ~
+        (nil)
+
+
+Window.open_loclist_cmd({cargs})                       *Window.open_loclist_cmd*
+    Callback function for mapping loclist open to a command. Expects
+    count = 0 in the user_command table
+
+    Parameters: ~
+        {cargs}  (vim.api.keyset.create_user_command.command_args)
+
+    Returns: ~
+        (nil)
+
+
+Window.close_qflist_cmd()                              *Window.close_qflist_cmd*
+    Callback function to map qflist close to a command
+
+    Returns: ~
+        (nil)
+
+
+Window.close_loclist_cmd()                            *Window.close_loclist_cmd*
+    Callback function to map loclist close to a command
+
+    Returns: ~
+        (nil)
+
+
+Window.toggle_qflist_cmd({cargs})                     *Window.toggle_qflist_cmd*
+    Callback function to map qflist toggle to a command. Expects count = 0
+    in the user_command table
+
+    Parameters: ~
+        {cargs}  (vim.api.keyset.create_user_command.command_args)
+
+    Returns: ~
+        (nil)
+
+
+Window.toggle_loclist_cmd({cargs})                   *Window.toggle_loclist_cmd*
+    Callback function to map loclist toggle to a command. Expects count = 0
+    in the user_command table
+
+    Parameters: ~
+        {cargs}  (vim.api.keyset.create_user_command.command_args)
+
+    Returns: ~
+        (nil)
+
 
 vim:tw=78:ts=8:noet:ft=help:norl:
