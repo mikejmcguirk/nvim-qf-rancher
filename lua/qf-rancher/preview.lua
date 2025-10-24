@@ -317,6 +317,8 @@ local function get_win_cfg(list_win, item_buf)
     local min_x = MIN_WIDTH + (padding * 2) + preview_border_cells ---@type integer
     local min_y = MIN_HEIGHT + preview_border_cells ---@type integer
 
+    -- Disable diag because the win_config border annotation does not accept "bold" or ""
+    ---@diagnostic disable-next-line: assign-type-mismatch
     local base_cfg = { border = border, focusable = false } ---@type vim.api.keyset.win_config
     base_cfg = item_buf and vim.tbl_extend("force", base_cfg, get_title_cfg(item_buf)) or base_cfg
     ---@type vim.api.keyset.win_config
