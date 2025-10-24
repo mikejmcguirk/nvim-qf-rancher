@@ -178,8 +178,8 @@ M.qfr_stack_cmds = {
 { "Qnewer", function(cargs) ra.q_newer_cmd(cargs) end, { count = 0, desc = "Go to the [count] newer quickfix list. Count is wrapping" } },
 { "Qhistory", function(cargs) ra.q_history_cmd(cargs) end, { count = 0, desc = "Jump to [count] list in the quickfix stack or show the entire stack" } },
 { "Qdelete", function(cargs) ra.q_delete_cmd(cargs) end, { count = 0, nargs = "?", desc = 'Delete [count] list "all" lists from the quickfix stack' } },
-{ "Lolder", function(cargs) ra._l_older_cmd(cargs) end, { count = 0, desc = "Go to the [count] older location list. Count is wrapping" } },
-{ "Lnewer", function(cargs) ra._l_newer_cmd(cargs) end, { count = 0, desc = "Go to the [count] newer location list. Count is wrapping" } },
+{ "Lolder", function(cargs) ra.l_older_cmd(cargs) end, { count = 0, desc = "Go to the [count] older location list. Count is wrapping" } },
+{ "Lnewer", function(cargs) ra.l_newer_cmd(cargs) end, { count = 0, desc = "Go to the [count] newer location list. Count is wrapping" } },
 { "Lhistory", function(cargs) ra.l_history_cmd(cargs) end, { count = 0, desc = "Jump to [count] list in the loclist stack or show the entire stack" } },
 { "Ldelete", function(cargs) ra.l_delete_cmd(cargs) end, { count = 0, nargs = "?", desc = 'Delete [count] list or "all" lists from the loclist stack' } },
 }

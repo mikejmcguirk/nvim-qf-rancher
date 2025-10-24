@@ -5,7 +5,7 @@ local ey = Qfr_Defer_Require("qf-rancher.types") ---@type QfrTypes
 
 local api = vim.api
 
----@mod Stack Work with the qf stack
+---@mod Stack View and edit the list stack
 ---@tag qf-rancher-stack
 ---@tag qfr-stack
 ---@brief [[
