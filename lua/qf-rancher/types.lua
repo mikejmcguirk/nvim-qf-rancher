@@ -673,12 +673,6 @@ M._default_sync_opt = "async"
 -- MID: Pass the full ListOpenOpts in here. This would allow for more flexibility with how
 -- the history function behaves
 
----@class QfrHistoryOpts
----@field open_list? boolean
----@field default? "cur_list"|"show_stack"
----@field keep_win? boolean
----@field silent? boolean
-
 ---@param opts QfrHistoryOpts
 ---@return nil
 function M._validate_history_opts(opts)

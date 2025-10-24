@@ -317,8 +317,7 @@ end
 
 -- MID: Add a "max" or "maxheight" arg, or maybe use bang, to open to max height from the cmd
 
----Callback function for mapping quickfix open to a command. Expects
----count = 0 in the user_command table
+---Qopen cmd callback. Expects count = 0 in the user_command table
 ---@param cargs vim.api.keyset.create_user_command.command_args
 ---@return nil
 function Window.open_qflist_cmd(cargs)
@@ -326,8 +325,7 @@ function Window.open_qflist_cmd(cargs)
     Window.open_qflist({ height = count })
 end
 
----Callback function for mapping loclist open to a command. Expects
----count = 0 in the user_command table
+---Lopen cmd callback. Expects count = 0 in the user_command table
 ---@param cargs vim.api.keyset.create_user_command.command_args
 ---@return nil
 function Window.open_loclist_cmd(cargs)
@@ -336,20 +334,19 @@ function Window.open_loclist_cmd(cargs)
     Window.open_loclist(src_win, { height = count })
 end
 
----Callback function to map qflist close to a command
+---Qclose cmd callback
 ---@return nil
 function Window.close_qflist_cmd()
     Window.close_qflist()
 end
 
----Callback function to map loclist close to a command
+---Lclose cmd callback
 ---@return nil
 function Window.close_loclist_cmd()
     Window.close_loclist(api.nvim_get_current_win())
 end
 
----Callback function to map qflist toggle to a command. Expects count = 0
----in the user_command table
+---Qtoggle cmd callback. Expects count = 0 in the user_command table
 ---@param cargs vim.api.keyset.create_user_command.command_args
 ---@return nil
 function Window.toggle_qflist_cmd(cargs)
@@ -357,8 +354,7 @@ function Window.toggle_qflist_cmd(cargs)
     Window._toggle_qflist({ height = count })
 end
 
----Callback function to map loclist toggle to a command. Expects count = 0
----in the user_command table
+---Ltoggle cmd callback. Expects count = 0 in the user_command table
 ---@param cargs vim.api.keyset.create_user_command.command_args
 ---@return nil
 function Window.toggle_loclist_cmd(cargs)

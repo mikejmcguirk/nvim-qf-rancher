@@ -19,8 +19,11 @@ and location lists:
 ==============================================================================
 Installation                                           *qf-rancher-installation*
 
+                                                              *qfr-installation*
 ==============================================================================
-Configuration                                                       *qfr-config*
+Configuration                                                *qf-rancher-config*
+
+                                                                    *qfr-config*
 
 Qfr is configured using vim.g variables. For lazy.nvim users, make sure to
 set thse in the "init" section of your plugin spec
@@ -222,17 +225,23 @@ qfr_set_default_cmds                                      *qfr_set_default_cmds*
         boolean
 
 
-qfr_set_default_maps                                      *qfr_set_default_maps*
+qfr_set_default_keymaps                                *qfr_set_default_keymaps*
 
     (Default true) Set default keymaps (excluding ftplugin maps)
-    TODO: link to default keymaps section
+    NOTE: All <Plug> maps are created at startup regardless of this option's
+    value. If this option is true, The Window maps (|qfr-window-controls|) and
+    and the grep maps (|qfr-grep-maps|) for CWD and help will be created at
+    startup. The others will be deferred until BufNew or BufReadPre
 
     Type: ~
-        string
+        boolean
 
 
 ==============================================================================
-Qfr Window Controls                                 *qf-rancher-window-controls*
+Qfr Window controls                                 *qf-rancher-window-controls*
+
+                                                            *qfr-window-keymaps*
+                                                           *qfr-window-commands*
 
 
 Modes: { n }, Plug: <Plug>(qfr-open-qf-list), Default: <leader>qp
@@ -279,6 +288,10 @@ Desc: Toggle the location list (count sets height on open)
 
 ==============================================================================
 Open, close, and resize list wins                                       *Window*
+
+                                                             *qf-rancher-window*
+                                                                    *qfr-window*
+
 
 QfrListOpenOpts                                                *QfrListOpenOpts*
 
@@ -363,8 +376,7 @@ Window._toggle_loclist({src_win}, {opts})
 
 
 Window.open_qflist_cmd({cargs})                         *Window.open_qflist_cmd*
-    Callback function for mapping quickfix open to a command. Expects
-    count = 0 in the user_command table
+    Qopen cmd callback. Expects count = 0 in the user_command table
 
     Parameters: ~
         {cargs}  (vim.api.keyset.create_user_command.command_args)
@@ -374,8 +386,7 @@ Window.open_qflist_cmd({cargs})                         *Window.open_qflist_cmd*
 
 
 Window.open_loclist_cmd({cargs})                       *Window.open_loclist_cmd*
-    Callback function for mapping loclist open to a command. Expects
-    count = 0 in the user_command table
+    Lopen cmd callback. Expects count = 0 in the user_command table
 
     Parameters: ~
         {cargs}  (vim.api.keyset.create_user_command.command_args)
@@ -385,22 +396,21 @@ Window.open_loclist_cmd({cargs})                       *Window.open_loclist_cmd*
 
 
 Window.close_qflist_cmd()                              *Window.close_qflist_cmd*
-    Callback function to map qflist close to a command
+    Qclose cmd callback
 
     Returns: ~
         (nil)
 
 
 Window.close_loclist_cmd()                            *Window.close_loclist_cmd*
-    Callback function to map loclist close to a command
+    Lclose cmd callback
 
     Returns: ~
         (nil)
 
 
 Window.toggle_qflist_cmd({cargs})                     *Window.toggle_qflist_cmd*
-    Callback function to map qflist toggle to a command. Expects count = 0
-    in the user_command table
+    Qtoggle cmd callback. Expects count = 0 in the user_command table
 
     Parameters: ~
         {cargs}  (vim.api.keyset.create_user_command.command_args)
@@ -410,8 +420,7 @@ Window.toggle_qflist_cmd({cargs})                     *Window.toggle_qflist_cmd*
 
 
 Window.toggle_loclist_cmd({cargs})                   *Window.toggle_loclist_cmd*
-    Callback function to map loclist toggle to a command. Expects count = 0
-    in the user_command table
+    Ltoggle cmd callback. Expects count = 0 in the user_command table
 
     Parameters: ~
         {cargs}  (vim.api.keyset.create_user_command.command_args)
@@ -421,7 +430,10 @@ Window.toggle_loclist_cmd({cargs})                   *Window.toggle_loclist_cmd*
 
 
 ==============================================================================
-Qfr Nav Controls                                       *qf-rancher-nav-controls*
+Qfr Nav controls                                       *qf-rancher-nav-controls*
+
+                                                               *qfr-nav-keymaps*
+                                                              *qfr-nav-commands*
 
 
 Modes: { n }, Plug: <Plug>(qfr-qf-prev), Default: [q
@@ -504,6 +516,10 @@ Desc: Go to the [count] next quickfix file. Wrap to the first file
 
 ==============================================================================
 Navigate lists                                                             *Nav*
+
+                                                                *qf-rancher-nav*
+                                                                       *qfr-nav*
+
 
 NOTE: All navigation commands will auto-center the buffer view if
 g:qfr_auto_center_result is true
@@ -612,7 +628,7 @@ Nav.l_last({src_win}, {count})                                      *Nav.l_last*
 
 
 Nav.q_pfile({count})                                               *Nav.q_pfile*
-    Note that, while the p/nfile commands will wrap to the first or last file
+    NOTE: While the p/nfile commands will wrap to the first or last file
     when trying to navigate past the end, the count cannot be used to wrap to a
     specific entry like with the next/prev commands
 
@@ -653,7 +669,7 @@ Nav.l_nfile({src_win}, {count})                                    *Nav.l_nfile*
 
 
 Nav.q_prev_cmd({cargs})                                         *Nav.q_prev_cmd*
-    Callback to map Qprev to a cmd. Expects count = 0 in the user_command
+    Qprev cmd callback. Expects count = 0 in the user_command table
 
     Parameters: ~
         {cargs}  (vim.api.keyset.create_user_command.command_args)
@@ -663,7 +679,7 @@ Nav.q_prev_cmd({cargs})                                         *Nav.q_prev_cmd*
 
 
 Nav.q_next_cmd({cargs})                                         *Nav.q_next_cmd*
-    Callback to map Qnext to a cmd. Expects count = 0 in the user_command
+    Qnext cmd callback. Expects count = 0 in the user_command table
 
     Parameters: ~
         {cargs}  (vim.api.keyset.create_user_command.command_args)
@@ -673,7 +689,7 @@ Nav.q_next_cmd({cargs})                                         *Nav.q_next_cmd*
 
 
 Nav.l_prev_cmd({cargs})                                         *Nav.l_prev_cmd*
-    Callback to map Lprev to a cmd. Expects count = 0 in the user_command
+    Lprev cmd callback. Expects count = 0 in the user_command table
 
     Parameters: ~
         {cargs}  (vim.api.keyset.create_user_command.command_args)
@@ -683,7 +699,6 @@ Nav.l_prev_cmd({cargs})                                         *Nav.l_prev_cmd*
 
 
 Nav.l_next_cmd({cargs})                                         *Nav.l_next_cmd*
-    Callback to map Lnext to a cmd. Expects count = 0 in the user_command
 
     Parameters: ~
         {cargs}  (vim.api.keyset.create_user_command.command_args)
@@ -693,7 +708,7 @@ Nav.l_next_cmd({cargs})                                         *Nav.l_next_cmd*
 
 
 Nav.q_q_cmd({cargs})                                               *Nav.q_q_cmd*
-    Callback to map Qq to a cmd. Expects count = 0 in the user_command
+    Qq cmd callback. Expects count = 0 in the user_command table
 
     Parameters: ~
         {cargs}  (vim.api.keyset.create_user_command.command_args)
@@ -703,7 +718,6 @@ Nav.q_q_cmd({cargs})                                               *Nav.q_q_cmd*
 
 
 Nav.l_l_cmd({cargs})                                               *Nav.l_l_cmd*
-    Callback to map Ll to a cmd. Expects count = 0 in the user_command
 
     Parameters: ~
         {cargs}  (vim.api.keyset.create_user_command.command_args)
@@ -713,7 +727,7 @@ Nav.l_l_cmd({cargs})                                               *Nav.l_l_cmd*
 
 
 Nav.q_rewind_cmd({cargs})                                     *Nav.q_rewind_cmd*
-    Callback to map Qrewind to a cmd. Expects count = 0 in the user_command
+    Qrewind cmd callback. Expects count = 0 in the user_command table
 
     Parameters: ~
         {cargs}  (vim.api.keyset.create_user_command.command_args)
@@ -723,7 +737,7 @@ Nav.q_rewind_cmd({cargs})                                     *Nav.q_rewind_cmd*
 
 
 Nav.q_last_cmd({cargs})                                         *Nav.q_last_cmd*
-    Callback to map Qlast to a cmd. Expects count = 0 in the user_command
+    Qlast cmd callback. Expects count = 0 in the user_command table
 
     Parameters: ~
         {cargs}  (vim.api.keyset.create_user_command.command_args)
@@ -733,7 +747,7 @@ Nav.q_last_cmd({cargs})                                         *Nav.q_last_cmd*
 
 
 Nav.l_rewind_cmd({cargs})                                     *Nav.l_rewind_cmd*
-    Callback to map Lrewind to a cmd. Expects count = 0 in the user_command
+    Lrewind cmd callback. Expects count = 0 in the user_command table
 
     Parameters: ~
         {cargs}  (vim.api.keyset.create_user_command.command_args)
@@ -743,7 +757,7 @@ Nav.l_rewind_cmd({cargs})                                     *Nav.l_rewind_cmd*
 
 
 Nav.l_last_cmd({cargs})                                         *Nav.l_last_cmd*
-    Callback to map Llast to a cmd. Expects count = 0 in the user_command
+    Llast cmd callback. Expects count = 0 in the user_command table
 
     Parameters: ~
         {cargs}  (vim.api.keyset.create_user_command.command_args)
@@ -753,8 +767,8 @@ Nav.l_last_cmd({cargs})                                         *Nav.l_last_cmd*
 
 
 Nav.q_pfile_cmd({cargs})                                       *Nav.q_pfile_cmd*
-    Callback to map Qpfile to a cmd. Expects count = 0 in the user_command
-    Note that, while the p/nfile commands will wrap to the first or last file
+    Qpfile cmd callback. Expects count = 0 in the user_command table
+    NOTE: While the p/nfile commands will wrap to the first or last file
     when trying to navigate past the end, the count cannot be used to wrap to a
     specific entry like with the next/prev commands
 
@@ -766,7 +780,7 @@ Nav.q_pfile_cmd({cargs})                                       *Nav.q_pfile_cmd*
 
 
 Nav.q_nfile_cmd({cargs})                                       *Nav.q_nfile_cmd*
-    Callback to map Qnfile to a cmd. Expects count = 0 in the user_command
+    Qnfile cmd callback. Expects count = 0 in the user_command table
 
     Parameters: ~
         {cargs}  (vim.api.keyset.create_user_command.command_args)
@@ -776,7 +790,7 @@ Nav.q_nfile_cmd({cargs})                                       *Nav.q_nfile_cmd*
 
 
 Nav.l_pfile_cmd({cargs})                                       *Nav.l_pfile_cmd*
-    Callback to map Lpfile to a cmd. Expects count = 0 in the user_command
+    Lpfile cmd callback. Expects count = 0 in the user_command table
 
     Parameters: ~
         {cargs}  (vim.api.keyset.create_user_command.command_args)
@@ -786,7 +800,278 @@ Nav.l_pfile_cmd({cargs})                                       *Nav.l_pfile_cmd*
 
 
 Nav.l_nfile_cmd({cargs})                                       *Nav.l_nfile_cmd*
-    Callback to map Lnfile to a cmd. Expects count = 0 in the user_command
+    Lnfile cmd callback. Expects count = 0 in the user_command table
+
+    Parameters: ~
+        {cargs}  (vim.api.keyset.create_user_command.command_args)
+
+    Returns: ~
+        (nil)
+
+
+==============================================================================
+Qfr Stack controls                                   *qf-rancher-stack-controls*
+
+                                                             *qfr-stack-keymaps*
+                                                            *qfr-stack-commands*
+
+
+Modes: { n }, Plug: <Plug>(qfr-qf-older), Default: <leader>q[
+ Desc: Go to the [count] older quickfix list. Count is wrapping
+
+Modes: { n }, Plug: <Plug>(qfr-qf-newer), Default: <leader>q]
+ Desc: Go to the [count] newer quickfix list. Count is wrapping
+
+Modes: { n }, Plug: <Plug>(qfr-qf-history), Default: <leader>qQ
+ Desc: Jump to [count] list in the quickfix stack or view the current list
+
+Modes: { n }, Plug: <Plug>(qfr-qf-del), Default: <leader>qe
+ Desc: Delete a list from the quickfix stack
+
+Modes: { n }, Plug: <Plug>(qfr-qf-del-all), Default: <leader>qE
+ Desc: Clear the quickfix stack
+
+Modes: { n }, Plug: <Plug>(qfr-ll-older), Default: <leader>l[
+ Desc: Go to the [count] older location list. Count is wrapping
+
+Modes: { n }, Plug: <Plug>(qfr-ll-newer), Default: <leader>l]
+ Desc: Go to the [count] newer location list. Count is wrapping
+
+Modes: { n }, Plug: <Plug>(qfr-ll-history), Default: <leader>lL
+ Desc: Jump to [count] list in the loclist stack or view the current list
+
+Modes: { n }, Plug: <Plug>(qfr-ll-del), Default: <leader>le
+ Desc: Delete a list from the loclist stack
+
+Modes: { n }, Plug: <Plug>(qfr-ll-del-all), Default: <leader>lE
+ Desc: Clear the loclist stack
+
+Cmd: Qolder
+Desc: Go to the [count] older quickfix list. Count is wrapping
+
+Cmd: Qnewer
+Desc: Go to the [count] newer quickfix list. Count is wrapping
+
+Cmd: Qhistory
+Desc: Jump to [count] list in the quickfix stack or show the entire stack
+
+Cmd: Qdelete
+Desc: Delete [count] list "all" lists from the quickfix stack
+
+Cmd: Lolder
+Desc: Go to the [count] older location list. Count is wrapping
+
+Cmd: Lnewer
+Desc: Go to the [count] newer location list. Count is wrapping
+
+Cmd: Lhistory
+Desc: Jump to [count] list in the loclist stack or show the entire stack
+
+Cmd: Ldelete
+Desc: Delete [count] list or "all" lists from the loclist stack
+
+==============================================================================
+Work with the qf stack                                                   *Stack*
+
+                                                              *qf-rancher-stack*
+                                                                     *qfr-stack*
+
+
+NOTE: If no list number is provided to next/previous commands, the default
+is to cycle by one list
+For commands that target a specific list, if no count is provided, the
+current list will be used
+NOTE: All navigation commands will re-size the list if it changes and
+g:qfr_auto_list_height is true
+
+Stack.q_older({count})                                           *Stack.q_older*
+
+    Parameters: ~
+        {count}  (integer) Wrapping count previous list to go to
+
+    Returns: ~
+        (nil)
+
+
+Stack.q_newer({count})                                           *Stack.q_newer*
+
+    Parameters: ~
+        {count}  (integer) Wrapping count next list to go to
+
+    Returns: ~
+        (nil)
+
+
+Stack.l_older({src_win}, {count})                                *Stack.l_older*
+
+    Parameters: ~
+        {src_win}  (integer) Location list window context
+        {count}    (integer) Wrapping count previous list to go to
+
+    Returns: ~
+        (nil)
+
+
+Stack.l_newer({src_win}, {count})                                *Stack.l_newer*
+
+    Parameters: ~
+        {src_win}  (integer) Location list window context
+        {count}    (integer) Wrapping count next list to go to
+
+    Returns: ~
+        (nil)
+
+
+QfrHistoryDefaultOpt                                      *QfrHistoryDefaultOpt*
+
+    Whether to show the current list info or the entire stack
+    (chistory/lhistory default) on 0 count
+
+    Variants: ~
+        ("cur_list")
+        ("show_stack")
+
+
+QfrHistoryOpts                                                  *QfrHistoryOpts*
+
+    Fields: ~
+        {open_list?}  (boolean) Open the list after changing history
+        {default?}    (QfrHistoryDefaultOpt)
+        {keep_win?}   (boolean) If true, don't change window focus
+        {silent?}     (boolean) Suppress messages
+
+
+Stack.q_history({count}, {opts})                               *Stack.q_history*
+
+    Parameters: ~
+        {count}  (integer) List number to go to
+        {opts}   (QfrHistoryOpts)
+
+    Returns: ~
+        (nil)
+
+
+Stack.l_history({src_win}, {opts})                             *Stack.l_history*
+
+    Parameters: ~
+        {src_win}  (integer) Location list window context
+        {opts}     (QfrHistoryOpts)
+
+    Returns: ~
+        (nil)
+
+
+Stack.q_del({count})                                               *Stack.q_del*
+
+    Parameters: ~
+        {count}  (integer) List number to delete
+
+    Returns: ~
+        (nil)
+
+
+Stack.l_del({src_win}, {count})                                    *Stack.l_del*
+
+    Parameters: ~
+        {src_win}  (integer) Location list window context
+        {count}    (integer) List number to delete
+
+    Returns: ~
+        (nil)
+
+
+Stack.q_del_all()                                              *Stack.q_del_all*
+
+    Returns: ~
+        (nil)
+
+
+Stack.l_del_all({src_win})                                     *Stack.l_del_all*
+
+    Parameters: ~
+        {src_win}  (integer) Location list window context
+
+    Returns: ~
+        (nil)
+
+
+Stack.q_older_cmd({cargs})                                   *Stack.q_older_cmd*
+    Qolder cmd callback. Expects count = 0 in the user_command table
+
+    Parameters: ~
+        {cargs}  (vim.api.keyset.create_user_command.command_args)
+
+    Returns: ~
+        (nil)
+
+
+Stack.q_newer_cmd({cargs})                                   *Stack.q_newer_cmd*
+    Qnewer cmd callback. Expects count = 0 in the user_command table
+
+    Parameters: ~
+        {cargs}  (vim.api.keyset.create_user_command.command_args)
+
+    Returns: ~
+        (nil)
+
+
+Stack.l_older_cmd({cargs})                                   *Stack.l_older_cmd*
+    Lolder cmd callback. Expects count = 0 in the user_command table
+
+    Parameters: ~
+        {cargs}  (vim.api.keyset.create_user_command.command_args)
+
+    Returns: ~
+        (nil)
+
+
+Stack.l_newer_cmd({cargs})                                   *Stack.l_newer_cmd*
+    Lnewer cmd callback. Expects count = 0 in the user_command table
+
+    Parameters: ~
+        {cargs}  (vim.api.keyset.create_user_command.command_args)
+
+    Returns: ~
+        (nil)
+
+
+Stack.q_history_cmd({cargs})                               *Stack.q_history_cmd*
+    Qhistory cmd callback. Expects count = 0 in the user_command table
+
+    Parameters: ~
+        {cargs}  (vim.api.keyset.create_user_command.command_args)
+
+    Returns: ~
+        (nil)
+
+
+Stack.l_history_cmd({cargs})                               *Stack.l_history_cmd*
+    Lhistory cmd callback. Expects count = 0 in the user_command table
+
+    Parameters: ~
+        {cargs}  (vim.api.keyset.create_user_command.command_args)
+
+    Returns: ~
+        (nil)
+
+
+NOTE: If "all" is provided, any count is overridden
+A count of zero deletes the current list
+
+Stack.q_delete_cmd({cargs})                                 *Stack.q_delete_cmd*
+    Qdelete cmd callback. Expects count = 0 and nargs = "?" in the command
+    table
+
+    Parameters: ~
+        {cargs}  (vim.api.keyset.create_user_command.command_args)
+
+    Returns: ~
+        (nil)
+
+
+Stack.l_delete_cmd({cargs})                                 *Stack.l_delete_cmd*
+    Ldelete cmd callback. Expects count = 0 and nargs = "?" in the command
+    table
 
     Parameters: ~
         {cargs}  (vim.api.keyset.create_user_command.command_args)

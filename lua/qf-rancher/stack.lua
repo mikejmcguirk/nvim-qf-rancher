@@ -6,6 +6,11 @@ local ey = Qfr_Defer_Require("qf-rancher.types") ---@type QfrTypes
 local api = vim.api
 
 ---@mod Stack Work with the qf stack
+---@tag qf-rancher-stack
+---@tag qfr-stack
+---@brief [[
+---
+---@brief ]]
 
 --- @class QfrStack
 local Stack = {}
@@ -68,30 +73,131 @@ end
 -- == PUBLIC API ==
 -- ================
 
+---@brief [[
+---NOTE: If no list number is provided to next/previous commands, the default
+---is to cycle by one list
+---For commands that target a specific list, if no count is provided, the
+---current list will be used
+---NOTE: All navigation commands will re-size the list if it changes and
+---g:qfr_auto_list_height is true
+---@brief ]]
+
 -- CHANGE HISTORY --
 
+---@param count integer Wrapping count previous list to go to
+---@return nil
+function Stack.q_older(count)
+    change_history(nil, count, eu._wrapping_sub)
+end
+
+---@param count integer Wrapping count next list to go to
+---@return nil
+function Stack.q_newer(count)
+    change_history(nil, count, eu._wrapping_add)
+end
+
+---@param src_win integer Location list window context
+---@param count integer Wrapping count previous list to go to
+---@return nil
+function Stack.l_older(src_win, count)
+    l_change_history(src_win, count, eu._wrapping_sub)
+end
+
+---@param src_win integer Location list window context
+---@param count integer Wrapping count next list to go to
+---@return nil
+function Stack.l_newer(src_win, count)
+    l_change_history(src_win, count, eu._wrapping_add)
+end
+
+-- GET HISTORY --
+
+---
+---Whether to show the current list info or the entire stack
+---(chistory/lhistory default) on 0 count
+---@alias QfrHistoryDefaultOpt
+---| 'cur_list'
+---| 'show_stack'
+---@class QfrHistoryOpts
+---@field open_list? boolean Open the list after changing history
+---@field default? QfrHistoryDefaultOpt
+---@field keep_win? boolean If true, don't change window focus
+---@field silent? boolean Suppress messages
+
+---@param count integer List number to go to
+---@param opts QfrHistoryOpts
+---@return nil
+function Stack.q_history(count, opts)
+    Stack._get_history(nil, count, opts)
+end
+
+---@param src_win integer Location list window context
+---@param opts QfrHistoryOpts
+---@return nil
+function Stack.l_history(src_win, count, opts)
+    eu._locwin_check(src_win, function()
+        Stack._get_history(src_win, count, opts)
+    end)
+end
+
+-- DELETE --
+
+---@param count integer List number to delete
+---@return nil
+function Stack.q_del(count)
+    Stack._del(nil, count)
+end
+
+---@param src_win integer Location list window context
+---@param count integer List number to delete
+---@return nil
+function Stack.l_del(src_win, count)
+    eu._locwin_check(src_win, function()
+        Stack._del(src_win, count)
+    end)
+end
+
+-- DELETE ALL --
+
+---@return nil
+function Stack.q_del_all()
+    et._set_list(nil, "f", {})
+end
+
+---@param src_win integer Location list window context
+---@return nil
+function Stack.l_del_all(src_win)
+    et._set_list(src_win, "f", {})
+end
+
+-- CHANGE HISTORY --
+
+---Qolder cmd callback. Expects count = 0 in the user_command table
 ---@param cargs vim.api.keyset.create_user_command.command_args
 ---@return nil
 function Stack.q_older_cmd(cargs)
-    Stack._q_older(cargs.count)
+    Stack.q_older(cargs.count)
 end
 
+---Qnewer cmd callback. Expects count = 0 in the user_command table
 ---@param cargs vim.api.keyset.create_user_command.command_args
 ---@return nil
 function Stack.q_newer_cmd(cargs)
-    Stack._q_newer(cargs.count)
+    Stack.q_newer(cargs.count)
 end
 
+---Lolder cmd callback. Expects count = 0 in the user_command table
 ---@param cargs vim.api.keyset.create_user_command.command_args
 ---@return nil
-function Stack._l_older_cmd(cargs)
-    Stack._l_older(api.nvim_get_current_win(), cargs.count)
+function Stack.l_older_cmd(cargs)
+    Stack.l_older(api.nvim_get_current_win(), cargs.count)
 end
 
+---Lnewer cmd callback. Expects count = 0 in the user_command table
 ---@param cargs vim.api.keyset.create_user_command.command_args
 ---@return nil
-function Stack._l_newer_cmd(cargs)
-    Stack._l_newer(api.nvim_get_current_win(), cargs.count)
+function Stack.l_newer_cmd(cargs)
+    Stack.l_newer(api.nvim_get_current_win(), cargs.count)
 end
 
 -- GET HISTORY --
@@ -100,44 +206,51 @@ end
 -- entire stack, the count must be nil. When using custom commands that take a count, a count of
 -- zero is returned in cargs if none is provided. Counts of zero must be converted to nil
 
--- DOCUMENT: By default, the keymap version will print the current list, the cmds show the stack
-
+---Qhistory cmd callback. Expects count = 0 in the user_command table
 ---@param cargs vim.api.keyset.create_user_command.command_args
 ---@return nil
 function Stack.q_history_cmd(cargs)
-    Stack._q_history(cargs.count, { default = "show_stack" })
+    Stack.q_history(cargs.count, { default = "show_stack" })
 end
 
+---Lhistory cmd callback. Expects count = 0 in the user_command table
 ---@param cargs vim.api.keyset.create_user_command.command_args
 ---@return nil
 function Stack.l_history_cmd(cargs)
-    Stack._l_history(api.nvim_get_current_win(), cargs.count, { default = "show_stack" })
+    Stack.l_history(api.nvim_get_current_win(), cargs.count, { default = "show_stack" })
 end
 
 -- DELETION --
 
--- DOCUMENT: All overrides any count
+---@brief [[
+---NOTE: If "all" is provided, any count is overridden
+---A count of zero deletes the current list
+---@brief ]]
 
+---Qdelete cmd callback. Expects count = 0 and nargs = "?" in the command
+---table
 ---@param cargs vim.api.keyset.create_user_command.command_args
 ---@return nil
 function Stack.q_delete_cmd(cargs)
     if cargs.args == "all" then
-        Stack._q_del_all()
+        Stack.q_del_all()
         return
     end
 
-    Stack._q_del(cargs.count)
+    Stack.q_del(cargs.count)
 end
 
+---Ldelete cmd callback. Expects count = 0 and nargs = "?" in the command
+---table
 ---@param cargs vim.api.keyset.create_user_command.command_args
 ---@return nil
 function Stack.l_delete_cmd(cargs)
     if cargs.args == "all" then
-        Stack._l_del_all(api.nvim_get_current_win())
+        Stack.l_del_all(api.nvim_get_current_win())
         return
     end
 
-    Stack._l_del(api.nvim_get_current_win(), cargs.count)
+    Stack.l_del(api.nvim_get_current_win(), cargs.count)
 end
 
 ---@export Stack
@@ -145,36 +258,6 @@ end
 -- =================
 -- == UNSUPPORTED ==
 -- =================
-
--- CHANGE HISTORY --
-
----@param count integer
----@return nil
-function Stack._q_older(count)
-    change_history(nil, count, eu._wrapping_sub)
-end
-
----@param count integer
----@return nil
-function Stack._q_newer(count)
-    change_history(nil, count, eu._wrapping_add)
-end
-
----@param win integer
----@param count integer
----@return nil
-function Stack._l_older(win, count)
-    l_change_history(win, count, eu._wrapping_sub)
-end
-
----@param win integer
----@param count integer
----@return nil
-function Stack._l_newer(win, count)
-    l_change_history(win, count, eu._wrapping_add)
-end
-
--- GET HISTORY --
 
 ---@param src_win integer|nil
 ---@param count integer
@@ -205,26 +288,8 @@ function Stack._get_history(src_win, count, opts)
     end
 end
 
----@param count integer
----@param opts QfrHistoryOpts
----@return nil
-function Stack._q_history(count, opts)
-    Stack._get_history(nil, count, opts)
-end
-
----@param win integer
----@param opts QfrHistoryOpts
----@return nil
-function Stack._l_history(win, count, opts)
-    eu._locwin_check(win, function()
-        Stack._get_history(win, count, opts)
-    end)
-end
-
--- DELETE --
-
----@param src_win integer|nil
----@param count integer
+---@param src_win integer|nil Location list window context
+---@param count integer List number to go to
 ---@return nil
 function Stack._del(src_win, count)
     ey._validate_win(src_win, true)
@@ -237,37 +302,9 @@ function Stack._del(src_win, count)
     if result == cur_list_nr then resize_after_stack_change(src_win) end
 end
 
----@param count integer
----@return nil
-function Stack._q_del(count)
-    Stack._del(nil, count)
-end
-
----@param count integer
----@return nil
-function Stack._l_del(src_win, count)
-    eu._locwin_check(src_win, function()
-        Stack._del(src_win, count)
-    end)
-end
-
--- DELETE ALL --
-
----@return nil
-function Stack._q_del_all()
-    et._set_list(nil, "f", {})
-end
-
----@param src_win integer
----@return nil
-function Stack._l_del_all(src_win)
-    et._set_list(src_win, "f", {})
-end
-
 return Stack
 
 -- TODO: Testing
--- TODO: Docs
 
 -- MID: Create a clean stack cmd/map that removes empty stacks and shifts down the remainders. You
 -- should then be able to use the default setqflist " " behavior to delete the tail. You can then

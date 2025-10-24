@@ -286,28 +286,28 @@ end
 
 -- PREV/NEXT --
 
----Callback to map Qprev to a cmd. Expects count = 0 in the user_command
+---Qprev cmd callback. Expects count = 0 in the user_command table
 ---@param cargs vim.api.keyset.create_user_command.command_args
 ---@return nil
 function Nav.q_prev_cmd(cargs)
     Nav.q_prev(cargs.count, {})
 end
 
----Callback to map Qnext to a cmd. Expects count = 0 in the user_command
+---Qnext cmd callback. Expects count = 0 in the user_command table
 ---@param cargs vim.api.keyset.create_user_command.command_args
 ---@return nil
 function Nav.q_next_cmd(cargs)
     Nav.q_next(cargs.count, {})
 end
 
----Callback to map Lprev to a cmd. Expects count = 0 in the user_command
+---Lprev cmd callback. Expects count = 0 in the user_command table
 ---@param cargs vim.api.keyset.create_user_command.command_args
 ---@return nil
 function Nav.l_prev_cmd(cargs)
     Nav.l_prev(api.nvim_get_current_win(), cargs.count, {})
 end
 
----Callback to map Lnext to a cmd. Expects count = 0 in the user_command
+--Lnext cmd callback. Expects count = 0 in the user_command table
 ---@param cargs vim.api.keyset.create_user_command.command_args
 ---@return nil
 function Nav.l_next_cmd(cargs)
@@ -316,14 +316,14 @@ end
 
 -- GOTO SPECIFIC INDEX --
 
----Callback to map Qq to a cmd. Expects count = 0 in the user_command
+---Qq cmd callback. Expects count = 0 in the user_command table
 ---@param cargs vim.api.keyset.create_user_command.command_args
 ---@return nil
 function Nav.q_q_cmd(cargs)
     Nav.q_q(cargs.count)
 end
 
----Callback to map Ll to a cmd. Expects count = 0 in the user_command
+--Ll cmd callback. Expects count = 0 in the user_command table
 ---@param cargs vim.api.keyset.create_user_command.command_args
 ---@return nil
 function Nav.l_l_cmd(cargs)
@@ -332,28 +332,28 @@ end
 
 -- REWIND/LAST --
 
----Callback to map Qrewind to a cmd. Expects count = 0 in the user_command
+---Qrewind cmd callback. Expects count = 0 in the user_command table
 ---@param cargs vim.api.keyset.create_user_command.command_args
 ---@return nil
 function Nav.q_rewind_cmd(cargs)
     Nav.q_rewind(cargs.count)
 end
 
----Callback to map Qlast to a cmd. Expects count = 0 in the user_command
+---Qlast cmd callback. Expects count = 0 in the user_command table
 ---@param cargs vim.api.keyset.create_user_command.command_args
 ---@return nil
 function Nav.q_last_cmd(cargs)
     Nav.q_last(cargs.count)
 end
 
----Callback to map Lrewind to a cmd. Expects count = 0 in the user_command
+---Lrewind cmd callback. Expects count = 0 in the user_command table
 ---@param cargs vim.api.keyset.create_user_command.command_args
 ---@return nil
 function Nav.l_rewind_cmd(cargs)
     Nav.l_rewind(api.nvim_get_current_win(), cargs.count)
 end
 
----Callback to map Llast to a cmd. Expects count = 0 in the user_command
+---Llast cmd callback. Expects count = 0 in the user_command table
 ---@param cargs vim.api.keyset.create_user_command.command_args
 ---@return nil
 function Nav.l_last_cmd(cargs)
@@ -362,7 +362,7 @@ end
 
 -- FILE NAV --
 
----Callback to map Qpfile to a cmd. Expects count = 0 in the user_command
+---Qpfile cmd callback. Expects count = 0 in the user_command table
 ---NOTE: While the p/nfile commands will wrap to the first or last file
 ---when trying to navigate past the end, the count cannot be used to wrap to a
 ---specific entry like with the next/prev commands
@@ -372,21 +372,21 @@ function Nav.q_pfile_cmd(cargs)
     Nav.q_pfile(cargs.count)
 end
 
----Callback to map Qnfile to a cmd. Expects count = 0 in the user_command
+---Qnfile cmd callback. Expects count = 0 in the user_command table
 ---@param cargs vim.api.keyset.create_user_command.command_args
 ---@return nil
 function Nav.q_nfile_cmd(cargs)
     Nav.q_nfile(cargs.count)
 end
 
----Callback to map Lpfile to a cmd. Expects count = 0 in the user_command
+---Lpfile cmd callback. Expects count = 0 in the user_command table
 ---@param cargs vim.api.keyset.create_user_command.command_args
 ---@return nil
 function Nav.l_pfile_cmd(cargs)
     Nav.l_pfile(api.nvim_get_current_win(), cargs.count)
 end
 
----Callback to map Lnfile to a cmd. Expects count = 0 in the user_command
+---Lnfile cmd callback. Expects count = 0 in the user_command table
 ---@param cargs vim.api.keyset.create_user_command.command_args
 ---@return nil
 function Nav.l_nfile_cmd(cargs)

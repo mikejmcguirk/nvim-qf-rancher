@@ -30,10 +30,12 @@ for _, tbl in ipairs(doc_tbls) do
     local lines = {} ---@type string[]
     ---@type string
     local modname = "qf-rancher-" .. tbl[1] .. "-controls" ---@type string
-    local modtag = "qfr-" .. tbl[1] .. "-controls" ---@type string
+    local modtag_map = "qfr-" .. tbl[1] .. "-keymaps" ---@type string
+    local modtag_cmd = "qfr-" .. tbl[1] .. "-commands" ---@type string
     local titlecase = string.upper(string.sub(tbl[1], 1, 1)) .. string.sub(tbl[1], 2)
-    lines[#lines + 1] = "---@mod " .. modname .. " Qfr " .. titlecase .. " Controls"
-    lines[#lines + 1] = "---@tag " .. modtag
+    lines[#lines + 1] = "---@mod " .. modname .. " Qfr " .. titlecase .. " controls"
+    lines[#lines + 1] = "---@tag " .. modtag_map
+    lines[#lines + 1] = "---@tag " .. modtag_cmd
     lines[#lines + 1] = "---@brief [["
     lines[#lines + 1] = "---"
 
