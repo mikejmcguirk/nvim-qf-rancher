@@ -420,4 +420,379 @@ Window.toggle_loclist_cmd({cargs})                   *Window.toggle_loclist_cmd*
         (nil)
 
 
+==============================================================================
+Qfr Nav Controls                                       *qf-rancher-nav-controls*
+
+
+Modes: { n }, Plug: <Plug>(qfr-qf-prev), Default: [q
+ Desc: Go to the [count] previous quickfix entry. Count is wrapping
+
+Modes: { n }, Plug: <Plug>(qfr-qf-next), Default: ]q
+ Desc: Go to the [count] next quickfix entry. Count is wrapping
+
+Modes: { n }, Plug: <Plug>(qfr-qf-rewind), Default: [Q
+ Desc: Go to the [count] quickfix entry, or the first if no count
+
+Modes: { n }, Plug: <Plug>(qfr-qf-last), Default: ]Q
+ Desc: Go to the [count] quickfix entry, or the last if no count
+
+Modes: { n }, Plug: <Plug>(qfr-qf-pfile), Default: [<C-q>
+ Desc: Go to the [count] previous quickfix file. Wrap to the last file
+
+Modes: { n }, Plug: <Plug>(qfr-qf-nfile), Default: ]<C-q>
+ Desc: Go to the [count] next quickfix file. Wrap to the first file
+
+Modes: { n }, Plug: <Plug>(qfr-ll-prev), Default: [l
+ Desc: Go to the [count] previous location list entry. Count is wrapping
+
+Modes: { n }, Plug: <Plug>(qfr-ll-next), Default: ]l
+ Desc: Go to the [count] next location list entry. Count is wrapping
+
+Modes: { n }, Plug: <Plug>(qfr-ll-rewind), Default: [L
+ Desc: Go to the [count] quickfix entry, or the first if no count
+
+Modes: { n }, Plug: <Plug>(qfr-ll-last), Default: ]L
+ Desc: Go to the [count] quickfix entry, or the last if no count
+
+Modes: { n }, Plug: <Plug>(qfr-ll-pfile), Default: [<C-l>
+ Desc: Go to the [count] previous quickfix file. Wrap to the last file
+
+Modes: { n }, Plug: <Plug>(qfr-ll-nfile), Default: ]<C-l>
+ Desc: Go to the [count] next quickfix file. Wrap to the first file
+
+Cmd: Qprev
+Desc: Go to the [count] previous quickfix entry. Count is wrapping
+
+Cmd: Qnext
+Desc: Go to the [count] next quickfix entry. Count is wrapping
+
+Cmd: Qrewind
+Desc: Go to the [count] quickfix entry, or the first if no count
+
+Cmd: Qq
+Desc: Go to the [count] qf entry, or under the cursor, or current idx
+
+Cmd: Qlast
+Desc: Go to the [count] quickfix entry, or the last if no count
+
+Cmd: Qpfile
+Desc: Go to the [count] previous quickfix file. Wrap to the last file
+
+Cmd: Qnfile
+Desc: Go to the [count] next quickfix file. Wrap to the first file
+
+Cmd: Lprev
+Desc: Go to the [count] previous location list entry. Count is wrapping
+
+Cmd: Lnext
+Desc: Go to the [count] next location list entry. Count is wrapping
+
+Cmd: Ll
+Desc: Go to the [count] loclist entry, or under the cursor, or current idx
+
+Cmd: Lrewind
+Desc: Go to the [count] quickfix entry, or the first if no count
+
+Cmd: Llast
+Desc: Go to the [count] quickfix entry, or the last if no count
+
+Cmd: Lpfile
+Desc: Go to the [count] previous quickfix file. Wrap to the last file
+
+Cmd: Lnfile
+Desc: Go to the [count] next quickfix file. Wrap to the first file
+
+==============================================================================
+Navigate lists                                                             *Nav*
+
+NOTE: All navigation commands will auto-center the buffer view if
+g:qfr_auto_center_result is true
+
+Nav.q_prev({count}, {opts})                                         *Nav.q_prev*
+
+    Parameters: ~
+        {count}  (integer) Wrapping count previous entry to navigate to
+        {opts}   (table) Reserved for future use
+
+    Returns: ~
+        (boolean)
+
+
+Nav.q_next({count}, {opts})                                         *Nav.q_next*
+
+    Parameters: ~
+        {count}  (integer) Wrapping count next entry to navigate to
+        {opts}   (table) Reserved for future use
+
+    Returns: ~
+        (boolean)
+
+
+Nav.l_prev({src_win}, {count}, {opts})                              *Nav.l_prev*
+
+    Parameters: ~
+        {src_win}  (integer) Location list window context
+        {count}    (integer) Wrapping count previous entry to navigate to
+        {opts}     (table) Reserved for future use
+
+    Returns: ~
+        (boolean)
+
+
+Nav.l_next({src_win}, {count}, {opts})                              *Nav.l_next*
+
+    Parameters: ~
+        {src_win}  (integer) Location list window context
+        {count}    (integer) Wrapping count next entry to navigate to
+        {opts}     (table) Reserved for future use
+
+    Returns: ~
+        (boolean)
+
+
+Nav.q_q({count})                                                       *Nav.q_q*
+    If a count is provided, that list entry will be opened
+    If no count is provided, and the window focus is on a list, the list item
+    under the cursor will be opened (different from default cc/ll behavior)
+    If the focus is not in a list, the current list idx will be used
+
+    Parameters: ~
+        {count}  (integer) Count entry to navigate to
+
+    Returns: ~
+        (nil)
+
+
+Nav.l_l({src_win}, {count})                                            *Nav.l_l*
+
+    Parameters: ~
+        {src_win}  (integer) Count entry to navigate to
+        {count}    (integer)
+
+    Returns: ~
+        (nil)
+
+
+Nav.q_rewind({count})                                             *Nav.q_rewind*
+
+    Parameters: ~
+        {count}  (integer) Entry to navigate to. First if no count
+
+    Returns: ~
+        (nil)
+
+
+Nav.q_last({count})                                                 *Nav.q_last*
+
+    Parameters: ~
+        {count}  (integer) Entry to navigate to. Last if no count
+
+    Returns: ~
+        (nil)
+
+
+Nav.l_rewind({src_win}, {count})                                  *Nav.l_rewind*
+
+    Parameters: ~
+        {src_win}  (integer) Location list window context
+        {count}    (integer) Entry to navigate to. First if no count
+
+    Returns: ~
+        (nil)
+
+
+Nav.l_last({src_win}, {count})                                      *Nav.l_last*
+
+    Parameters: ~
+        {src_win}  (integer) Location list window context
+        {count}    (integer) Entry to navigate to. Last if no count
+
+    Returns: ~
+        (nil)
+
+
+Nav.q_pfile({count})                                               *Nav.q_pfile*
+    Note that, while the p/nfile commands will wrap to the first or last file
+    when trying to navigate past the end, the count cannot be used to wrap to a
+    specific entry like with the next/prev commands
+
+    Parameters: ~
+        {count}  (integer) Count previous file to navigate to
+
+    Returns: ~
+        (nil)
+
+
+Nav.q_nfile({count})                                               *Nav.q_nfile*
+
+    Parameters: ~
+        {count}  (integer)
+
+    Returns: ~
+        (nil)
+
+
+Nav.l_pfile({src_win}, {count})                                    *Nav.l_pfile*
+
+    Parameters: ~
+        {src_win}  (integer) Location list window context
+        {count}    (integer) Count previous file to navigate to
+
+    Returns: ~
+        (nil)
+
+
+Nav.l_nfile({src_win}, {count})                                    *Nav.l_nfile*
+
+    Parameters: ~
+        {src_win}  (integer) Location list window context
+        {count}    (integer) Count next file to navigate to
+
+    Returns: ~
+        (nil)
+
+
+Nav.q_prev_cmd({cargs})                                         *Nav.q_prev_cmd*
+    Callback to map Qprev to a cmd. Expects count = 0 in the user_command
+
+    Parameters: ~
+        {cargs}  (vim.api.keyset.create_user_command.command_args)
+
+    Returns: ~
+        (nil)
+
+
+Nav.q_next_cmd({cargs})                                         *Nav.q_next_cmd*
+    Callback to map Qnext to a cmd. Expects count = 0 in the user_command
+
+    Parameters: ~
+        {cargs}  (vim.api.keyset.create_user_command.command_args)
+
+    Returns: ~
+        (nil)
+
+
+Nav.l_prev_cmd({cargs})                                         *Nav.l_prev_cmd*
+    Callback to map Lprev to a cmd. Expects count = 0 in the user_command
+
+    Parameters: ~
+        {cargs}  (vim.api.keyset.create_user_command.command_args)
+
+    Returns: ~
+        (nil)
+
+
+Nav.l_next_cmd({cargs})                                         *Nav.l_next_cmd*
+    Callback to map Lnext to a cmd. Expects count = 0 in the user_command
+
+    Parameters: ~
+        {cargs}  (vim.api.keyset.create_user_command.command_args)
+
+    Returns: ~
+        (nil)
+
+
+Nav.q_q_cmd({cargs})                                               *Nav.q_q_cmd*
+    Callback to map Qq to a cmd. Expects count = 0 in the user_command
+
+    Parameters: ~
+        {cargs}  (vim.api.keyset.create_user_command.command_args)
+
+    Returns: ~
+        (nil)
+
+
+Nav.l_l_cmd({cargs})                                               *Nav.l_l_cmd*
+    Callback to map Ll to a cmd. Expects count = 0 in the user_command
+
+    Parameters: ~
+        {cargs}  (vim.api.keyset.create_user_command.command_args)
+
+    Returns: ~
+        (nil)
+
+
+Nav.q_rewind_cmd({cargs})                                     *Nav.q_rewind_cmd*
+    Callback to map Qrewind to a cmd. Expects count = 0 in the user_command
+
+    Parameters: ~
+        {cargs}  (vim.api.keyset.create_user_command.command_args)
+
+    Returns: ~
+        (nil)
+
+
+Nav.q_last_cmd({cargs})                                         *Nav.q_last_cmd*
+    Callback to map Qlast to a cmd. Expects count = 0 in the user_command
+
+    Parameters: ~
+        {cargs}  (vim.api.keyset.create_user_command.command_args)
+
+    Returns: ~
+        (nil)
+
+
+Nav.l_rewind_cmd({cargs})                                     *Nav.l_rewind_cmd*
+    Callback to map Lrewind to a cmd. Expects count = 0 in the user_command
+
+    Parameters: ~
+        {cargs}  (vim.api.keyset.create_user_command.command_args)
+
+    Returns: ~
+        (nil)
+
+
+Nav.l_last_cmd({cargs})                                         *Nav.l_last_cmd*
+    Callback to map Llast to a cmd. Expects count = 0 in the user_command
+
+    Parameters: ~
+        {cargs}  (vim.api.keyset.create_user_command.command_args)
+
+    Returns: ~
+        (nil)
+
+
+Nav.q_pfile_cmd({cargs})                                       *Nav.q_pfile_cmd*
+    Callback to map Qpfile to a cmd. Expects count = 0 in the user_command
+    Note that, while the p/nfile commands will wrap to the first or last file
+    when trying to navigate past the end, the count cannot be used to wrap to a
+    specific entry like with the next/prev commands
+
+    Parameters: ~
+        {cargs}  (vim.api.keyset.create_user_command.command_args)
+
+    Returns: ~
+        (nil)
+
+
+Nav.q_nfile_cmd({cargs})                                       *Nav.q_nfile_cmd*
+    Callback to map Qnfile to a cmd. Expects count = 0 in the user_command
+
+    Parameters: ~
+        {cargs}  (vim.api.keyset.create_user_command.command_args)
+
+    Returns: ~
+        (nil)
+
+
+Nav.l_pfile_cmd({cargs})                                       *Nav.l_pfile_cmd*
+    Callback to map Lpfile to a cmd. Expects count = 0 in the user_command
+
+    Parameters: ~
+        {cargs}  (vim.api.keyset.create_user_command.command_args)
+
+    Returns: ~
+        (nil)
+
+
+Nav.l_nfile_cmd({cargs})                                       *Nav.l_nfile_cmd*
+    Callback to map Lnfile to a cmd. Expects count = 0 in the user_command
+
+    Parameters: ~
+        {cargs}  (vim.api.keyset.create_user_command.command_args)
+
+    Returns: ~
+        (nil)
+
+
 vim:tw=78:ts=8:noet:ft=help:norl:

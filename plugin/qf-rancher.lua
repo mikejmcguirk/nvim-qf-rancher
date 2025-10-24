@@ -252,6 +252,7 @@ local tbls_for_plugs = {
     maps.qfr_maps,
     maps.qfr_buf_maps,
     maps.qfr_win_maps,
+    maps.qfr_nav_maps,
     maps.qfr_ftplugin_maps,
 }
 
@@ -272,6 +273,7 @@ if vim.g.qfr_set_default_maps then
     local tbls_for_uienter = {
         maps.qfr_maps,
         maps.qfr_win_maps,
+        maps.qfr_nav_maps,
     }
 
     for _, tbl in ipairs(tbls_for_uienter) do
@@ -319,6 +321,7 @@ if vim.g.qfr_set_default_cmds then
     local cmd_tbls = {
         maps.cmds,
         maps.qfr_win_cmds,
+        maps.qfr_nav_cmds,
     }
 
     for _, tbl in ipairs(cmd_tbls) do
@@ -340,7 +343,11 @@ end
 
 -- MID: Alias wintype annotations?
 -- MID: Publish Qf items as diagnostics. Would make other ideas more useful
+-- MID: Applies to close and cwin - If closing the window and the stack is empty, schedule a
+-- stack clear?
 -- MID: Remaining Commands to handle:
+-- - cwin/lwin: count is height. Get #items in the current list. If there are items, open/focus/
+--   resize the list. If no items, close the list or do nothing
 -- - cexpr
 -- - cbuffer/cgetbuffer/caddbuffer
 -- - cfile

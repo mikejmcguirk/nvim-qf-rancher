@@ -18,7 +18,8 @@ local ed = maps_defer_require("qf-rancher.diag") ---@type QfRancherDiagnostics
 local ef = maps_defer_require("qf-rancher.filter") ---@type QfrFilter
 local eg = maps_defer_require("qf-rancher.grep") ---@type QfrGrep
 local ei = maps_defer_require("qf-rancher.filetype-funcs") ---@type QfRancherFiletypeFuncs
-local en = maps_defer_require("qf-rancher.nav-action") ---@type QfRancherNav
+local rn_str = "nav"
+local rn = maps_defer_require("qf-rancher." .. rn_str) ---@type QfRancherNav
 local rw_str = "window"
 local rw = maps_defer_require("qf-rancher." .. rw_str) ---@type QfrWins
 local ep = maps_defer_require("qf-rancher.preview") ---@type QfRancherPreview
@@ -119,6 +120,42 @@ M.qfr_win_cmds = {
 
 -- Need to be able to tie the module, keymap, and cmd data together for docgen
 M.doc_tbls[#M.doc_tbls + 1] = { rw_str, M.qfr_win_maps, M.qfr_win_cmds }
+
+-- stylua: ignore
+M.qfr_nav_maps = {
+{ nn, "<Plug>(qfr-qf-prev)",  "["..qp,         "Go to the [count] previous quickfix entry. Count is wrapping",      function() rn.q_prev(vim.v.count, {}) end },
+{ nn, "<Plug>(qfr-qf-next)",  "]"..qp,         "Go to the [count] next quickfix entry. Count is wrapping",          function() rn.q_next(vim.v.count, {}) end },
+{ nn, "<Plug>(qfr-qf-rewind)","["..qP,         "Go to the [count] quickfix entry, or the first if no count",        function() rn.q_rewind(vim.v.count) end },
+{ nn, "<Plug>(qfr-qf-last)",  "]"..qP,         "Go to the [count] quickfix entry, or the last if no count",         function() rn.q_last(vim.v.count) end },
+{ nn, "<Plug>(qfr-qf-pfile)", "[<C-"..qp..">", "Go to the [count] previous quickfix file. Wrap to the last file",   function() rn.q_pfile(vim.v.count) end },
+{ nn, "<Plug>(qfr-qf-nfile)", "]<C-"..qp..">", "Go to the [count] next quickfix file. Wrap to the first file",      function() rn.q_nfile(vim.v.count) end },
+{ nn, "<Plug>(qfr-ll-prev)",  "["..lp,         "Go to the [count] previous location list entry. Count is wrapping", function() rn.l_prev(cur_win(), vim.v.count, {}) end },
+{ nn, "<Plug>(qfr-ll-next)",  "]"..lp,         "Go to the [count] next location list entry. Count is wrapping",     function() rn.l_next(cur_win(), vim.v.count, {}) end },
+{ nn, "<Plug>(qfr-ll-rewind)","["..lP,         "Go to the [count] quickfix entry, or the first if no count",        function() rn.l_rewind(cur_win(), vim.v.count) end },
+{ nn, "<Plug>(qfr-ll-last)",  "]"..lP,         "Go to the [count] quickfix entry, or the last if no count",         function() rn.l_last(cur_win(), vim.v.count) end },
+{ nn, "<Plug>(qfr-ll-pfile)", "[<C-"..lp..">", "Go to the [count] previous quickfix file. Wrap to the last file",   function() rn.l_pfile(cur_win(), vim.v.count) end },
+{ nn, "<Plug>(qfr-ll-nfile)", "]<C-"..lp..">", "Go to the [count] next quickfix file. Wrap to the first file",      function() rn.l_nfile(cur_win(), vim.v.count) end },
+}
+
+-- stylua: ignore
+M.qfr_nav_cmds = {
+{ "Qprev", function(cargs) rn.q_prev_cmd(cargs) end, { count = 0, desc = "Go to the [count] previous quickfix entry. Count is wrapping" } },
+{ "Qnext", function(cargs) rn.q_next_cmd(cargs) end, { count = 0, desc = "Go to the [count] next quickfix entry. Count is wrapping" } },
+{ "Qrewind", function(cargs) rn.q_rewind_cmd(cargs) end, { count = 0, desc = "Go to the [count] quickfix entry, or the first if no count" } },
+{ "Qq", function(cargs) rn.q_q_cmd(cargs) end, { count = 0, desc = "Go to the [count] qf entry, or under the cursor, or current idx" } },
+{ "Qlast", function(cargs) rn.q_last_cmd(cargs) end, { count = 0, desc = "Go to the [count] quickfix entry, or the last if no count" } },
+{ "Qpfile", function(cargs) rn.q_pfile_cmd(cargs) end, { count = 0, desc = "Go to the [count] previous quickfix file. Wrap to the last file" } },
+{ "Qnfile", function(cargs) rn.q_nfile_cmd(cargs) end, { count = 0, desc = "Go to the [count] next quickfix file. Wrap to the first file" } },
+{ "Lprev", function(cargs) rn.l_prev_cmd(cargs) end, { count = 0, desc = "Go to the [count] previous location list entry. Count is wrapping" } },
+{ "Lnext", function(cargs) rn.l_next_cmd(cargs) end, { count = 0, desc = "Go to the [count] next location list entry. Count is wrapping" } },
+{ "Ll", function(cargs) rn.l_l_cmd(cargs) end, { count = 0, desc = "Go to the [count] loclist entry, or under the cursor, or current idx" } },
+{ "Lrewind", function(cargs) rn.l_rewind_cmd(cargs) end, { count = 0, desc = "Go to the [count] quickfix entry, or the first if no count" } },
+{ "Llast", function(cargs) rn.l_last_cmd(cargs) end, { count = 0, desc = "Go to the [count] quickfix entry, or the last if no count" } },
+{ "Lpfile", function(cargs) rn.l_pfile_cmd(cargs) end, { count = 0, desc = "Go to the [count] previous quickfix file. Wrap to the last file" } },
+{ "Lnfile", function(cargs) rn.l_nfile_cmd(cargs) end, { count = 0, desc = "Go to the [count] next quickfix file. Wrap to the first file" } },
+}
+
+M.doc_tbls[#M.doc_tbls + 1] = { rn_str, M.qfr_nav_maps, M.qfr_nav_cmds }
 
 -- stylua: ignore
 ---@type QfrMapData[]
@@ -244,18 +281,6 @@ M.qfr_buf_maps = {
 -- == NAVIGATION ==
 -- ================
 
-{ nn, "<Plug>(qfr-qf-prev)",  "["..qp,         "Go to a previous qf entry",       function() en._q_prev(vim.v.count, {}) end },
-{ nn, "<Plug>(qfr-qf-next)",  "]"..qp,         "Go to a later qf entry",          function() en._q_next(vim.v.count, {}) end },
-{ nn, "<Plug>(qfr-qf-rewind)","["..qP,         "Go to the first qf entry",        function() en._q_rewind(vim.v.count) end },
-{ nn, "<Plug>(qfr-qf-last)",  "]"..qP,         "Go to the last qf entry",         function() en._q_last(vim.v.count) end },
-{ nn, "<Plug>(qfr-qf-pfile)", "[<C-"..qp..">", "Go to the previous qf file",      function() en._q_pfile(vim.v.count) end },
-{ nn, "<Plug>(qfr-qf-nfile)", "]<C-"..qp..">", "Go to the next qf file",          function() en._q_nfile(vim.v.count) end },
-{ nn, "<Plug>(qfr-ll-prev)",  "["..lp,         "Go to a previous loclist entry",  function() en._l_prev(cur_win(), vim.v.count, {}) end },
-{ nn, "<Plug>(qfr-ll-next)",  "]"..lp,         "Go to a later loclist entry",     function() en._l_next(cur_win(), vim.v.count, {}) end },
-{ nn, "<Plug>(qfr-ll-rewind)","["..lP,         "Go to the first loclist entry",   function() en._l_rewind(cur_win(), vim.v.count) end },
-{ nn, "<Plug>(qfr-ll-last)",  "]"..lP,         "Go to the last loclist entry",    function() en._l_last(cur_win(), vim.v.count) end },
-{ nn, "<Plug>(qfr-ll-pfile)", "[<C-"..lp..">", "Go to the previous loclist file", function() en._l_pfile(cur_win(), vim.v.count) end },
-{ nn, "<Plug>(qfr-ll-nfile)", "]<C-"..lp..">", "Go to the next loclist file",     function() en._l_nfile(cur_win(), vim.v.count) end },
 
 -- ==========
 -- == SORT ==
@@ -355,20 +380,6 @@ M.cmds = {
 -- == NAV/ACTION ==
 -- ================
 
-{ "Qprev", function(cargs) en.q_prev_cmd(cargs) end, { count = 0, desc = "Go to a previous qf entry" } },
-{ "Qnext", function(cargs) en.q_next_cmd(cargs) end, { count = 0, desc = "Go to a later qf entry" } },
-{ "Qrewind", function(cargs) en.q_rewind_cmd(cargs) end, { count = 0, desc = "Go to the first or count qf entry" } },
-{ "Qlast", function(cargs) en.q_last_cmd(cargs) end, { count = 0, desc = "Go to the last or count qf entry" } },
-{ "Qq", function(cargs) en.q_q_cmd(cargs) end, { count = 0, desc = "Go to the current qf entry" } },
-{ "Qpfile", function(cargs) en.q_pfile_cmd(cargs) end, { count = 0, desc = "Go to the previous qf file" } },
-{ "Qnfile", function(cargs) en.q_nfile_cmd(cargs) end, { count = 0, desc = "Go to the next qf file" } },
-{ "Lprev", function(cargs) en.l_prev_cmd(cargs) end, { count = 0, desc = "Go to a previous loclist entry" } },
-{ "Lnext", function(cargs) en.l_next_cmd(cargs) end, { count = 0, desc = "Go to a later loclist entry" } },
-{ "Lrewind", function(cargs) en.l_rewind_cmd(cargs) end, { count = 0, desc = "Go to the first or count loclist entry" } },
-{ "Llast", function(cargs) en.l_last_cmd(cargs) end, { count = 0, desc = "Go to the last or count loclist entry" } },
-{ "Ll", function(cargs) en.l_l_cmd(cargs) end, { count = 0, desc = "Go to the current loclist entry" } },
-{ "Lpfile", function(cargs) en.l_pfile_cmd(cargs) end, { count = 0, desc = "Go to the previous loclist file" } },
-{ "Lnfile", function(cargs) en.l_nfile_cmd(cargs) end, { count = 0, desc = "Go to the next loclist file" } },
 
 -- ==========
 -- == SORT ==
