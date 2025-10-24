@@ -34,12 +34,9 @@ for _, tbl in ipairs(doc_tbls) do
 
     local lines = {} ---@type string[]
     ---@type string
+    local modname = "qf-rancher-" .. tbl[1] .. "-controls" ---@type string
     local titlecase = string.upper(string.sub(tbl[1], 1, 1)) .. string.sub(tbl[1], 2)
-    lines[#lines + 1] = "---@mod qf-rancher-"
-        .. tbl[1]
-        .. "-controls Qfr "
-        .. titlecase
-        .. " Controls"
+    lines[#lines + 1] = "---@mod " .. modname .. " Qfr " .. titlecase .. " Controls"
     lines[#lines + 1] = "---@brief [["
 
     for _, map in ipairs(map_tbl) do
@@ -51,7 +48,7 @@ for _, tbl in ipairs(doc_tbls) do
     end
 
     lines[#lines + 1] = "---@brief ]]"
-    lines[#lines + 1] = "---@export qf-rancher-window-controls"
+    lines[#lines + 1] = "---@export " .. modname
 
     local path = "doc/" .. tbl[1] .. "_maps.lua" ---@type string
     doc_paths[#doc_paths + 1] = { path, lines }
