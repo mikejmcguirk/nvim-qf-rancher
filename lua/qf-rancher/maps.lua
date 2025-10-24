@@ -13,7 +13,8 @@ local function maps_defer_require(path)
     })
 end
 
-local ea = maps_defer_require("qf-rancher.stack") ---@type QfrStack
+local ra_str = "stack"
+local ra = maps_defer_require("qf-rancher." .. ra_str) ---@type QfrStack
 local ed = maps_defer_require("qf-rancher.diag") ---@type QfRancherDiagnostics
 local ef = maps_defer_require("qf-rancher.filter") ---@type QfrFilter
 local eg = maps_defer_require("qf-rancher.grep") ---@type QfrGrep
@@ -157,6 +158,44 @@ M.qfr_nav_cmds = {
 
 M.doc_tbls[#M.doc_tbls + 1] = { rn_str, M.qfr_nav_maps, M.qfr_nav_cmds }
 
+-- DOCUMENT: older/newer are meant for cycling. so 2<leader>q[ will go back two lists
+-- The history commands are meant for targeting specific lists. So 2<leader>qQ will go to
+-- list two
+-- NOTE: For history, the open command is the more cumbersome map of the two. This is to
+-- align with the default behavior, where history only changes the list_nr, but does not
+-- open. If, in field testing, there are more cases where we want to open the list than
+-- just change, this can be swapped
+
+-- stylua: ignore
+M.qfr_stack_maps = {
+{ nn, "<Plug>(qfr-qf-older)",        ql.."[", "Go to an older qflist",                                function() ra._q_older(vim.v.count) end },
+{ nn, "<Plug>(qfr-qf-newer)",        ql.."]", "Go to a newer qflist",                                 function() ra._q_newer(vim.v.count) end },
+{ nn, "<Plug>(qfr-qf-history)",      ql..qP, "View or jump within the quickfix history",              function() ra._q_history(vim.v.count, { default = "cur_list" }) end },
+{ nn, "<Plug>(qfr-qf-history-open)", ql.."<C-"..qp..">", "Open and jump within the quickfix history", function() ra._q_history(vim.v.count, { open_list = true, default = "cur_list" }) end },
+{ nn, "<Plug>(qfr-qf-del)",          ql.."e", "Delete a list from the quickfix stack",                function() ra._q_del(vim.v.count) end },
+{ nn, "<Plug>(qfr-qf-del-all)",      ql.."E", "Delete all items from the quickfix stack",             function() ra._q_del_all() end },
+{ nn, "<Plug>(qfr-ll-older)",        ll.."[", "Go to an older location list",                         function() ra._l_older(cur_win(), vim.v.count) end },
+{ nn, "<Plug>(qfr-ll-newer)",        ll.."]", "Go to a newer location list",                          function() ra._l_newer(cur_win(), vim.v.count) end },
+{ nn, "<Plug>(qfr-ll-history)",      ll..lP, "View or jump within the loclist history",               function() ra._l_history(cur_win(), vim.v.count, { default = "cur_list" }) end },
+{ nn, "<Plug>(qfr-ll-history-open)", ll.."<C-"..lp..">", "Open and jump within the loclist history",  function() ra._l_history(cur_win(), vim.v.count, { open_list = true, default = "cur_list" }) end },
+{ nn, "<Plug>(qfr-ll-del)",          ll.."e", "Delete a list from the loclist stack",                 function() ra._l_del(cur_win(), vim.v.count) end },
+{ nn, "<Plug>(qfr-ll-del-all)",      ll.."E", "Delete all items from the loclist stack",              function() ra._l_del_all(cur_win()) end },
+}
+
+-- stylua: ignore
+M.qfr_stack_cmds = {
+{ "Qolder", function(cargs) ra.q_older_cmd(cargs) end, { count = 0, desc = "Go to an older qflist" } },
+{ "Qnewer", function(cargs) ra.q_newer_cmd(cargs) end, { count = 0, desc = "Go to a newer qflist" } },
+{ "Qhistory", function(cargs) ra.q_history_cmd(cargs) end, { count = 0, desc = "View or jump within the quickfix history" } },
+{ "Qdelete", function(cargs) ra.q_delete_cmd(cargs) end, { count = 0, nargs = "?", desc = "Delete one or all lists from the quickfix stack" } },
+{ "Lolder", function(cargs) ra._l_older_cmd(cargs) end, { count = 0, desc = "Go to an older location list" } },
+{ "Lnewer", function(cargs) ra._l_newer_cmd(cargs) end, { count = 0, desc = "Go to a newer location list" } },
+{ "Lhistory", function(cargs) ra.l_history_cmd(cargs) end, { count = 0, desc = "View or jump within the loclist history" } },
+{ "Ldelete", function(cargs) ra.l_delete_cmd(cargs) end, { count = 0, nargs = "?", desc = "Delete one or all lists from the loclist stack" } },
+}
+
+M.doc_tbls[#M.doc_tbls + 1] = { ra_str, M.qfr_stack_maps, M.qfr_stack_cmds }
+
 -- stylua: ignore
 ---@type QfrMapData[]
 M.qfr_maps = {
@@ -277,11 +316,6 @@ M.qfr_buf_maps = {
 { nx, "<Plug>(qfr-Lfilter-typeX)",     ll..kp.."T", "Lfilter type"..rx,     function() ef.filter("type", true, regex, replace_loclist()) end },
 { nx, "<Plug>(qfr-Lfilter!-typeX)",    ll..rp.."T", "Lfilter! type"..rx,    function() ef.filter("type", false, regex, replace_loclist()) end },
 
--- ================
--- == NAVIGATION ==
--- ================
-
-
 -- ==========
 -- == SORT ==
 -- ==========
@@ -307,31 +341,6 @@ M.qfr_buf_maps = {
 { nn, "<Plug>(qfr-lsort-text-desc)",       ll..sp.."E",     "Lsort by text desc",       function() es.sort("text", { dir = "desc" }, replace_loclist()) end },
 { nn, "<Plug>(qfr-lsort-type-asc)",        ll..sp.."t",     "Lsort by type asc",        function() es.sort("type", { dir = "asc" }, replace_loclist()) end },
 { nn, "<Plug>(qfr-lsort-type-desc)",       ll..sp.."T",     "Lsort by type desc",       function() es.sort("type", { dir = "desc" }, replace_loclist()) end },
-
--- ===========
--- == STACK ==
--- ===========
-
--- DOCUMENT: older/newer are meant for cycling. so 2<leader>q[ will go back two lists
--- The history commands are meant for targeting specific lists. So 2<leader>qQ will go to
--- list two
--- NOTE: For history, the open command is the more cumbersome map of the two. This is to
--- align with the default behavior, where history only changes the list_nr, but does not
--- open. If, in field testing, there are more cases where we want to open the list than
--- just change, this can be swapped
-
-{ nn, "<Plug>(qfr-qf-older)",        ql.."[", "Go to an older qflist",                                function() ea._q_older(vim.v.count) end },
-{ nn, "<Plug>(qfr-qf-newer)",        ql.."]", "Go to a newer qflist",                                 function() ea._q_newer(vim.v.count) end },
-{ nn, "<Plug>(qfr-qf-history)",      ql..qP, "View or jump within the quickfix history",              function() ea._q_history(vim.v.count, { default = "cur_list" }) end },
-{ nn, "<Plug>(qfr-qf-history-open)", ql.."<C-"..qp..">", "Open and jump within the quickfix history", function() ea._q_history(vim.v.count, { open_list = true, default = "cur_list" }) end },
-{ nn, "<Plug>(qfr-qf-del)",          ql.."e", "Delete a list from the quickfix stack",                function() ea._q_del(vim.v.count) end },
-{ nn, "<Plug>(qfr-qf-del-all)",      ql.."E", "Delete all items from the quickfix stack",             function() ea._q_del_all() end },
-{ nn, "<Plug>(qfr-ll-older)",        ll.."[", "Go to an older location list",                         function() ea._l_older(cur_win(), vim.v.count) end },
-{ nn, "<Plug>(qfr-ll-newer)",        ll.."]", "Go to a newer location list",                          function() ea._l_newer(cur_win(), vim.v.count) end },
-{ nn, "<Plug>(qfr-ll-history)",      ll..lP, "View or jump within the loclist history",               function() ea._l_history(cur_win(), vim.v.count, { default = "cur_list" }) end },
-{ nn, "<Plug>(qfr-ll-history-open)", ll.."<C-"..lp..">", "Open and jump within the loclist history",  function() ea._l_history(cur_win(), vim.v.count, { open_list = true, default = "cur_list" }) end },
-{ nn, "<Plug>(qfr-ll-del)",          ll.."e", "Delete a list from the loclist stack",                 function() ea._l_del(cur_win(), vim.v.count) end },
-{ nn, "<Plug>(qfr-ll-del-all)",      ll.."E", "Delete all items from the loclist stack",              function() ea._l_del_all(cur_win()) end },
 }
 
 -- stylua: ignore
@@ -376,30 +385,12 @@ M.cmds = {
 { "Qgrep", function(cargs) eg.q_grep_cmd(cargs) end, { count = true, nargs = "*", desc = "Grep to the quickfix list" } },
 { "Lgrep", function(cargs) eg.l_grep_cmd(cargs) end, { count = true, nargs = "*", desc = "Grep to the location list" } },
 
--- ================
--- == NAV/ACTION ==
--- ================
-
-
 -- ==========
 -- == SORT ==
 -- ==========
 
 { "Qsort", function(cargs) es.q_sort(cargs) end, { bang = true, count = 0, nargs = 1 } },
 { "Lsort", function(cargs) es.l_sort(cargs) end, { bang = true, count = 0, nargs = 1 } },
-
--- ===========
--- == STACK ==
--- ===========
-
-{ "Qolder", function(cargs) ea.q_older_cmd(cargs) end, { count = 0, desc = "Go to an older qflist" } },
-{ "Qnewer", function(cargs) ea.q_newer_cmd(cargs) end, { count = 0, desc = "Go to a newer qflist" } },
-{ "Qhistory", function(cargs) ea.q_history_cmd(cargs) end, { count = 0, desc = "View or jump within the quickfix history" } },
-{ "Qdelete", function(cargs) ea.q_delete_cmd(cargs) end, { count = 0, nargs = "?", desc = "Delete one or all lists from the quickfix stack" } },
-{ "Lolder", function(cargs) ea._l_older_cmd(cargs) end, { count = 0, desc = "Go to an older location list" } },
-{ "Lnewer", function(cargs) ea._l_newer_cmd(cargs) end, { count = 0, desc = "Go to a newer location list" } },
-{ "Lhistory", function(cargs) ea.l_history_cmd(cargs) end, { count = 0, desc = "View or jump within the loclist history" } },
-{ "Ldelete", function(cargs) ea.l_delete_cmd(cargs) end, { count = 0, nargs = "?", desc = "Delete one or all lists from the loclist stack" } },
 }
 
 -- NOTE: This table needs to be separate or else the plug mapping pass will map "<nop>", which

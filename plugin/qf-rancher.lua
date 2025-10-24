@@ -56,6 +56,8 @@ local fn = vim.fn
 ---@brief ]]
 
 -- MID: Create specific validator functions for these where appropriate
+-- MID: For deferred keymaps, could add an option to control the event(s) or
+-- if there should be an event at all
 
 -- stylua: ignore
 _G._QFR_G_VAR_MAP = {
@@ -186,9 +188,12 @@ qfr_reuse_title = { { "boolean" }, true },
 qfr_set_default_cmds = { { "boolean" }, true },
 ---
 ---(Default true) Set default keymaps (excluding ftplugin maps)
----TODO: link to default keymaps section
----@alias qfr_set_default_maps string
-qfr_set_default_maps = { { "boolean" }, true },
+---NOTE: All <Plug> maps are created at startup regardless of this option's
+---value. If this option is true, The Window maps (|qfr-window-controls|) and
+---and the grep maps (|qfr-grep-maps|) for CWD and help will be created at
+---startup. The others will be deferred until BufNew or BufReadPre
+---@alias qfr_set_default_keymaps boolean
+qfr_set_default_keymaps = { { "boolean" }, true },
 } ---@type table<string, {[1]:string[], [2]: any}>
 
 for k, v in pairs(_QFR_G_VAR_MAP) do
@@ -256,6 +261,7 @@ local tbls_for_plugs = {
     maps.qfr_buf_maps,
     maps.qfr_win_maps,
     maps.qfr_nav_maps,
+    maps.qfr_stack_maps,
     maps.qfr_ftplugin_maps,
 }
 
@@ -272,11 +278,11 @@ for _, tbl in ipairs(tbls_for_plugs) do
     end
 end
 
-if vim.g.qfr_set_default_maps then
+if vim.g.qfr_set_default_keymaps then
     local tbls_for_uienter = {
         maps.qfr_maps,
         maps.qfr_win_maps,
-        maps.qfr_nav_maps,
+        maps.qfr_buf_maps,
     }
 
     for _, tbl in ipairs(tbls_for_uienter) do
@@ -299,19 +305,23 @@ if vim.g.qfr_set_default_maps then
         end
     end
 
-    -- TODO: Will need tbls_for_bufnew here as well
+    local tbls_for_bufevent = {
+        maps.qfr_nav_maps,
+        maps.qfr_stack_maps,
+    }
 
-    -- DOCUMENT: this behavior
     -- Defer creation of maps that can wait for a buffer to be opened
     api.nvim_create_autocmd({ "BufNew", "BufReadPre" }, {
         group = api.nvim_create_augroup("qfr-buf-maps", {}),
         callback = function()
-            for _, map in ipairs(maps.qfr_buf_maps) do
-                for _, mode in ipairs(map[1]) do
-                    api.nvim_set_keymap(mode, map[3], map[2], {
-                        desc = map[4],
-                        noremap = true,
-                    })
+            for _, tbl in ipairs(tbls_for_bufevent) do
+                for _, map in ipairs(tbl) do
+                    for _, mode in ipairs(map[1]) do
+                        api.nvim_set_keymap(mode, map[3], map[2], {
+                            desc = map[4],
+                            noremap = true,
+                        })
+                    end
                 end
             end
 
