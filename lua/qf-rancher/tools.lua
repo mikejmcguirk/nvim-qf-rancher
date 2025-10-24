@@ -1,4 +1,4 @@
-local eo = Qfr_Defer_Require("qf-rancher.windows") ---@type QfrWins
+local eo = Qfr_Defer_Require("qf-rancher.window") ---@type QfrWins
 local ey = Qfr_Defer_Require("qf-rancher.types") ---@type QfrTypes
 local eu = Qfr_Defer_Require("qf-rancher.util") ---@type QfrUtil
 

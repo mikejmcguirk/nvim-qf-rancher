@@ -16,7 +16,7 @@ function _G.Qfr_Defer_Require(require_path)
 end
 
 -- TODO: Go through all the defer requires in the project and rename them
-local rw = Qfr_Defer_Require("qf-rancher.windows") ---@type QfrWins
+local rw = Qfr_Defer_Require("qf-rancher.window") ---@type QfrWins
 
 local api = vim.api
 local fn = vim.fn
@@ -228,9 +228,6 @@ if vim.g.qfr_create_loclist_autocmds then
 end
 
 ---@export nvim-qf-rancher
-
--- TODO: Break up the maps docs and put them with their modules. Will require handling here as
--- well
 
 -- NOTE: In order for the defer require to work, all function calls must be inside of
 -- anonymous functions. If you pass, for example, eo.closeqflist as a function reference, eo

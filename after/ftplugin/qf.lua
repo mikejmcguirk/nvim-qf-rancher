@@ -1,4 +1,4 @@
-local eo = Qfr_Defer_Require("qf-rancher.windows") --- @type QfrWins
+local eo = Qfr_Defer_Require("qf-rancher.window") --- @type QfrWins
 
 local api = vim.api
 local bufmap = api.nvim_buf_set_keymap

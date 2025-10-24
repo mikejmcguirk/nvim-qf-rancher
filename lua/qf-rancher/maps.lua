@@ -19,7 +19,8 @@ local ef = maps_defer_require("qf-rancher.filter") ---@type QfrFilter
 local eg = maps_defer_require("qf-rancher.grep") ---@type QfrGrep
 local ei = maps_defer_require("qf-rancher.filetype-funcs") ---@type QfRancherFiletypeFuncs
 local en = maps_defer_require("qf-rancher.nav-action") ---@type QfRancherNav
-local rw = maps_defer_require("qf-rancher.windows") ---@type QfrWins
+local rw_str = "window"
+local rw = maps_defer_require("qf-rancher." .. rw_str) ---@type QfrWins
 local ep = maps_defer_require("qf-rancher.preview") ---@type QfRancherPreview
 local es = maps_defer_require("qf-rancher.sort") ---@type QfRancherSort
 
@@ -90,6 +91,8 @@ end
 -- Cmd, Function, cmd args
 --- @alias QfrCmdData{ [1]:string, [2]:function, [3]:vim.api.keyset.user_command }
 
+M.doc_tbls = {} ---@type { [1]: string, [2]:QfrMapData[], [3]: QfrCmdData[] }[]
+
 -- stylua: ignore
 ---@type QfrMapData[]
 M.qfr_win_maps = {
@@ -113,6 +116,9 @@ M.qfr_win_cmds = {
 { "Lclose",  function() rw.close_loclist_cmd() end,            { desc = "Close the location List" } },
 { "Ltoggle", function(cargs) rw.toggle_loclist_cmd(cargs) end, { count = 0, desc = "Toggle the location list (count sets height on open)" } },
 }
+
+-- Need to be able to tie the module, keymap, and cmd data together for docgen
+M.doc_tbls[#M.doc_tbls + 1] = { rw_str, M.qfr_win_maps, M.qfr_win_cmds }
 
 -- stylua: ignore
 ---@type QfrMapData[]
@@ -305,20 +311,20 @@ M.qfr_buf_maps = {
 
 -- stylua: ignore
 M.qfr_ftplugin_maps = {
-{ nn, "<Plug>(qfr-list-del-one)",               function() ei._del_one_list_item() end,          "Delete the current list line" },
-{ xx, "<Plug>(qfr-list-visual-del)",            function() ei._visual_del() end,                 "Delete a visual line selection" },
-{ nn, "<Plug>(qfr-list-toggle-preview)",        function() ep.toggle_preview_win(cur_win()) end, "Toggle the preview win" },
-{ nn, "<Plug>(qfr-list-update-preview-pos)",    function() ep.update_preview_win_pos() end,      "Update the preview win position" },
-{ nn, "<Plug>(qfr-list-open-direct-focuswin)",  function() ei._open_direct_focuswin() end,       "Open a list item and focus on it" },
-{ nn, "<Plug>(qfr-list-open-direct-focuslist)", function() ei._open_direct_focuslist() end,      "Open a list item, keep list focus" },
-{ nn, "<Plug>(qfr-list-prev)",                  function() ei._open_prev_focuslist() end,        "Go to a previous qf entry, keep window focus" },
-{ nn, "<Plug>(qfr-list-next)",                  function() ei._open_next_focuslist() end,        "Go to a later qf entry, keep window focus" },
-{ nn, "<Plug>(qfr-list-open-split-focuswin)",   function() ei._open_split_focuswin() end,        "Open a list item in a split and focus on it" },
-{ nn, "<Plug>(qfr-list-open-split-focuslist)",  function() ei._open_split_focuslist() end,       "Open a list item in a split, keep list focus" },
-{ nn, "<Plug>(qfr-list-open-vsplit-focuswin)",  function() ei._open_vsplit_focuswin() end,       "Open a list item in a vsplit and focus on it" },
-{ nn, "<Plug>(qfr-list-open-vsplit-focuslist)", function() ei._open_vsplit_focuslist() end,      "Open a list item in a vsplit, keep list focus" },
-{ nn, "<Plug>(qfr-list-open-tabnew-focuswin)",  function() ei._open_tabnew_focuswin() end,       "Open a list item in a new tab and focus on it" },
-{ nn, "<Plug>(qfr-list-open-tabnew-focuslist)", function() ei._open_tabnew_focuslist() end,      "Open a list item in a new tab, keep list focus" },
+{ nn, "<Plug>(qfr-list-del-one)",               nil, "Delete the current list line",                   function() ei._del_one_list_item() end },
+{ xx, "<Plug>(qfr-list-visual-del)",            nil, "Delete a visual line selection",                 function() ei._visual_del() end },
+{ nn, "<Plug>(qfr-list-toggle-preview)",        nil, "Toggle the preview win",                         function() ep.toggle_preview_win(cur_win()) end },
+{ nn, "<Plug>(qfr-list-update-preview-pos)",    nil, "Update the preview win position",                function() ep.update_preview_win_pos() end },
+{ nn, "<Plug>(qfr-list-open-direct-focuswin)",  nil, "Open a list item and focus on it",               function() ei._open_direct_focuswin() end },
+{ nn, "<Plug>(qfr-list-open-direct-focuslist)", nil, "Open a list item, keep list focus",              function() ei._open_direct_focuslist() end },
+{ nn, "<Plug>(qfr-list-prev)",                  nil, "Go to a previous qf entry, keep window focus",   function() ei._open_prev_focuslist() end },
+{ nn, "<Plug>(qfr-list-next)",                  nil, "Go to a later qf entry, keep window focus",      function() ei._open_next_focuslist() end },
+{ nn, "<Plug>(qfr-list-open-split-focuswin)",   nil, "Open a list item in a split and focus on it",    function() ei._open_split_focuswin() end },
+{ nn, "<Plug>(qfr-list-open-split-focuslist)",  nil, "Open a list item in a split, keep list focus",   function() ei._open_split_focuslist() end },
+{ nn, "<Plug>(qfr-list-open-vsplit-focuswin)",  nil, "Open a list item in a vsplit and focus on it",   function() ei._open_vsplit_focuswin() end },
+{ nn, "<Plug>(qfr-list-open-vsplit-focuslist)", nil, "Open a list item in a vsplit, keep list focus",  function() ei._open_vsplit_focuslist() end },
+{ nn, "<Plug>(qfr-list-open-tabnew-focuswin)",  nil, "Open a list item in a new tab and focus on it",  function() ei._open_tabnew_focuswin() end },
+{ nn, "<Plug>(qfr-list-open-tabnew-focuslist)", nil, "Open a list item in a new tab, keep list focus", function() ei._open_tabnew_focuslist() end },
 }
 
 
