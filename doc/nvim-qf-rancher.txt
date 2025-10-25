@@ -95,16 +95,12 @@ qfr_save_views                                                  *qfr_save_views*
         boolean
 
 
-Qf Rancher provides a qf.lua ftplugin file to customize list behavior
-TODO: ref ftplugin section
-Customize which ftplugin features to use with the options below
+Qf Rancher provides a qf.lua after/ftplugin file to customize list behavior
+Customize which |qfr-ftplugin| features to use with the options below
 
 qfr_ftplugin_demap                                          *qfr_ftplugin_demap*
 
-    (Default true) Disable the following defaults in lists:
-    - <C-w>s (split)
-    - <C-w>v (vsplit)
-    - <C-i> / <C-o> (jumplist navigation)
+    (Default true) Disable non-useful default maps
 
     Type: ~
         boolean
@@ -112,9 +108,7 @@ qfr_ftplugin_demap                                          *qfr_ftplugin_demap*
 
 qfr_ftplugin_keymap                                        *qfr_ftplugin_keymap*
 
-    (Default true) Set ftplugin list keymaps
-    TODO: Reference ftplugin section
-    TODO: Note that these are the ack style maps + other lineage
+    (Default true) Set ack.vim style ftplugin list keymaps
 
     Type: ~
         boolean
@@ -122,11 +116,7 @@ qfr_ftplugin_keymap                                        *qfr_ftplugin_keymap*
 
 qfr_ftplugin_set_opts                                    *qfr_ftplugin_set_opts*
 
-    (Default true) Set the following options in lists:
-    - buflisted = false
-    - colorcolumn = ""
-    - list = false
-    - spell = false
+    (Default true) Set useful list options
 
     Type: ~
         boolean
@@ -244,28 +234,28 @@ Qfr Window controls                                 *qf-rancher-window-controls*
                                                            *qfr-window-commands*
 
 
-Modes: { n }, Plug: <Plug>(qfr-open-qf-list), Default: <leader>qp
+Modes: { n }, Plug: <Plug>(qfr-open-qf-list), Default: "<leader>qp"
  Desc: Open the quickfix list to [count] height (focus if already open)
 
-Modes: { n }, Plug: <Plug>(qfr-open-qf-list-max), Default: <leader>qP
+Modes: { n }, Plug: <Plug>(qfr-open-qf-list-max), Default: "<leader>qP"
  Desc: Open the quickfix list to max height
 
-Modes: { n }, Plug: <Plug>(qfr-close-qf-list), Default: <leader>qo
+Modes: { n }, Plug: <Plug>(qfr-close-qf-list), Default: "<leader>qo"
  Desc: Close the quickfix list
 
-Modes: { n }, Plug: <Plug>(qfr-toggle-qf-list), Default: <leader>qq
+Modes: { n }, Plug: <Plug>(qfr-toggle-qf-list), Default: "<leader>qq"
  Desc: Toggle the quickfix list (count sets height on open)
 
-Modes: { n }, Plug: <Plug>(qfr-open-loclist), Default: <leader>lp
+Modes: { n }, Plug: <Plug>(qfr-open-loclist), Default: "<leader>lp"
  Desc: Open the location list to [count] height (focus if already open)
 
-Modes: { n }, Plug: <Plug>(qfr-open-loclist-max), Default: <leader>lP
+Modes: { n }, Plug: <Plug>(qfr-open-loclist-max), Default: "<leader>lP"
  Desc: Open the location list to max height
 
-Modes: { n }, Plug: <Plug>(qfr-close-loclist), Default: <leader>lo
+Modes: { n }, Plug: <Plug>(qfr-close-loclist), Default: "<leader>lo"
  Desc: Close the location list
 
-Modes: { n }, Plug: <Plug>(qfr-toggle-loclist), Default: <leader>ll
+Modes: { n }, Plug: <Plug>(qfr-toggle-loclist), Default: "<leader>ll"
  Desc: Toggle the location list (count sets height on open)
 
 Cmd: Qopen
@@ -436,40 +426,40 @@ Qfr Nav controls                                       *qf-rancher-nav-controls*
                                                               *qfr-nav-commands*
 
 
-Modes: { n }, Plug: <Plug>(qfr-qf-prev), Default: [q
+Modes: { n }, Plug: <Plug>(qfr-qf-prev), Default: "[q"
  Desc: Go to the [count] previous quickfix entry. Count is wrapping
 
-Modes: { n }, Plug: <Plug>(qfr-qf-next), Default: ]q
+Modes: { n }, Plug: <Plug>(qfr-qf-next), Default: "]q"
  Desc: Go to the [count] next quickfix entry. Count is wrapping
 
-Modes: { n }, Plug: <Plug>(qfr-qf-rewind), Default: [Q
+Modes: { n }, Plug: <Plug>(qfr-qf-rewind), Default: "[Q"
  Desc: Go to the [count] quickfix entry, or the first if no count
 
-Modes: { n }, Plug: <Plug>(qfr-qf-last), Default: ]Q
+Modes: { n }, Plug: <Plug>(qfr-qf-last), Default: "]Q"
  Desc: Go to the [count] quickfix entry, or the last if no count
 
-Modes: { n }, Plug: <Plug>(qfr-qf-pfile), Default: [<C-q>
+Modes: { n }, Plug: <Plug>(qfr-qf-pfile), Default: "[<C-q>"
  Desc: Go to the [count] previous quickfix file. Wrap to the last file
 
-Modes: { n }, Plug: <Plug>(qfr-qf-nfile), Default: ]<C-q>
+Modes: { n }, Plug: <Plug>(qfr-qf-nfile), Default: "]<C-q>"
  Desc: Go to the [count] next quickfix file. Wrap to the first file
 
-Modes: { n }, Plug: <Plug>(qfr-ll-prev), Default: [l
+Modes: { n }, Plug: <Plug>(qfr-ll-prev), Default: "[l"
  Desc: Go to the [count] previous location list entry. Count is wrapping
 
-Modes: { n }, Plug: <Plug>(qfr-ll-next), Default: ]l
+Modes: { n }, Plug: <Plug>(qfr-ll-next), Default: "]l"
  Desc: Go to the [count] next location list entry. Count is wrapping
 
-Modes: { n }, Plug: <Plug>(qfr-ll-rewind), Default: [L
+Modes: { n }, Plug: <Plug>(qfr-ll-rewind), Default: "[L"
  Desc: Go to the [count] quickfix entry, or the first if no count
 
-Modes: { n }, Plug: <Plug>(qfr-ll-last), Default: ]L
+Modes: { n }, Plug: <Plug>(qfr-ll-last), Default: "]L"
  Desc: Go to the [count] quickfix entry, or the last if no count
 
-Modes: { n }, Plug: <Plug>(qfr-ll-pfile), Default: [<C-l>
+Modes: { n }, Plug: <Plug>(qfr-ll-pfile), Default: "[<C-l>"
  Desc: Go to the [count] previous quickfix file. Wrap to the last file
 
-Modes: { n }, Plug: <Plug>(qfr-ll-nfile), Default: ]<C-l>
+Modes: { n }, Plug: <Plug>(qfr-ll-nfile), Default: "]<C-l>"
  Desc: Go to the [count] next quickfix file. Wrap to the first file
 
 Cmd: Qprev
@@ -816,34 +806,34 @@ Qfr Stack controls                                   *qf-rancher-stack-controls*
                                                             *qfr-stack-commands*
 
 
-Modes: { n }, Plug: <Plug>(qfr-qf-older), Default: <leader>q[
+Modes: { n }, Plug: <Plug>(qfr-qf-older), Default: "<leader>q["
  Desc: Go to the [count] older quickfix list. Count is wrapping
 
-Modes: { n }, Plug: <Plug>(qfr-qf-newer), Default: <leader>q]
+Modes: { n }, Plug: <Plug>(qfr-qf-newer), Default: "<leader>q]"
  Desc: Go to the [count] newer quickfix list. Count is wrapping
 
-Modes: { n }, Plug: <Plug>(qfr-qf-history), Default: <leader>qQ
+Modes: { n }, Plug: <Plug>(qfr-qf-history), Default: "<leader>qQ"
  Desc: Jump to [count] list in the quickfix stack or view the current list
 
-Modes: { n }, Plug: <Plug>(qfr-qf-del), Default: <leader>qe
+Modes: { n }, Plug: <Plug>(qfr-qf-del), Default: "<leader>qe"
  Desc: Delete a list from the quickfix stack
 
-Modes: { n }, Plug: <Plug>(qfr-qf-del-all), Default: <leader>qE
+Modes: { n }, Plug: <Plug>(qfr-qf-del-all), Default: "<leader>qE"
  Desc: Clear the quickfix stack
 
-Modes: { n }, Plug: <Plug>(qfr-ll-older), Default: <leader>l[
+Modes: { n }, Plug: <Plug>(qfr-ll-older), Default: "<leader>l["
  Desc: Go to the [count] older location list. Count is wrapping
 
-Modes: { n }, Plug: <Plug>(qfr-ll-newer), Default: <leader>l]
+Modes: { n }, Plug: <Plug>(qfr-ll-newer), Default: "<leader>l]"
  Desc: Go to the [count] newer location list. Count is wrapping
 
-Modes: { n }, Plug: <Plug>(qfr-ll-history), Default: <leader>lL
+Modes: { n }, Plug: <Plug>(qfr-ll-history), Default: "<leader>lL"
  Desc: Jump to [count] list in the loclist stack or view the current list
 
-Modes: { n }, Plug: <Plug>(qfr-ll-del), Default: <leader>le
+Modes: { n }, Plug: <Plug>(qfr-ll-del), Default: "<leader>le"
  Desc: Delete a list from the loclist stack
 
-Modes: { n }, Plug: <Plug>(qfr-ll-del-all), Default: <leader>lE
+Modes: { n }, Plug: <Plug>(qfr-ll-del-all), Default: "<leader>lE"
  Desc: Clear the loclist stack
 
 Cmd: Qolder
@@ -871,7 +861,7 @@ Cmd: Ldelete
 Desc: Delete [count] list or "all" lists from the loclist stack
 
 ==============================================================================
-Work with the qf stack                                                   *Stack*
+View and edit the list stack                                             *Stack*
 
                                                               *qf-rancher-stack*
                                                                      *qfr-stack*
@@ -1079,5 +1069,87 @@ Stack.l_delete_cmd({cargs})                                 *Stack.l_delete_cmd*
     Returns: ~
         (nil)
 
+
+==============================================================================
+Qfr Ftplugin controls                             *qf-rancher-ftplugin-controls*
+
+                                                          *qfr-ftplugin-keymaps*
+
+
+Modes: { n }, Plug: <Plug>(qfr-list-del-one), Default: "dd"
+ Desc: Delete the current list line
+
+Modes: { x }, Plug: <Plug>(qfr-list-visual-del), Default: "d"
+ Desc: Delete a visual line list selection
+
+Modes: { n }, Plug: <Plug>(qfr-list-toggle-preview), Default: "p"
+ Desc: Toggle the list preview win
+
+Modes: { n }, Plug: <Plug>(qfr-list-update-preview-pos), Default: "P"
+ Desc: Update the preview win position
+
+Modes: { n }, Plug: <Plug>(qfr-list-prev), Default: "{"
+ Desc: Go to the previous list entry, keep list focus
+
+Modes: { n }, Plug: <Plug>(qfr-list-next), Default: "}"
+ Desc: Go to the next list entry, keep list focus
+
+Modes: { n }, Plug: <Plug>(qfr-list-open-direct-focuswin), Default: "o"
+ Desc: Open a list item
+
+Modes: { n }, Plug: <Plug>(qfr-list-open-direct-focuslist), Default: "<C-o>"
+ Desc: Open a list item, keep list focus
+
+Modes: { n }, Plug: <Plug>(qfr-list-open-split-focuswin), Default: "s"
+ Desc: Open a list item in a split
+
+Modes: { n }, Plug: <Plug>(qfr-list-open-split-focuslist), Default: "<C-s>"
+ Desc: Open a list item in a split, keep list focus
+
+Modes: { n }, Plug: <Plug>(qfr-list-open-vsplit-focuswin), Default: "v"
+ Desc: Open a list item in a vsplit
+
+Modes: { n }, Plug: <Plug>(qfr-list-open-vsplit-focuslist), Default: "<C-v>"
+ Desc: Open a list item in a vsplit, keep list focus
+
+Modes: { n }, Plug: <Plug>(qfr-list-open-tabnew-focuswin), Default: "x"
+ Desc: Open a list item in a new tab
+
+Modes: { n }, Plug: <Plug>(qfr-list-open-tabnew-focuslist), Default: "<C-x>"
+ Desc: Open a list item in a new tab, keep list focus
+
+==============================================================================
+List buffer specific features                                         *Ftplugin*
+
+                                                           *qf-rancher-ftplugin*
+                                                                  *qfr-ftplugin*
+
+
+If g:qfr_ftplugin_set_opts is true, the following will be set:
+
+- buflisted = false
+- colorcolumn = ""
+- list = false
+- spell = false
+
+If g:qfr_ftplugin_demap is true, disable the following defaults:
+
+- <C-w>s (split)
+- <C-w>v (vsplit)
+- <C-i> / <C-o> (jumplist navigation)
+
+The |qf-rancher-ftplugin-keymaps| will be set if g:qfr_ftplugin_keymap
+is true.
+
+Additionally, the "older" and "newer" functions will be mapped to "<" and ">"
+Like the standard keymaps, they take a wrapping count
+
+NOTE: The [count] for the ftplugin specific maps specifies which window
+number to open the entry to. If no count is provided, Qfr will emulate
+Neovim's default behavior. For Quickfix windows, this includes respecting
+"useopen", "usetab", and "uselast" switchbuf behavior (Location list
+windows use "useopen" only). Help entries will attempt to find a help
+window If a valid window cannot be found, a new split will always be
+created above the list
 
 vim:tw=78:ts=8:noet:ft=help:norl:

@@ -21,6 +21,7 @@ local rw = Qfr_Defer_Require("qf-rancher.window") ---@type QfrWins
 local api = vim.api
 local fn = vim.fn
 
+-- TODO: Add a credits/inspiration section
 -- LOW: The g variable docs could also be automatically generated
 
 ---@mod nvim-qf-rancher.txt Error list husbandry
@@ -101,29 +102,19 @@ qfr_debug_assertions = { { "boolean" }, false },
 ---@alias qfr_save_views boolean
 qfr_save_views = { { "boolean" }, true },
 ---@brief [[
----Qf Rancher provides a qf.lua ftplugin file to customize list behavior
----TODO: ref ftplugin section
----Customize which ftplugin features to use with the options below
+---Qf Rancher provides a qf.lua after/ftplugin file to customize list behavior
+---Customize which |qfr-ftplugin| features to use with the options below
 ---@brief ]]
 ---
----(Default true) Disable the following defaults in lists:
----- <C-w>s (split)
----- <C-w>v (vsplit)
----- <C-i> / <C-o> (jumplist navigation)
+---(Default true) Disable obtrusive defaults
 ---@alias qfr_ftplugin_demap boolean
 qfr_ftplugin_demap = { { "boolean" }, true },
 ---
----(Default true) Set ftplugin list keymaps
----TODO: Reference ftplugin section
----TODO: Note that these are the ack style maps + other lineage
+---(Default true) Set ack.vim style ftplugin list keymaps
 ---@alias qfr_ftplugin_keymap boolean
 qfr_ftplugin_keymap = { { "boolean" }, true },
 ---
----(Default true) Set the following options in lists:
----- buflisted = false
----- colorcolumn = ""
----- list = false
----- spell = false
+---(Default true) Set list-specific options
 ---@alias qfr_ftplugin_set_opts boolean
 qfr_ftplugin_set_opts = { { "boolean" }, true },
 ---
@@ -151,7 +142,7 @@ qfr_grepprg = { { "string" }, "rg" },
 qfr_preview_border = { { "string", "table" }, "single" },
 ---
 ---(Default 100) Minimum interval in ms between preview window updates
----The default is 100 to accomodate slower systems/HDs. On a reasonable
+---The default is 100 to accommodate slower systems/HDs. On a reasonable
 ---system, it should be possible to go down to 50ms before flicker/stutter
 ---start to appear. This behavior also depends on the size of the file(s)
 ---being scrolled through

@@ -4,7 +4,7 @@
 local function add_map(map, lines)
     lines[#lines + 1] = "---"
     local modes = table.concat(map[1], ", ") ---@type string
-    local default = ", Default: " .. map[3] ---@type string
+    local default = ', Default: "' .. map[3] .. '"' ---@type string
     lines[#lines + 1] = "---Modes: { " .. modes .. " }, Plug: " .. map[2] .. default
     lines[#lines + 1] = "--- Desc: " .. map[4]
 end
@@ -23,19 +23,23 @@ local doc_tbls = maps_tbls.doc_tbls ---@type { [1]: string, [2]:QfrMapData[], [3
 local doc_paths = {} ---@type {[1]:string, [2]:string[] }[]
 local cmd_parts = { "lemmy-help", "-l", '"compact"', "plugin/qf-rancher.lua" } ---@type string[]
 
+local qf = "qf"
+
 for _, tbl in ipairs(doc_tbls) do
     local map_tbl = tbl[2] ---@type QfrMapData[]
     local cmd_tbl = tbl[3] ---@type QfrCmdData[]
 
     local lines = {} ---@type string[]
     ---@type string
-    local modname = "qf-rancher-" .. tbl[1] .. "-controls" ---@type string
-    local modtag_map = "qfr-" .. tbl[1] .. "-keymaps" ---@type string
-    local modtag_cmd = "qfr-" .. tbl[1] .. "-commands" ---@type string
-    local titlecase = string.upper(string.sub(tbl[1], 1, 1)) .. string.sub(tbl[1], 2)
-    lines[#lines + 1] = "---@mod " .. modname .. " Qfr " .. titlecase .. " controls"
+    local modname = tbl[1] == qf and "ftplugin" or tbl[1]
+    local modtag = "qf-rancher-" .. modname .. "-controls" ---@type string
+    local modtag_map = "qfr-" .. modname .. "-keymaps" ---@type string
+    local modtag_cmd = "qfr-" .. modname .. "-commands" ---@type string
+    local titlecase = string.upper(string.sub(modname, 1, 1)) .. string.sub(modname, 2)
+
+    lines[#lines + 1] = "---@mod " .. modtag .. " Qfr " .. titlecase .. " controls"
     lines[#lines + 1] = "---@tag " .. modtag_map
-    lines[#lines + 1] = "---@tag " .. modtag_cmd
+    if tbl[1] ~= qf then lines[#lines + 1] = "---@tag " .. modtag_cmd end
     lines[#lines + 1] = "---@brief [["
     lines[#lines + 1] = "---"
 
@@ -48,12 +52,13 @@ for _, tbl in ipairs(doc_tbls) do
     end
 
     lines[#lines + 1] = "---@brief ]]"
-    lines[#lines + 1] = "---@export " .. modname
+    lines[#lines + 1] = "---@export " .. modtag
 
     local path = "doc/" .. tbl[1] .. "_maps.lua" ---@type string
     doc_paths[#doc_paths + 1] = { path, lines }
     cmd_parts[#cmd_parts + 1] = path
-    cmd_parts[#cmd_parts + 1] = "lua/qf-rancher/" .. tbl[1] .. ".lua"
+    local dir = tbl[1] == qf and "after/ftplugin/" or "lua/qf-rancher/"
+    cmd_parts[#cmd_parts + 1] = dir .. tbl[1] .. ".lua"
 end
 
 for _, path in ipairs(doc_paths) do

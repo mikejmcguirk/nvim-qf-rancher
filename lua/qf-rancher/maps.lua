@@ -187,6 +187,26 @@ M.qfr_stack_cmds = {
 M.doc_tbls[#M.doc_tbls + 1] = { ra_str, M.qfr_stack_maps, M.qfr_stack_cmds }
 
 -- stylua: ignore
+M.qfr_ftplugin_maps = {
+{ nn, "<Plug>(qfr-list-del-one)",               "dd", "Delete the current list line",                   function() ei._del_one_list_item() end },
+{ xx, "<Plug>(qfr-list-visual-del)",            "d", "Delete a visual line list selection",                 function() ei._visual_del() end },
+{ nn, "<Plug>(qfr-list-toggle-preview)",        "p", "Toggle the list preview win",                         function() ep.toggle_preview_win(cur_win()) end },
+{ nn, "<Plug>(qfr-list-update-preview-pos)",    "P", "Update the preview win position",                function() ep.update_preview_win_pos() end },
+{ nn, "<Plug>(qfr-list-prev)",                  "{", "Go to the previous list entry, keep list focus",   function() ei._open_prev_focuslist() end },
+{ nn, "<Plug>(qfr-list-next)",                  "}", "Go to the next list entry, keep list focus",      function() ei._open_next_focuslist() end },
+{ nn, "<Plug>(qfr-list-open-direct-focuswin)",  "o", "Open a list item",               function() ei._open_direct_focuswin() end },
+{ nn, "<Plug>(qfr-list-open-direct-focuslist)", "<C-o>", "Open a list item, keep list focus",              function() ei._open_direct_focuslist() end },
+{ nn, "<Plug>(qfr-list-open-split-focuswin)",   "s", "Open a list item in a split",    function() ei._open_split_focuswin() end },
+{ nn, "<Plug>(qfr-list-open-split-focuslist)",  "<C-s>", "Open a list item in a split, keep list focus",   function() ei._open_split_focuslist() end },
+{ nn, "<Plug>(qfr-list-open-vsplit-focuswin)",  "v", "Open a list item in a vsplit",   function() ei._open_vsplit_focuswin() end },
+{ nn, "<Plug>(qfr-list-open-vsplit-focuslist)", "<C-v>", "Open a list item in a vsplit, keep list focus",  function() ei._open_vsplit_focuslist() end },
+{ nn, "<Plug>(qfr-list-open-tabnew-focuswin)",  "x", "Open a list item in a new tab",  function() ei._open_tabnew_focuswin() end },
+{ nn, "<Plug>(qfr-list-open-tabnew-focuslist)", "<C-x>", "Open a list item in a new tab, keep list focus", function() ei._open_tabnew_focuslist() end },
+}
+
+M.doc_tbls[#M.doc_tbls + 1] = { "qf", M.qfr_ftplugin_maps, {} }
+
+-- stylua: ignore
 ---@type QfrMapData[]
 M.qfr_maps = {
 -- ==========
@@ -331,24 +351,6 @@ M.qfr_buf_maps = {
 { nn, "<Plug>(qfr-lsort-text-desc)",       ll..sp.."E",     "Lsort by text desc",       function() es.sort("text", { dir = "desc" }, replace_loclist()) end },
 { nn, "<Plug>(qfr-lsort-type-asc)",        ll..sp.."t",     "Lsort by type asc",        function() es.sort("type", { dir = "asc" }, replace_loclist()) end },
 { nn, "<Plug>(qfr-lsort-type-desc)",       ll..sp.."T",     "Lsort by type desc",       function() es.sort("type", { dir = "desc" }, replace_loclist()) end },
-}
-
--- stylua: ignore
-M.qfr_ftplugin_maps = {
-{ nn, "<Plug>(qfr-list-del-one)",               nil, "Delete the current list line",                   function() ei._del_one_list_item() end },
-{ xx, "<Plug>(qfr-list-visual-del)",            nil, "Delete a visual line selection",                 function() ei._visual_del() end },
-{ nn, "<Plug>(qfr-list-toggle-preview)",        nil, "Toggle the preview win",                         function() ep.toggle_preview_win(cur_win()) end },
-{ nn, "<Plug>(qfr-list-update-preview-pos)",    nil, "Update the preview win position",                function() ep.update_preview_win_pos() end },
-{ nn, "<Plug>(qfr-list-open-direct-focuswin)",  nil, "Open a list item and focus on it",               function() ei._open_direct_focuswin() end },
-{ nn, "<Plug>(qfr-list-open-direct-focuslist)", nil, "Open a list item, keep list focus",              function() ei._open_direct_focuslist() end },
-{ nn, "<Plug>(qfr-list-prev)",                  nil, "Go to a previous qf entry, keep window focus",   function() ei._open_prev_focuslist() end },
-{ nn, "<Plug>(qfr-list-next)",                  nil, "Go to a later qf entry, keep window focus",      function() ei._open_next_focuslist() end },
-{ nn, "<Plug>(qfr-list-open-split-focuswin)",   nil, "Open a list item in a split and focus on it",    function() ei._open_split_focuswin() end },
-{ nn, "<Plug>(qfr-list-open-split-focuslist)",  nil, "Open a list item in a split, keep list focus",   function() ei._open_split_focuslist() end },
-{ nn, "<Plug>(qfr-list-open-vsplit-focuswin)",  nil, "Open a list item in a vsplit and focus on it",   function() ei._open_vsplit_focuswin() end },
-{ nn, "<Plug>(qfr-list-open-vsplit-focuslist)", nil, "Open a list item in a vsplit, keep list focus",  function() ei._open_vsplit_focuslist() end },
-{ nn, "<Plug>(qfr-list-open-tabnew-focuswin)",  nil, "Open a list item in a new tab and focus on it",  function() ei._open_tabnew_focuswin() end },
-{ nn, "<Plug>(qfr-list-open-tabnew-focuslist)", nil, "Open a list item in a new tab, keep list focus", function() ei._open_tabnew_focuslist() end },
 }
 
 

@@ -282,12 +282,6 @@ end
 -- == LIST OPEN FUNCS ==
 -- =====================
 
--- DOCUMENT: switchbuf behavior :
--- useopen is respected and given first priority
--- usetab is respected and given next priority
--- uselast is respected and given next priority
--- split, vsplit, and newtab are not respected
-
 ---@param list_win integer
 ---@param dest_win integer|nil
 ---@param is_orphan boolean
@@ -467,9 +461,6 @@ end
 
 return M
 
--- TODO: Wait on doc formatting until the project has been moved into its own dir and I can see
--- all the pieces of the ftplugin file put together
--- TODO: docs
 -- TODO: tests
 
 -- MAYBE: For some of the context switching, eventignore could be useful. But very bad if we error
