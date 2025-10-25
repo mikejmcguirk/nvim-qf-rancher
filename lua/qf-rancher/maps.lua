@@ -15,9 +15,11 @@ end
 
 local ra_str = "stack"
 local ra = maps_defer_require("qf-rancher." .. ra_str) ---@type QfrStack
-local ed = maps_defer_require("qf-rancher.diag") ---@type QfRancherDiagnostics
+local rd_str = "diagnostic"
+local rd = maps_defer_require("qf-rancher." .. rd_str) ---@type QfRancherDiagnostics
 local ef = maps_defer_require("qf-rancher.filter") ---@type QfrFilter
-local eg = maps_defer_require("qf-rancher.grep") ---@type QfrGrep
+local rg_str = "grep"
+local rg = maps_defer_require("qf-rancher." .. rg_str) ---@type QfrGrep
 local ei = maps_defer_require("qf-rancher.filetype-funcs") ---@type QfRancherFiletypeFuncs
 local rn_str = "nav"
 local rn = maps_defer_require("qf-rancher." .. rn_str) ---@type QfRancherNav
@@ -218,24 +220,24 @@ M.qfr_grep_maps = {
 -- == GREP ==
 -- ==========
 
-{ nx, "<Plug>(qfr-qgrep-cwd)",    ql..gp.."d", "Quickfix grep CWD"..vc,  function() eg.grep("cwd", vimcase, sys_opt, new_qflist()) end },
-{ nx, "<Plug>(qfr-qgrep-cwdX)",   ql..gp.."D", "Quickfix grep CWD"..rx,  function() eg.grep("cwd", regex, sys_opt, new_qflist()) end },
-{ nx, "<Plug>(qfr-qgrep-help)",   ql..gp.."h", "Quickfix grep help"..vc, function() eg.grep("help", vimcase, sys_opt, new_qflist()) end },
-{ nx, "<Plug>(qfr-qgrep-helpX)",  ql..gp.."H", "Quickfix grep help"..rx, function() eg.grep("help", regex, sys_opt, new_qflist()) end },
+{ nx, "<Plug>(qfr-qgrep-cwd)",    ql..gp.."d", "Quickfix grep CWD"..vc,  function() rg.grep("cwd", vimcase, sys_opt, new_qflist()) end },
+{ nx, "<Plug>(qfr-qgrep-cwdX)",   ql..gp.."D", "Quickfix grep CWD"..rx,  function() rg.grep("cwd", regex, sys_opt, new_qflist()) end },
+{ nx, "<Plug>(qfr-qgrep-help)",   ql..gp.."h", "Quickfix grep help"..vc, function() rg.grep("help", vimcase, sys_opt, new_qflist()) end },
+{ nx, "<Plug>(qfr-qgrep-helpX)",  ql..gp.."H", "Quickfix grep help"..rx, function() rg.grep("help", regex, sys_opt, new_qflist()) end },
 
-{ nx, "<Plug>(qfr-lgrep-cwd)",   ll..gp.."d", "Loclist grep CWD"..vc,    function() eg.grep("cwd", vimcase, sys_opt, new_loclist()) end },
-{ nx, "<Plug>(qfr-lgrep-cwdX)",  ll..gp.."D", "Loclist grep CWD"..rx,    function() eg.grep("cwd", regex, sys_opt, new_loclist()) end },
-{ nx, "<Plug>(qfr-lgrep-help)",  ll..gp.."h", "Loclist grep help"..vc,   function() eg.grep("help", vimcase, sys_opt, new_loclist()) end },
-{ nx, "<Plug>(qfr-lgrep-helpX)", ll..gp.."H", "Loclist grep help"..rx,   function() eg.grep("help", regex, sys_opt, new_loclist()) end },
+{ nx, "<Plug>(qfr-lgrep-cwd)",   ll..gp.."d", "Loclist grep CWD"..vc,    function() rg.grep("cwd", vimcase, sys_opt, new_loclist()) end },
+{ nx, "<Plug>(qfr-lgrep-cwdX)",  ll..gp.."D", "Loclist grep CWD"..rx,    function() rg.grep("cwd", regex, sys_opt, new_loclist()) end },
+{ nx, "<Plug>(qfr-lgrep-help)",  ll..gp.."h", "Loclist grep help"..vc,   function() rg.grep("help", vimcase, sys_opt, new_loclist()) end },
+{ nx, "<Plug>(qfr-lgrep-helpX)", ll..gp.."H", "Loclist grep help"..rx,   function() rg.grep("help", regex, sys_opt, new_loclist()) end },
 }
 
 -- stylua: ignore
 ---@type QfrMapData[]
 M.qfr_grep_buf_maps = {
-{ nx, "<Plug>(qfr-qgrep-bufs)",   ql..gp.."u", "Quickfix grep open bufs"..vc, function() eg.grep("bufs", vimcase, sys_opt, new_qflist()) end },
-{ nx, "<Plug>(qfr-qgrep-bufsX)",  ql..gp.."U", "Quickfix grep bufs"..rx,      function() eg.grep("bufs", regex, sys_opt, new_qflist()) end },
-{ nx, "<Plug>(qfr-lgrep-cbuf)",  ll..gp.."u", "Loclist grep cur buf"..vc,     function() eg.grep("cbuf", vimcase, sys_opt, new_loclist()) end },
-{ nx, "<Plug>(qfr-lgrep-cbufX)", ll..gp.."U", "Loclist grep cur buf"..rx,     function() eg.grep("cbuf", regex, sys_opt, new_loclist()) end },
+{ nx, "<Plug>(qfr-qgrep-bufs)",   ql..gp.."u", "Quickfix grep open bufs"..vc, function() rg.grep("bufs", vimcase, sys_opt, new_qflist()) end },
+{ nx, "<Plug>(qfr-qgrep-bufsX)",  ql..gp.."U", "Quickfix grep bufs"..rx,      function() rg.grep("bufs", regex, sys_opt, new_qflist()) end },
+{ nx, "<Plug>(qfr-lgrep-cbuf)",  ll..gp.."u", "Loclist grep cur buf"..vc,     function() rg.grep("cbuf", vimcase, sys_opt, new_loclist()) end },
+{ nx, "<Plug>(qfr-lgrep-cbufX)", ll..gp.."U", "Loclist grep cur buf"..rx,     function() rg.grep("cbuf", regex, sys_opt, new_loclist()) end },
 }
 
 local all_greps = {}
@@ -250,41 +252,50 @@ end
 -- stylua: ignore
 ---@type QfrCmdData[]
 M.qfr_grep_cmds = {
-{ "Qgrep", function(cargs) eg.q_grep_cmd(cargs) end, { count = true, nargs = "*", desc = "Grep to the quickfix list" } },
-{ "Lgrep", function(cargs) eg.l_grep_cmd(cargs) end, { count = true, nargs = "*", desc = "Grep to the location list" } },
+{ "Qgrep", function(cargs) rg.q_grep_cmd(cargs) end, { count = true, nargs = "*", desc = "Grep to the quickfix list" } },
+{ "Lgrep", function(cargs) rg.l_grep_cmd(cargs) end, { count = true, nargs = "*", desc = "Grep to the location list" } },
 }
 
-M.doc_tbls[#M.doc_tbls + 1] = { "grep", all_greps, M.qfr_grep_cmds }
+M.doc_tbls[#M.doc_tbls + 1] = { rg_str, all_greps, M.qfr_grep_cmds }
+
+-- stylua: ignore
+---@type QfrMapData[]
+M.qfr_diag_maps = {
+{ nn, "<Plug>(qfr-Qdiags-hint)",       ql..dp.."n", "All diagnostics to quickfix",                   function() rd.diags_to_list({ getopts = { severity = nil } }, new_qflist()) end },
+{ nn, "<Plug>(qfr-Qdiags-info)",       ql..dp.."f", "Diagnostics to quickfix, min info",             function() rd.diags_to_list({ getopts = { severity = { min = 3 } } }, new_qflist()) end },
+{ nn, "<Plug>(qfr-Qdiags-warn)",       ql..dp.."w", "Diagnostics to quickfix, min warn",             function() rd.diags_to_list({ getopts = { severity = { min = 2 } } }, new_qflist()) end },
+{ nn, "<Plug>(qfr-Qdiags-error)",      ql..dp.."e", "Diagnostics to quickfix, min error",            function() rd.diags_to_list({ getopts = { severity = { min = 1 } } }, new_qflist()) end },
+{ nn, "<Plug>(qfr-Qdiags-top)",        ql..dp.."t", "Diagnostics to quickfix, top severity",         function() rd.diags_to_list({ top = true }, new_qflist()) end },
+
+{ nn, "<Plug>(qfr-Qdiags-hint-only)",  ql..dp.."N", "Diagnostics to quickfix, only hints",           function() rd.diags_to_list({ getopts = { severity = 4 } }, new_qflist()) end },
+{ nn, "<Plug>(qfr-Qdiags-info-only)",  ql..dp.."F", "Diagnostics to quickfix, only info",            function() rd.diags_to_list({ getopts = { severity = 3 } }, new_qflist()) end },
+{ nn, "<Plug>(qfr-Qdiags-warn-only)",  ql..dp.."W", "Diagnostics to quickfix, only warnings",        function() rd.diags_to_list({ getopts = { severity = 2 } }, new_qflist()) end },
+{ nn, "<Plug>(qfr-Qdiags-error-only)", ql..dp.."E", "Diagnostics to quickfix, only errors",          function() rd.diags_to_list({ getopts = { severity = 1 } }, new_qflist()) end },
+
+{ nn, "<Plug>(qfr-Ldiags-hint)",       ll..dp.."n", "All cur buf diagnostics to loclist",            function() rd.diags_to_list({ getopts = { severity = nil } }, new_loclist()) end },
+{ nn, "<Plug>(qfr-Ldiags-info)",       ll..dp.."f", "Cur buf diagnostics to loclist, min info",      function() rd.diags_to_list({ getopts = { severity = { min = 3 } } }, new_loclist()) end },
+{ nn, "<Plug>(qfr-Ldiags-warn)",       ll..dp.."w", "Cur buf diagnostics to loclist, min warn",      function() rd.diags_to_list({ getopts = { severity = { min = 2 } } }, new_loclist()) end },
+{ nn, "<Plug>(qfr-Ldiags-error)",      ll..dp.."e", "Cur buf diagnostics to loclist, min error",     function() rd.diags_to_list({ getopts = { severity = { min = 1 } } }, new_loclist()) end },
+{ nn, "<Plug>(qfr-Ldiags-top)",        ll..dp.."t", "Cur buf diagnostics to loclist, top severity",  function() rd.diags_to_list({ top = true }, new_loclist()) end },
+
+{ nn, "<Plug>(qfr-Ldiags-hint-only)",  ll..dp.."N", "Cur buf diagnostics to loclist, only hints",    function() rd.diags_to_list({ getopts = { severity = 4 } }, new_loclist()) end },
+{ nn, "<Plug>(qfr-Ldiags-info-only)",  ll..dp.."F", "Cur buf diagnostics to loclist, only info",     function() rd.diags_to_list({ getopts = { severity = 3 } }, new_loclist()) end },
+{ nn, "<Plug>(qfr-Ldiags-warn-only)",  ll..dp.."W", "Cur buf diagnostics to loclist, only warnings", function() rd.diags_to_list({ getopts = { severity = 2 } }, new_loclist()) end },
+{ nn, "<Plug>(qfr-Ldiags-error-only)", ll..dp.."E", "Cur buf diagnostics to loclist, only errors",   function() rd.diags_to_list({ getopts = { severity = 1 } }, new_loclist()) end },
+}
+
+-- stylua: ignore
+---@type QfrCmdData[]
+M.qfr_diag_cmds = {
+{ "Qdiag", function(cargs) rd.q_diag_cmd(cargs) end, { bang = true, count = 0, nargs = "*", desc = "Send diags to the Quickfix list" } },
+{ "Ldiag", function(cargs) rd.l_diag_cmd(cargs) end, { bang = true, count = 0, nargs = "*", desc = "Send buf diags to the Location list" } },
+}
+
+M.doc_tbls[#M.doc_tbls + 1] = { rd_str, M.qfr_diag_maps, M.qfr_diag_cmds }
 
 -- stylua: ignore
 ---@type QfrMapData[]
 M.qfr_buf_maps = {
--- =================
--- == DIAGNOSTICS ==
--- =================
-
-{ nn, "<Plug>(qfr-Qdiags-hint)",  ql..dp.."n", "All buffer diagnostics min hint",     function() ed.diags_to_list({ getopts = { severity = nil } }, new_qflist()) end },
-{ nn, "<Plug>(qfr-Qdiags-info)",  ql..dp.."f", "All buffer diagnostics min info",     function() ed.diags_to_list({ getopts = { severity = { min = 3 } } }, new_qflist()) end },
-{ nn, "<Plug>(qfr-Qdiags-warn)",  ql..dp.."w", "All buffer diagnostics min warn",     function() ed.diags_to_list({ getopts = { severity = { min = 2 } } }, new_qflist()) end },
-{ nn, "<Plug>(qfr-Qdiags-error)", ql..dp.."e", "All buffer diagnostics min error",    function() ed.diags_to_list({ getopts = { severity = { min = 1 } } }, new_qflist()) end },
-{ nn, "<Plug>(qfr-Qdiags-top)",   ql..dp.."t", "All buffer diagnostics top severity", function() ed.diags_to_list({ top = true }, new_qflist()) end },
-
-{ nn, "<Plug>(qfr-Qdiags-HINT)",  ql..dp.."N", "All buffer diagnostics only hint",    function() ed.diags_to_list({ getopts = { severity = 4 } }, new_qflist()) end },
-{ nn, "<Plug>(qfr-Qdiags-INFO)",  ql..dp.."F", "All buffer diagnostics only info",    function() ed.diags_to_list({ getopts = { severity = 3 } }, new_qflist()) end },
-{ nn, "<Plug>(qfr-Qdiags-WARN)",  ql..dp.."W", "All buffer diagnostics only warn",    function() ed.diags_to_list({ getopts = { severity = 2 } }, new_qflist()) end },
-{ nn, "<Plug>(qfr-Qdiags-ERROR)", ql..dp.."E", "All buffer diagnostics only error",   function() ed.diags_to_list({ getopts = { severity = 1 } }, new_qflist()) end },
-
-{ nn, "<Plug>(qfr-Ldiags-hint)",  ll..dp.."n", "Cur buf diagnostics min hint",        function() ed.diags_to_list({ getopts = { severity = nil } }, new_loclist()) end },
-{ nn, "<Plug>(qfr-Ldiags-info)",  ll..dp.."f", "Cur buf diagnostics min info",        function() ed.diags_to_list({ getopts = { severity = { min = 3 } } }, new_loclist()) end },
-{ nn, "<Plug>(qfr-Ldiags-warn)",  ll..dp.."w", "Cur buf diagnostics min warn",        function() ed.diags_to_list({ getopts = { severity = { min = 2 } } }, new_loclist()) end },
-{ nn, "<Plug>(qfr-Ldiags-error)", ll..dp.."e", "Cur buf diagnostics min error",       function() ed.diags_to_list({ getopts = { severity = { min = 1 } } }, new_loclist()) end },
-{ nn, "<Plug>(qfr-Ldiags-top)",   ll..dp.."t", "Cur buf diagnostics top severity",    function() ed.diags_to_list({ top = true }, new_loclist()) end },
-
-{ nn, "<Plug>(qfr-Ldiags-HINT)",  ll..dp.."N", "Cur buf diagnostics only hint",       function() ed.diags_to_list({ getopts = { severity = 4 } }, new_loclist()) end },
-{ nn, "<Plug>(qfr-Ldiags-INFO)",  ll..dp.."F", "Cur buf diagnostics only info",       function() ed.diags_to_list({ getopts = { severity = 3 } }, new_loclist()) end },
-{ nn, "<Plug>(qfr-Ldiags-WARN)",  ll..dp.."W", "Cur buf diagnostics only warn",       function() ed.diags_to_list({ getopts = { severity = 2 } }, new_loclist()) end },
-{ nn, "<Plug>(qfr-Ldiags-ERROR)", ll..dp.."E", "Cur buf diagnostics only error",      function() ed.diags_to_list({ getopts = { severity = 1 } }, new_loclist()) end },
-
 -- ============
 -- == FILTER ==
 -- ============
@@ -379,13 +390,6 @@ M.qfr_buf_maps = {
 
 -- stylua: ignore
 M.cmds = {
--- ============
--- == DIAGS ==
--- ============
-
-{ "Qdiag", function(cargs) ed.q_diag_cmd(cargs) end, { bang = true, count = 0, nargs = "*", desc = "Send diags to the Quickfix list" } },
-{ "Ldiag", function(cargs) ed.l_diag_cmd(cargs) end, { bang = true, count = 0, nargs = "*", desc = "Send buf diags to the Location list" } },
-
 -- ============
 -- == FILTER ==
 -- ============

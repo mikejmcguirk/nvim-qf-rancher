@@ -252,8 +252,11 @@ end
 ---Run a registered grep function
 ---The list title will be set to:
 ---"[grep name] [base grep cmd] [pattern]"
----If g:qfr_reuse_title is true, the output_opts.action is " ", and a list
+---If g:qfr_reuse_title is true, output_opts.action is " ", and a list
 ---with the grep's title already exists, that list will be reused
+---This command uses the system module to run the grep and print
+---results
+---TODO: Make a link to the system doc
 ---@param name string Will check all currently registered greps
 ---@param input_opts QfrInputOpts See |qfr-input-opts|
 ---If a pattern is provided, that will be used for the
@@ -344,7 +347,7 @@ end
 
 ---@brief [[
 ---The callbacks to assign the Qgrep and Lgrep commands are below. They expect
----count = 0 to be present in the user_command table.
+---count = 0 and nargs = "*" to be present in the user_command table.
 ---They accept the following options:
 ---- A registered grep name ("cwd" by default)
 ---  NOTE: The built in quickfix buf grep will search in all open bufs,

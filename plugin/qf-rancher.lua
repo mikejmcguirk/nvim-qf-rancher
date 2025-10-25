@@ -298,6 +298,7 @@ local tbls_for_plugs = {
     maps.qfr_stack_maps,
     maps.qfr_ftplugin_maps,
     maps.qfr_grep_maps,
+    maps.qfr_diag_maps,
 }
 
 -- Create plug maps
@@ -343,6 +344,7 @@ if vim.g.qfr_set_default_keymaps then
         maps.qfr_nav_maps,
         maps.qfr_stack_maps,
         maps.qfr_grep_buf_maps,
+        maps.qfr_diag_maps,
         maps.qfr_buf_maps,
     }
 
@@ -374,6 +376,7 @@ if vim.g.qfr_set_default_cmds then
         maps.qfr_nav_cmds,
         maps.qfr_stack_cmds,
         maps.qfr_grep_cmds,
+        maps.qfr_diag_cmds,
     }
 
     for _, tbl in ipairs(cmd_tbls) do
@@ -383,6 +386,7 @@ if vim.g.qfr_set_default_cmds then
     end
 end
 
+-- TODO: Add health file :h health-dev
 -- TODO: Move to vimcats: https://github.com/mrcjkb/vimcats
 -- TODO: https://luajit.org/extensions.html
 -- I know some of these functions are in here. They either need to be removed or this needs to be

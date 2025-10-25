@@ -1273,8 +1273,11 @@ Grep.grep({name}, {input_opts}, {system_opts}, {output_opts})
     Run a registered grep function
     The list title will be set to:
     "[grep name] [base grep cmd] [pattern]"
-    If g:qfr_reuse_title is true, the output_opts.action is " ", and a list
+    If g:qfr_reuse_title is true, output_opts.action is " ", and a list
     with the grep's title already exists, that list will be reused
+    This command uses the system module to run the grep and print
+    results
+    TODO: Make a link to the system doc
 
     Parameters: ~
         {name}         (string) Will check all currently registered greps
@@ -1317,7 +1320,7 @@ Grep.clear_grep({name})                                        *Grep.clear_grep*
 
 
 The callbacks to assign the Qgrep and Lgrep commands are below. They expect
-count = 0 to be present in the user_command table.
+count = 0 and nargs = "*" to be present in the user_command table.
 They accept the following options:
 - A registered grep name ("cwd" by default)
   NOTE: The built in quickfix buf grep will search in all open bufs,
@@ -1339,6 +1342,140 @@ Grep.q_grep_cmd({cargs})                                       *Grep.q_grep_cmd*
 
 
 Grep.l_grep_cmd({cargs})                                       *Grep.l_grep_cmd*
+
+    Parameters: ~
+        {cargs}  (vim.api.keyset.create_user_command.command_args)
+
+    Returns: ~
+        (nil)
+
+
+==============================================================================
+Qfr Diagnostic controls                         *qf-rancher-diagnostic-controls*
+
+                                                        *qfr-diagnostic-keymaps*
+                                                       *qfr-diagnostic-commands*
+
+
+Modes: { n }, Plug: <Plug>(qfr-Qdiags-hint), Default: "<leader>qin"
+ Desc: All diagnostics to quickfix
+
+Modes: { n }, Plug: <Plug>(qfr-Qdiags-info), Default: "<leader>qif"
+ Desc: Diagnostics to quickfix, min info
+
+Modes: { n }, Plug: <Plug>(qfr-Qdiags-warn), Default: "<leader>qiw"
+ Desc: Diagnostics to quickfix, min warn
+
+Modes: { n }, Plug: <Plug>(qfr-Qdiags-error), Default: "<leader>qie"
+ Desc: Diagnostics to quickfix, min error
+
+Modes: { n }, Plug: <Plug>(qfr-Qdiags-top), Default: "<leader>qit"
+ Desc: Diagnostics to quickfix, top severity
+
+Modes: { n }, Plug: <Plug>(qfr-Qdiags-hint-only), Default: "<leader>qiN"
+ Desc: Diagnostics to quickfix, only hints
+
+Modes: { n }, Plug: <Plug>(qfr-Qdiags-info-only), Default: "<leader>qiF"
+ Desc: Diagnostics to quickfix, only info
+
+Modes: { n }, Plug: <Plug>(qfr-Qdiags-warn-only), Default: "<leader>qiW"
+ Desc: Diagnostics to quickfix, only warnings
+
+Modes: { n }, Plug: <Plug>(qfr-Qdiags-error-only), Default: "<leader>qiE"
+ Desc: Diagnostics to quickfix, only errors
+
+Modes: { n }, Plug: <Plug>(qfr-Ldiags-hint), Default: "<leader>lin"
+ Desc: All cur buf diagnostics to loclist
+
+Modes: { n }, Plug: <Plug>(qfr-Ldiags-info), Default: "<leader>lif"
+ Desc: Cur buf diagnostics to loclist, min info
+
+Modes: { n }, Plug: <Plug>(qfr-Ldiags-warn), Default: "<leader>liw"
+ Desc: Cur buf diagnostics to loclist, min warn
+
+Modes: { n }, Plug: <Plug>(qfr-Ldiags-error), Default: "<leader>lie"
+ Desc: Cur buf diagnostics to loclist, min error
+
+Modes: { n }, Plug: <Plug>(qfr-Ldiags-top), Default: "<leader>lit"
+ Desc: Cur buf diagnostics to loclist, top severity
+
+Modes: { n }, Plug: <Plug>(qfr-Ldiags-hint-only), Default: "<leader>liN"
+ Desc: Cur buf diagnostics to loclist, only hints
+
+Modes: { n }, Plug: <Plug>(qfr-Ldiags-info-only), Default: "<leader>liF"
+ Desc: Cur buf diagnostics to loclist, only info
+
+Modes: { n }, Plug: <Plug>(qfr-Ldiags-warn-only), Default: "<leader>liW"
+ Desc: Cur buf diagnostics to loclist, only warnings
+
+Modes: { n }, Plug: <Plug>(qfr-Ldiags-error-only), Default: "<leader>liE"
+ Desc: Cur buf diagnostics to loclist, only errors
+
+Cmd: Qdiag
+Desc: Send diags to the Quickfix list
+
+Cmd: Ldiag
+Desc: Send buf diags to the Location list
+
+==============================================================================
+Sends diags to the qf list                                                *Diag*
+
+                                                        *qf-rancher-diagnostics*
+                                                               *qfr-diagnostics*
+
+
+QfrDiagOpts                                                        *QfrDiagOpts*
+
+    Fields: ~
+        {disp_func?}  (QfrDiagDispFunc) List entry conversion function
+        {top?}        (boolean) If true, only show top severity
+        {getopts?}    (vim.diagnostic.GetOpts) See |vim.diagnostic.Getopts|
+
+
+                                                            *Diag.diags_to_list*
+Diag.diags_to_list({diag_opts}, {output_opts})
+    Convert diagnostics into list entries
+    In line with Neovim's default, the list title will be "Diagnostics"
+    If g:qfr_reuse_title is true, output_opts.action is " ", and a list with
+    the title "Diagnostics" already exists, it will be re-used
+    If a query is made for all diagnostics in a scope, and no results return,
+    the "Diagnostics" list will be automatically cleared
+    If g:qfr_auto_open_changes is true, the results will be automatically
+    opened
+
+    Parameters: ~
+        {diag_opts}    (QfrDiagOpts)
+        {output_opts}  (QfrOutputOpts) See |qfr-output-opts|
+
+    Returns: ~
+        (nil)
+
+
+The callbacks to assign the Qdiag and Ldiag commands are below. They expect
+count = 0, nargs = "*", and bang = true to be in the user_command table.
+
+Qdiag checks all open buffers. Ldiag checks the current buffer
+
+They accept the following options:
+- A diagnostic severity ("error"|"warn"|"hint"|"info") or "top"
+- A |setqflist-action| (default " ")
+
+If a bang is provided, only the specified severity will be shown
+
+Examples:
+Qdiag error [show all errors]
+Ldiag! warn only [show only warnings from the current buffer]
+
+Diag.q_diag_cmd({cargs})                                       *Diag.q_diag_cmd*
+
+    Parameters: ~
+        {cargs}  (vim.api.keyset.create_user_command.command_args)
+
+    Returns: ~
+        (nil)
+
+
+Diag.l_diag_cmd({cargs})                                       *Diag.l_diag_cmd*
 
     Parameters: ~
         {cargs}  (vim.api.keyset.create_user_command.command_args)

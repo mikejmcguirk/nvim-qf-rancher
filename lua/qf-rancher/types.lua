@@ -438,11 +438,6 @@ end
 
 ---@alias QfrDiagDispFunc fun(vim.Diagnostic):vim.quickfix.entry
 
----@class QfrDiagOpts
----@field disp_func? QfrDiagDispFunc
----@field top? boolean
----@field getopts? vim.diagnostic.GetOpts
-
 ---@param diag_opts QfrDiagOpts
 ---@return nil
 function M._validate_diag_opts(diag_opts)

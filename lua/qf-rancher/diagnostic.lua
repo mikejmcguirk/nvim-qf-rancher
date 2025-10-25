@@ -7,10 +7,15 @@ local ey = Qfr_Defer_Require("qf-rancher.types") ---@type QfrTypes
 local api = vim.api
 local ds = vim.diagnostic.severity
 
----@mod Diags Sends diags to the qf list
+---@mod Diag Sends diags to the qf list
+---@tag qf-rancher-diagnostics
+---@tag qfr-diagnostics
+---@brief [[
+---
+---@brief ]]
 
 --- @class QfRancherDiagnostics
-local Diags = {}
+local Diag = {}
 
 -- ===================
 -- == DIAGS TO LIST ==
@@ -95,12 +100,23 @@ local function get_empty_msg(getopts)
     return default .. " (" .. minmax_txt .. ")"
 end
 
+---@class QfrDiagOpts
+---@field disp_func? QfrDiagDispFunc List entry conversion function
+---@field top? boolean If true, only show top severity
+---@field getopts? vim.diagnostic.GetOpts See |vim.diagnostic.Getopts|
+
 ---Convert diagnostics into list entries
----
+---In line with Neovim's default, the list title will be "Diagnostics"
+---If g:qfr_reuse_title is true, output_opts.action is " ", and a list with
+---the title "Diagnostics" already exists, it will be re-used
+---If a query is made for all diagnostics in a scope, and no results return,
+---the "Diagnostics" list will be automatically cleared
+---If g:qfr_auto_open_changes is true, the results will be automatically
+---opened
 ---@param diag_opts QfrDiagOpts
----@param output_opts QfrOutputOpts
+---@param output_opts QfrOutputOpts See |qfr-output-opts|
 ---@return nil
-function Diags.diags_to_list(diag_opts, output_opts)
+function Diag.diags_to_list(diag_opts, output_opts)
     ey._validate_diag_opts(diag_opts)
     ey._validate_output_opts(output_opts)
 
@@ -195,29 +211,45 @@ local function unpack_diag_cmd(src_win, cargs)
     ---@type QfrOutputOpts
     local output_opts = { src_win = src_win, action = action, what = { nr = cargs.count } }
 
-    Diags.diags_to_list(diag_opts, output_opts)
+    Diag.diags_to_list(diag_opts, output_opts)
 end
 
 -- DOCUMENT: Can use these for customizing the diag user cmd. Note how they work here
 -- The way you could do it would be, document the cmd syntax here in a general comment, not that
 -- the functions below are for mapping it yourself, then let lemmy-help autogen them
 
+---@brief [[
+---The callbacks to assign the Qdiag and Ldiag commands are below. They expect
+---count = 0, nargs = "*", and bang = true to be in the user_command table.
+---
+---Qdiag checks all open buffers. Ldiag checks the current buffer
+---
+---They accept the following options:
+---- A diagnostic severity ("error"|"warn"|"hint"|"info") or "top"
+---- A |setqflist-action| (default " ")
+---
+---If a bang is provided, only the specified severity will be shown
+---
+---Examples:
+---Qdiag error [show all errors]
+---Ldiag! warn only [show only warnings from the current buffer]
+---@brief ]]
+
 ---@param cargs vim.api.keyset.create_user_command.command_args
 ---@return nil
-function Diags.q_diag_cmd(cargs)
+function Diag.q_diag_cmd(cargs)
     unpack_diag_cmd(nil, cargs)
 end
 
 ---@param cargs vim.api.keyset.create_user_command.command_args
 ---@return nil
-function Diags.l_diag_cmd(cargs)
+function Diag.l_diag_cmd(cargs)
     unpack_diag_cmd(api.nvim_get_current_win(), cargs)
 end
 
-return Diags
----@export Diags
+return Diag
+---@export Diag
 
--- TODO: Docs
 -- TODO: Add tests
 
 -- MID: Ability to select/map based on namespace
