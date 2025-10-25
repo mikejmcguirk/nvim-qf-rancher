@@ -363,13 +363,6 @@ function M._validate_action(action)
     end)
 end
 
----@class QfrOutputOpts
----@field list_item_type? string
----@field sort_func? function
----@field src_win integer|nil
----@field action QfrAction
----@field what QfrWhat
-
 ---@param output_opts QfrOutputOpts
 ---@return nil
 function M._validate_output_opts(output_opts)
@@ -380,8 +373,6 @@ function M._validate_output_opts(output_opts)
     M._validate_action(output_opts.action)
     M._validate_what(output_opts.what)
 end
-
----@alias QfrInputType "insensitive"|"regex"|"sensitive"|"smartcase"|"vimcase"
 
 ---@type string[]
 local input_types = { "insensitive", "regex", "sensitive", "smartcase", "vimcase" }
@@ -398,10 +389,6 @@ function M._validate_input_type(input)
         return vim.tbl_contains(input_types, input)
     end, "Input type " .. input .. " is not valid")
 end
-
----@class QfrInputOpts
----@field input_type QfrInputType
----@field pattern? string
 
 ---@param input_opts QfrInputOpts
 ---@return nil
@@ -545,11 +532,6 @@ end
 ---@alias QfrGrepLocs string[]
 ---@alias QfrGrepPartsFunc fun(string, string, QfrGrepLocs):string[]
 
----@class QfrGrepInfo
----@field name string
----@field list_item_type string|nil
----@field location_func fun():string[]
-
 ---@param grep_info QfrGrepInfo
 ---@return nil
 function M._validate_grep_info(grep_info)
@@ -643,11 +625,6 @@ end
 ------------------
 -- SYSTEM TYPES --
 ------------------
-
----@class QfrSystemOpts
----@field sync? boolean
----@field cmd_parts? string[]
----@field timeout? integer
 
 ---@param system_opts QfrSystemOpts
 ---@return nil

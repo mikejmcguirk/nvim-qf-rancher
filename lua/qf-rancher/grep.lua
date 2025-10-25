@@ -11,8 +11,13 @@ local api = vim.api
 local fn = vim.fn
 
 ---@mod Grep Grep items into the list
+---@tag qf-rancher-grep
+---@tag qfr-grep
+---@brief [[
+---
+---@brief ]]
 
----@class QfrGrep
+--- @class QfrGrep
 local Grep = {}
 
 -- ========================
@@ -226,6 +231,11 @@ end
 -- == API ==
 -- =========
 
+---@class QfrGrepInfo
+---@field name string Used for cmds and public API access
+---@field list_item_type string|nil Type to apply to resulting list items
+---@field location_func fun():string[] For providing locations to the grep
+
 local greps = {
     cwd = { name = "CWD", list_item_type = nil, location_func = get_cwd },
     -- DOCUMENT: This will overwrite arbitrary data passed from the caller
@@ -235,20 +245,51 @@ local greps = {
 } ---@type QfrGrepInfo[]
 
 ---@return string[]
-function Grep.get_grep_names()
+local function get_grep_names()
     return vim.tbl_keys(greps)
 end
 
--- DOCUMENT: How this works
+---Run a registered grep function
+---The list title will be set to:
+---"[grep name] [base grep cmd] [pattern]"
+---If g:qfr_reuse_title is true, the output_opts.action is " ", and a list
+---with the grep's title already exists, that list will be reused
+---@param name string Will check all currently registered greps
+---@param input_opts QfrInputOpts See |qfr-input-opts|
+---If a pattern is provided, that will be used for the
+---grep. If not, the user will be prompted for one in
+---normal mode, or the current visual selection will be
+---used
+---@param system_opts QfrSystemOpts See |qfr-system-opts|
+---async will be used by default
+---@param output_opts QfrOutputOpts See |qfr-output-opts|
+---Any list_item_type provided here will be overridden
+---by the one provided in the grep config
+---If vim.v.count is > 0, that will be used to
+---determine the list nr to be acted on
+---@return nil
+function Grep.grep(name, input_opts, system_opts, output_opts)
+    vim.validate("name", name, "string")
 
----@param grep_info QfrGrepInfo
+    local grep_info = greps[name] ---@type QfrGrepInfo|nil
+    if grep_info then
+        do_grep(grep_info, input_opts, system_opts, output_opts)
+    else
+        local chunk = { "Grep " .. name .. " is not registered", "ErrorMsg" }
+        api.nvim_echo({ chunk }, true, { err = true })
+    end
+end
+
+---Register a grep function for use in comands and API calls
+---@param grep_info QfrGrepInfo The grep will be registered
+---under the name provided in this table
 ---@return nil
 function Grep.register_grep(grep_info)
     ey._validate_grep_info(grep_info)
     greps[grep_info.name] = grep_info
 end
 
--- DOCUMENT: How this works
+---Remove a registered grep. The last grep cannot be removed
 ---@param name string
 ---@return nil
 function Grep.clear_grep(name)
@@ -266,25 +307,6 @@ function Grep.clear_grep(name)
     end
 end
 
--- DOCUMENT: This. necessary to run your grep
-
----@param name string
----@param input_opts QfrInputOpts
----@param system_opts QfrSystemOpts
----@param output_opts QfrOutputOpts
----@return nil
-function Grep.grep(name, input_opts, system_opts, output_opts)
-    vim.validate("name", name, "string")
-
-    local grep_info = greps[name] ---@type QfrGrepInfo|nil
-    if grep_info then
-        do_grep(grep_info, input_opts, system_opts, output_opts)
-    else
-        local chunk = { "Grep " .. name .. " is not registered", "ErrorMsg" }
-        api.nvim_echo({ chunk }, true, { err = true })
-    end
-end
-
 -- ===============
 -- == CMD FUNCS ==
 -- ===============
@@ -296,7 +318,7 @@ local function grep_cmd(src_win, cargs)
     cargs = cargs or {}
     local fargs = cargs.fargs ---@type string[]
 
-    local grep_names = Grep.get_grep_names() ---@type string[]
+    local grep_names = get_grep_names() ---@type string[]
     assert(#grep_names > 1, "No grep commands available")
     local grep_name = eu._check_cmd_arg(fargs, grep_names, "cwd") ---@type string
 
@@ -320,8 +342,20 @@ local function grep_cmd(src_win, cargs)
     Grep.grep(grep_name, input_opts, system_opts, output_opts)
 end
 
--- DOCUMENT: The documentation for the cmds and the functions should be mixed together along
--- with the default mappings
+---@brief [[
+---The callbacks to assign the Qgrep and Lgrep commands are below. They expect
+---count = 0 to be present in the user_command table.
+---They accept the following options:
+---- A registered grep name ("cwd" by default)
+---  NOTE: The built in quickfix buf grep will search in all open bufs,
+---  excluding help buffers. The location list grep will search the
+---  current buf, including help buffers
+---- A pattern starting with "/"
+---- A |qfr-input-type| ("vimcase" by default)
+---- "async" or "sync" to control system behavior (async by default)
+---- A |setqflist-action| (default " ")
+---Example: 2Qgrep help r vimcase /setqflist
+---@brief ]]
 
 ---@param cargs vim.api.keyset.create_user_command.command_args
 ---@return nil
@@ -338,11 +372,4 @@ end
 return Grep
 ---@export Grep
 
--- TODO: Docs
 -- TODO: Add tests
-
--- DOCUMENT: Only rg and grep are currently supported
--- - I am not in Windows so I cannot test findstr
--- - I am open to PRs on this
--- DOCUMENT: It is intended behavior that cbuf grep can work on help files, but all bufs will
--- not pull from help files

@@ -100,7 +100,7 @@ Customize which |qfr-ftplugin| features to use with the options below
 
 qfr_ftplugin_demap                                          *qfr_ftplugin_demap*
 
-    (Default true) Disable non-useful default maps
+    (Default true) Disable obtrusive defaults
 
     Type: ~
         boolean
@@ -116,7 +116,7 @@ qfr_ftplugin_keymap                                        *qfr_ftplugin_keymap*
 
 qfr_ftplugin_set_opts                                    *qfr_ftplugin_set_opts*
 
-    (Default true) Set useful list options
+    (Default true) Set list-specific options
 
     Type: ~
         boolean
@@ -154,7 +154,7 @@ qfr_preview_border                                          *qfr_preview_border*
 qfr_preview_debounce                                      *qfr_preview_debounce*
 
     (Default 100) Minimum interval in ms between preview window updates
-    The default is 100 to accomodate slower systems/HDs. On a reasonable
+    The default is 100 to accommodate slower systems/HDs. On a reasonable
     system, it should be possible to go down to 50ms before flicker/stutter
     start to appear. This behavior also depends on the size of the file(s)
     being scrolled through
@@ -225,6 +225,58 @@ qfr_set_default_keymaps                                *qfr_set_default_keymaps*
 
     Type: ~
         boolean
+
+
+                                                          *qf-rancher-api-types*
+                                                                 *qfr-api-types*
+
+
+                                                         *qf-rancher-input-type*
+                                                                *qfr-input-type*
+QfrInputType                                                      *QfrInputType*
+    - "insensitive" will always treat the input as case insensitive
+    - "regex" will use a regex search. The type of regex is cmd dependent
+    - "sensitive" provides a case sensitive search
+    - "smartcase" will be case insensitive only if the serach is all lowercase
+    - "vimcase" respect the 'ignorecase' and 'smartcase' options
+
+    Variants: ~
+        ("insensitive")
+        ("regex")
+        ("sensitive")
+        ("smartcase")
+        ("vimcase")
+
+
+                                                         *qf-rancher-input-opts*
+                                                                *qfr-input-opts*
+QfrInputOpts                                                      *QfrInputOpts*
+
+    Fields: ~
+        {input_type}  (QfrInputType)
+        {pattern?}    (string) The search pattern for the function
+
+
+                                                        *qf-rancher-system-opts*
+                                                               *qfr-system-opts*
+QfrSystemOpts                                                    *QfrSystemOpts*
+
+    Fields: ~
+        {sync?}       (boolean) Run the operation syncrhonously
+        {cmd_parts?}  (string[]) String parts to build the command from
+        {timeout?}    (integer) How long to wait. Default 2000 (sync and async)
+
+
+                                                        *qf-rancher-output-opts*
+                                                               *qfr-output-opts*
+QfrOutputOpts                                                    *QfrOutputOpts*
+
+    Fields: ~
+        {list_item_type?}  (string) Usually blank. "\1" for help buffers
+        {sort_func?}       (function) A function from the sort module
+        {src_win}          (integer|nil) Loclist win context. Quickfix if nil
+        {action}           (QfrAction) See |setqflist-action|
+        {what}             (QfrWhat) See |setqflist-what|
 
 
 ==============================================================================
@@ -1151,5 +1203,148 @@ Neovim's default behavior. For Quickfix windows, this includes respecting
 windows use "useopen" only). Help entries will attempt to find a help
 window If a valid window cannot be found, a new split will always be
 created above the list
+
+==============================================================================
+Qfr Grep controls                                     *qf-rancher-grep-controls*
+
+                                                              *qfr-grep-keymaps*
+                                                             *qfr-grep-commands*
+
+
+Modes: { n, x }, Plug: <Plug>(qfr-qgrep-cwd), Default: "<leader>qgd"
+ Desc: Quickfix grep CWD (vimcase)
+
+Modes: { n, x }, Plug: <Plug>(qfr-qgrep-cwdX), Default: "<leader>qgD"
+ Desc: Quickfix grep CWD (regex)
+
+Modes: { n, x }, Plug: <Plug>(qfr-qgrep-help), Default: "<leader>qgh"
+ Desc: Quickfix grep help (vimcase)
+
+Modes: { n, x }, Plug: <Plug>(qfr-qgrep-helpX), Default: "<leader>qgH"
+ Desc: Quickfix grep help (regex)
+
+Modes: { n, x }, Plug: <Plug>(qfr-lgrep-cwd), Default: "<leader>lgd"
+ Desc: Loclist grep CWD (vimcase)
+
+Modes: { n, x }, Plug: <Plug>(qfr-lgrep-cwdX), Default: "<leader>lgD"
+ Desc: Loclist grep CWD (regex)
+
+Modes: { n, x }, Plug: <Plug>(qfr-lgrep-help), Default: "<leader>lgh"
+ Desc: Loclist grep help (vimcase)
+
+Modes: { n, x }, Plug: <Plug>(qfr-lgrep-helpX), Default: "<leader>lgH"
+ Desc: Loclist grep help (regex)
+
+Modes: { n, x }, Plug: <Plug>(qfr-qgrep-bufs), Default: "<leader>qgu"
+ Desc: Quickfix grep open bufs (vimcase)
+
+Modes: { n, x }, Plug: <Plug>(qfr-qgrep-bufsX), Default: "<leader>qgU"
+ Desc: Quickfix grep bufs (regex)
+
+Modes: { n, x }, Plug: <Plug>(qfr-lgrep-cbuf), Default: "<leader>lgu"
+ Desc: Loclist grep cur buf (vimcase)
+
+Modes: { n, x }, Plug: <Plug>(qfr-lgrep-cbufX), Default: "<leader>lgU"
+ Desc: Loclist grep cur buf (regex)
+
+Cmd: Qgrep
+Desc: Grep to the quickfix list
+
+Cmd: Lgrep
+Desc: Grep to the location list
+
+==============================================================================
+Grep items into the list                                                  *Grep*
+
+                                                               *qf-rancher-grep*
+                                                                      *qfr-grep*
+
+
+QfrGrepInfo                                                        *QfrGrepInfo*
+
+    Fields: ~
+        {name}            (string) Used for cmds and public API access
+        {list_item_type}  (string|nil) Type to apply to resulting list items
+        {location_func}   (fun():string[]) For providing locations to the grep
+
+
+                                                                     *Grep.grep*
+Grep.grep({name}, {input_opts}, {system_opts}, {output_opts})
+    Run a registered grep function
+    The list title will be set to:
+    "[grep name] [base grep cmd] [pattern]"
+    If g:qfr_reuse_title is true, the output_opts.action is " ", and a list
+    with the grep's title already exists, that list will be reused
+
+    Parameters: ~
+        {name}         (string) Will check all currently registered greps
+        {input_opts}   (QfrInputOpts) See |qfr-input-opts|
+                       If a pattern is provided, that will be used for the
+                       grep. If not, the user will be prompted for one in
+                       normal mode, or the current visual selection will be
+                       used
+        {system_opts}  (QfrSystemOpts) See |qfr-system-opts|
+                       async will be used by default
+        {output_opts}  (QfrOutputOpts) See |qfr-output-opts|
+                       Any list_item_type provided here will be overridden
+                       by the one provided in the grep config
+                       If vim.v.count is > 0, that will be used to
+                       determine the list nr to be acted on
+
+    Returns: ~
+        (nil)
+
+
+Grep.register_grep({grep_info})                             *Grep.register_grep*
+    Register a grep function for use in comands and API calls
+
+    Parameters: ~
+        {grep_info}  (QfrGrepInfo) The grep will be registered
+                     under the name provided in this table
+
+    Returns: ~
+        (nil)
+
+
+Grep.clear_grep({name})                                        *Grep.clear_grep*
+    Remove a registered grep. The last grep cannot be removed
+
+    Parameters: ~
+        {name}  (string)
+
+    Returns: ~
+        (nil)
+
+
+The callbacks to assign the Qgrep and Lgrep commands are below. They expect
+count = 0 to be present in the user_command table.
+They accept the following options:
+- A registered grep name ("cwd" by default)
+  NOTE: The built in quickfix buf grep will search in all open bufs,
+  excluding help buffers. The location list grep will search the
+  current buf, including help buffers
+- A pattern starting with "/"
+- A |qfr-input-type| ("vimcase" by default)
+- "async" or "sync" to control system behavior (async by default)
+- A |setqflist-action| (default " ")
+Example: 2Qgrep help r vimcase /setqflist
+
+Grep.q_grep_cmd({cargs})                                       *Grep.q_grep_cmd*
+
+    Parameters: ~
+        {cargs}  (vim.api.keyset.create_user_command.command_args)
+
+    Returns: ~
+        (nil)
+
+
+Grep.l_grep_cmd({cargs})                                       *Grep.l_grep_cmd*
+
+    Parameters: ~
+        {cargs}  (vim.api.keyset.create_user_command.command_args)
+
+    Returns: ~
+        (nil)
+
 
 vim:tw=78:ts=8:noet:ft=help:norl:

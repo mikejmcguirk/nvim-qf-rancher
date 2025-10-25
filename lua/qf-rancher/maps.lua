@@ -50,7 +50,7 @@ local rx = " (regex)" ---@type string
 local vimcase = { input_type = "vimcase" } ---@type QfrInputOpts
 local regex = { input_type = "regex" } ---@type QfrInputOpts
 
-local sys_opt = { timeout = 4000 } ---@type QfrSystemOpts
+local sys_opt = {} ---@type QfrSystemOpts
 
 ---@return integer
 local function cur_win()
@@ -123,6 +123,7 @@ M.qfr_win_cmds = {
 M.doc_tbls[#M.doc_tbls + 1] = { rw_str, M.qfr_win_maps, M.qfr_win_cmds }
 
 -- stylua: ignore
+---@type QfrMapData[]
 M.qfr_nav_maps = {
 { nn, "<Plug>(qfr-qf-prev)",  "["..qp,         "Go to the [count] previous quickfix entry. Count is wrapping",      function() rn.q_prev(vim.v.count, {}) end },
 { nn, "<Plug>(qfr-qf-next)",  "]"..qp,         "Go to the [count] next quickfix entry. Count is wrapping",          function() rn.q_next(vim.v.count, {}) end },
@@ -139,6 +140,7 @@ M.qfr_nav_maps = {
 }
 
 -- stylua: ignore
+---@type QfrCmdData[]
 M.qfr_nav_cmds = {
 { "Qprev", function(cargs) rn.q_prev_cmd(cargs) end, { count = 0, desc = "Go to the [count] previous quickfix entry. Count is wrapping" } },
 { "Qnext", function(cargs) rn.q_next_cmd(cargs) end, { count = 0, desc = "Go to the [count] next quickfix entry. Count is wrapping" } },
@@ -159,6 +161,7 @@ M.qfr_nav_cmds = {
 M.doc_tbls[#M.doc_tbls + 1] = { rn_str, M.qfr_nav_maps, M.qfr_nav_cmds }
 
 -- stylua: ignore
+---@type QfrMapData[]
 M.qfr_stack_maps = {
 { nn, "<Plug>(qfr-qf-older)",        ql.."[", "Go to the [count] older quickfix list. Count is wrapping",           function() ra.q_older(vim.v.count) end },
 { nn, "<Plug>(qfr-qf-newer)",        ql.."]", "Go to the [count] newer quickfix list. Count is wrapping",           function() ra.q_newer(vim.v.count) end },
@@ -173,6 +176,7 @@ M.qfr_stack_maps = {
 }
 
 -- stylua: ignore
+---@type QfrCmdData[]
 M.qfr_stack_cmds = {
 { "Qolder", function(cargs) ra.q_older_cmd(cargs) end, { count = 0, desc = "Go to the [count] older quickfix list. Count is wrapping" } },
 { "Qnewer", function(cargs) ra.q_newer_cmd(cargs) end, { count = 0, desc = "Go to the [count] newer quickfix list. Count is wrapping" } },
@@ -187,6 +191,7 @@ M.qfr_stack_cmds = {
 M.doc_tbls[#M.doc_tbls + 1] = { ra_str, M.qfr_stack_maps, M.qfr_stack_cmds }
 
 -- stylua: ignore
+---@type QfrMapData[]
 M.qfr_ftplugin_maps = {
 { nn, "<Plug>(qfr-list-del-one)",               "dd", "Delete the current list line",                   function() ei._del_one_list_item() end },
 { xx, "<Plug>(qfr-list-visual-del)",            "d", "Delete a visual line list selection",                 function() ei._visual_del() end },
@@ -208,34 +213,52 @@ M.doc_tbls[#M.doc_tbls + 1] = { "qf", M.qfr_ftplugin_maps, {} }
 
 -- stylua: ignore
 ---@type QfrMapData[]
-M.qfr_maps = {
+M.qfr_grep_maps = {
 -- ==========
 -- == GREP ==
 -- ==========
 
-{ nx, "<Plug>(qfr-grep-cwd)",    ql..gp.."d", "Qgrep CWD"..vc,       function() eg.grep("cwd", vimcase, sys_opt, new_qflist()) end },
-{ nx, "<Plug>(qfr-grep-cwdX)",   ql..gp.."D", "Qgrep CWD"..rx,       function() eg.grep("cwd", regex, sys_opt, new_qflist()) end },
-{ nx, "<Plug>(qfr-grep-help)",   ql..gp.."h", "Qgrep help"..vc,      function() eg.grep("help", vimcase, sys_opt, new_qflist()) end },
-{ nx, "<Plug>(qfr-grep-helpX)",  ql..gp.."H", "Qgrep help"..rx,      function() eg.grep("help", regex, sys_opt, new_qflist()) end },
+{ nx, "<Plug>(qfr-qgrep-cwd)",    ql..gp.."d", "Quickfix grep CWD"..vc,  function() eg.grep("cwd", vimcase, sys_opt, new_qflist()) end },
+{ nx, "<Plug>(qfr-qgrep-cwdX)",   ql..gp.."D", "Quickfix grep CWD"..rx,  function() eg.grep("cwd", regex, sys_opt, new_qflist()) end },
+{ nx, "<Plug>(qfr-qgrep-help)",   ql..gp.."h", "Quickfix grep help"..vc, function() eg.grep("help", vimcase, sys_opt, new_qflist()) end },
+{ nx, "<Plug>(qfr-qgrep-helpX)",  ql..gp.."H", "Quickfix grep help"..rx, function() eg.grep("help", regex, sys_opt, new_qflist()) end },
 
-{ nx, "<Plug>(qfr-lgrep-cwd)",   ll..gp.."d", "Lgrep CWD"..vc,       function() eg.grep("cwd", vimcase, sys_opt, new_loclist()) end },
-{ nx, "<Plug>(qfr-lgrep-cwdX)",  ll..gp.."D", "Lgrep CWD"..rx,       function() eg.grep("cwd", regex, sys_opt, new_loclist()) end },
-{ nx, "<Plug>(qfr-lgrep-help)",  ll..gp.."h", "Lgrep help"..vc,      function() eg.grep("help", vimcase, sys_opt, new_loclist()) end },
-{ nx, "<Plug>(qfr-lgrep-helpX)", ll..gp.."H", "Lgrep help"..rx,      function() eg.grep("help", regex, sys_opt, new_loclist()) end },
+{ nx, "<Plug>(qfr-lgrep-cwd)",   ll..gp.."d", "Loclist grep CWD"..vc,   function() eg.grep("cwd", vimcase, sys_opt, new_loclist()) end },
+{ nx, "<Plug>(qfr-lgrep-cwdX)",  ll..gp.."D", "Loclist grep CWD"..rx,   function() eg.grep("cwd", regex, sys_opt, new_loclist()) end },
+{ nx, "<Plug>(qfr-lgrep-help)",  ll..gp.."h", "Loclist grep help"..vc,  function() eg.grep("help", vimcase, sys_opt, new_loclist()) end },
+{ nx, "<Plug>(qfr-lgrep-helpX)", ll..gp.."H", "Loclist grep help"..rx,  function() eg.grep("help", regex, sys_opt, new_loclist()) end },
 }
 
 -- stylua: ignore
 ---@type QfrMapData[]
+M.qfr_grep_buf_maps = {
+{ nx, "<Plug>(qfr-qgrep-bufs)",   ql..gp.."u", "Quickfix grep open bufs"..vc, function() eg.grep("bufs", vimcase, sys_opt, new_qflist()) end },
+{ nx, "<Plug>(qfr-qgrep-bufsX)",  ql..gp.."U", "Quickfix grep bufs"..rx,      function() eg.grep("bufs", regex, sys_opt, new_qflist()) end },
+{ nx, "<Plug>(qfr-lgrep-cbuf)",  ll..gp.."u", "Loclist grep cur buf"..vc,    function() eg.grep("cbuf", vimcase, sys_opt, new_loclist()) end },
+{ nx, "<Plug>(qfr-lgrep-cbufX)", ll..gp.."U", "Loclist grep cur buf"..rx,    function() eg.grep("cbuf", regex, sys_opt, new_loclist()) end },
+}
+
+local all_greps = {}
+for _, map in ipairs(M.qfr_grep_maps) do
+    all_greps[#all_greps + 1] = map
+end
+
+for _, map in ipairs(M.qfr_grep_buf_maps) do
+    all_greps[#all_greps + 1] = map
+end
+
+-- stylua: ignore
+---@type QfrCmdData[]
+M.qfr_grep_cmds = {
+{ "Qgrep", function(cargs) eg.q_grep_cmd(cargs) end, { count = true, nargs = "*", desc = "Grep to the quickfix list" } },
+{ "Lgrep", function(cargs) eg.l_grep_cmd(cargs) end, { count = true, nargs = "*", desc = "Grep to the location list" } },
+}
+
+M.doc_tbls[#M.doc_tbls + 1] = { "grep", all_greps, M.qfr_grep_cmds }
+
+-- stylua: ignore
+---@type QfrMapData[]
 M.qfr_buf_maps = {
--- ==========
--- == GREP ==
--- ==========
-
-{ nx, "<Plug>(qfr-grep-bufs)",   ql..gp.."u", "Qgrep open bufs"..vc, function() eg.grep("bufs", vimcase, sys_opt, new_qflist()) end },
-{ nx, "<Plug>(qfr-grep-bufsX)",  ql..gp.."U", "Qgrep open bufs"..rx, function() eg.grep("bufs", regex, sys_opt, new_qflist()) end },
-{ nx, "<Plug>(qfr-lgrep-cbuf)",  ll..gp.."u", "Lgrep cur buf"..vc,   function() eg.grep("cbuf", vimcase, sys_opt, new_loclist()) end },
-{ nx, "<Plug>(qfr-lgrep-cbufX)", ll..gp.."U", "Lgrep cur buf"..rx,   function() eg.grep("cbuf", regex, sys_opt, new_loclist()) end },
-
 -- =================
 -- == DIAGNOSTICS ==
 -- =================
@@ -369,13 +392,6 @@ M.cmds = {
 
 { "Qfilter", function(cargs) ef.q_filter_cmd(cargs) end, { bang = true, count = true, nargs = "*", desc = "Sort quickfix items" } },
 { "Lfilter", function(cargs) ef.l_filter_cmd(cargs) end, { bang = true, count = true, nargs = "*", desc = "Sort loclist items" } },
-
--- ==========
--- == GREP ==
--- ==========
-
-{ "Qgrep", function(cargs) eg.q_grep_cmd(cargs) end, { count = true, nargs = "*", desc = "Grep to the quickfix list" } },
-{ "Lgrep", function(cargs) eg.l_grep_cmd(cargs) end, { count = true, nargs = "*", desc = "Grep to the location list" } },
 
 -- ==========
 -- == SORT ==
