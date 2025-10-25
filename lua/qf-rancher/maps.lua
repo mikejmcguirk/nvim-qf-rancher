@@ -223,10 +223,10 @@ M.qfr_grep_maps = {
 { nx, "<Plug>(qfr-qgrep-help)",   ql..gp.."h", "Quickfix grep help"..vc, function() eg.grep("help", vimcase, sys_opt, new_qflist()) end },
 { nx, "<Plug>(qfr-qgrep-helpX)",  ql..gp.."H", "Quickfix grep help"..rx, function() eg.grep("help", regex, sys_opt, new_qflist()) end },
 
-{ nx, "<Plug>(qfr-lgrep-cwd)",   ll..gp.."d", "Loclist grep CWD"..vc,   function() eg.grep("cwd", vimcase, sys_opt, new_loclist()) end },
-{ nx, "<Plug>(qfr-lgrep-cwdX)",  ll..gp.."D", "Loclist grep CWD"..rx,   function() eg.grep("cwd", regex, sys_opt, new_loclist()) end },
-{ nx, "<Plug>(qfr-lgrep-help)",  ll..gp.."h", "Loclist grep help"..vc,  function() eg.grep("help", vimcase, sys_opt, new_loclist()) end },
-{ nx, "<Plug>(qfr-lgrep-helpX)", ll..gp.."H", "Loclist grep help"..rx,  function() eg.grep("help", regex, sys_opt, new_loclist()) end },
+{ nx, "<Plug>(qfr-lgrep-cwd)",   ll..gp.."d", "Loclist grep CWD"..vc,    function() eg.grep("cwd", vimcase, sys_opt, new_loclist()) end },
+{ nx, "<Plug>(qfr-lgrep-cwdX)",  ll..gp.."D", "Loclist grep CWD"..rx,    function() eg.grep("cwd", regex, sys_opt, new_loclist()) end },
+{ nx, "<Plug>(qfr-lgrep-help)",  ll..gp.."h", "Loclist grep help"..vc,   function() eg.grep("help", vimcase, sys_opt, new_loclist()) end },
+{ nx, "<Plug>(qfr-lgrep-helpX)", ll..gp.."H", "Loclist grep help"..rx,   function() eg.grep("help", regex, sys_opt, new_loclist()) end },
 }
 
 -- stylua: ignore
@@ -234,8 +234,8 @@ M.qfr_grep_maps = {
 M.qfr_grep_buf_maps = {
 { nx, "<Plug>(qfr-qgrep-bufs)",   ql..gp.."u", "Quickfix grep open bufs"..vc, function() eg.grep("bufs", vimcase, sys_opt, new_qflist()) end },
 { nx, "<Plug>(qfr-qgrep-bufsX)",  ql..gp.."U", "Quickfix grep bufs"..rx,      function() eg.grep("bufs", regex, sys_opt, new_qflist()) end },
-{ nx, "<Plug>(qfr-lgrep-cbuf)",  ll..gp.."u", "Loclist grep cur buf"..vc,    function() eg.grep("cbuf", vimcase, sys_opt, new_loclist()) end },
-{ nx, "<Plug>(qfr-lgrep-cbufX)", ll..gp.."U", "Loclist grep cur buf"..rx,    function() eg.grep("cbuf", regex, sys_opt, new_loclist()) end },
+{ nx, "<Plug>(qfr-lgrep-cbuf)",  ll..gp.."u", "Loclist grep cur buf"..vc,     function() eg.grep("cbuf", vimcase, sys_opt, new_loclist()) end },
+{ nx, "<Plug>(qfr-lgrep-cbufX)", ll..gp.."U", "Loclist grep cur buf"..rx,     function() eg.grep("cbuf", regex, sys_opt, new_loclist()) end },
 }
 
 local all_greps = {}
