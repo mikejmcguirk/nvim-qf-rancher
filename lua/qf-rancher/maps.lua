@@ -1,6 +1,6 @@
 local M = {}
 
--- Create a local version of the function because the docgen can't see the global
+-- Create a local version of this function because the docgen can't see the global
 local function maps_defer_require(path)
     return setmetatable({}, {
         __index = function(_, key)
@@ -13,20 +13,22 @@ local function maps_defer_require(path)
     })
 end
 
-local ra_str = "stack"
+local ra_str = "stack" ---@type string
 local ra = maps_defer_require("qf-rancher." .. ra_str) ---@type QfrStack
-local rd_str = "diagnostic"
+local rd_str = "diagnostic" ---@type string
 local rd = maps_defer_require("qf-rancher." .. rd_str) ---@type QfRancherDiagnostics
-local ef = maps_defer_require("qf-rancher.filter") ---@type QfrFilter
-local rg_str = "grep"
+local rf_str = "filter" ---@type string
+local rf = maps_defer_require("qf-rancher." .. rf_str) ---@type QfrFilter
+local rg_str = "grep" ---@type string
 local rg = maps_defer_require("qf-rancher." .. rg_str) ---@type QfrGrep
 local ei = maps_defer_require("qf-rancher.filetype-funcs") ---@type QfRancherFiletypeFuncs
-local rn_str = "nav"
+local rn_str = "nav" ---@type string
 local rn = maps_defer_require("qf-rancher." .. rn_str) ---@type QfRancherNav
-local rw_str = "window"
+local rw_str = "window" ---@type string
 local rw = maps_defer_require("qf-rancher." .. rw_str) ---@type QfrWins
 local ep = maps_defer_require("qf-rancher.preview") ---@type QfRancherPreview
-local es = maps_defer_require("qf-rancher.sort") ---@type QfRancherSort
+local rs_str = "sort" ---@type string
+local rs = maps_defer_require("qf-rancher." .. rs_str) ---@type QfRancherSort
 
 local nn = { "n" } ---@type string[]
 local xx = { "x" } ---@type string[]
@@ -95,6 +97,10 @@ end
 -- Cmd, Function, cmd args
 --- @alias QfrCmdData{ [1]:string, [2]:function, [3]:vim.api.keyset.user_command }
 
+M.plug_tbls = {} ---@type QfrMapData[][]
+M.uienter_tbls = {} ---@type QfrMapData[][]
+M.bufevent_tbls = {} ---@type QfrMapData[][]
+M.cmd_tbls = {} ---@type QfrCmdData[][]
 M.doc_tbls = {} ---@type { [1]: string, [2]:QfrMapData[], [3]: QfrCmdData[] }[]
 
 -- stylua: ignore
@@ -121,7 +127,9 @@ M.qfr_win_cmds = {
 { "Ltoggle", function(cargs) rw.toggle_loclist_cmd(cargs) end, { count = 0, desc = "Toggle the location list (count sets height on open)" } },
 }
 
--- Need to be able to tie the module, keymap, and cmd data together for docgen
+M.plug_tbls[#M.plug_tbls + 1] = M.qfr_win_maps
+M.uienter_tbls[#M.uienter_tbls + 1] = M.qfr_win_maps
+M.cmd_tbls[#M.cmd_tbls + 1] = M.qfr_win_cmds
 M.doc_tbls[#M.doc_tbls + 1] = { rw_str, M.qfr_win_maps, M.qfr_win_cmds }
 
 -- stylua: ignore
@@ -144,22 +152,25 @@ M.qfr_nav_maps = {
 -- stylua: ignore
 ---@type QfrCmdData[]
 M.qfr_nav_cmds = {
-{ "Qprev", function(cargs) rn.q_prev_cmd(cargs) end, { count = 0, desc = "Go to the [count] previous quickfix entry. Count is wrapping" } },
-{ "Qnext", function(cargs) rn.q_next_cmd(cargs) end, { count = 0, desc = "Go to the [count] next quickfix entry. Count is wrapping" } },
+{ "Qprev",   function(cargs) rn.q_prev_cmd(cargs) end, { count = 0, desc = "Go to the [count] previous quickfix entry. Count is wrapping" } },
+{ "Qnext",   function(cargs) rn.q_next_cmd(cargs) end, { count = 0, desc = "Go to the [count] next quickfix entry. Count is wrapping" } },
 { "Qrewind", function(cargs) rn.q_rewind_cmd(cargs) end, { count = 0, desc = "Go to the [count] quickfix entry, or the first if no count" } },
-{ "Qq", function(cargs) rn.q_q_cmd(cargs) end, { count = 0, desc = "Go to the [count] qf entry, or under the cursor, or current idx" } },
-{ "Qlast", function(cargs) rn.q_last_cmd(cargs) end, { count = 0, desc = "Go to the [count] quickfix entry, or the last if no count" } },
-{ "Qpfile", function(cargs) rn.q_pfile_cmd(cargs) end, { count = 0, desc = "Go to the [count] previous quickfix file. Wrap to the last file" } },
-{ "Qnfile", function(cargs) rn.q_nfile_cmd(cargs) end, { count = 0, desc = "Go to the [count] next quickfix file. Wrap to the first file" } },
-{ "Lprev", function(cargs) rn.l_prev_cmd(cargs) end, { count = 0, desc = "Go to the [count] previous location list entry. Count is wrapping" } },
-{ "Lnext", function(cargs) rn.l_next_cmd(cargs) end, { count = 0, desc = "Go to the [count] next location list entry. Count is wrapping" } },
-{ "Ll", function(cargs) rn.l_l_cmd(cargs) end, { count = 0, desc = "Go to the [count] loclist entry, or under the cursor, or current idx" } },
+{ "Qq",      function(cargs) rn.q_q_cmd(cargs) end, { count = 0, desc = "Go to the [count] qf entry, or under the cursor, or current idx" } },
+{ "Qlast",   function(cargs) rn.q_last_cmd(cargs) end, { count = 0, desc = "Go to the [count] quickfix entry, or the last if no count" } },
+{ "Qpfile",  function(cargs) rn.q_pfile_cmd(cargs) end, { count = 0, desc = "Go to the [count] previous quickfix file. Wrap to the last file" } },
+{ "Qnfile",  function(cargs) rn.q_nfile_cmd(cargs) end, { count = 0, desc = "Go to the [count] next quickfix file. Wrap to the first file" } },
+{ "Lprev",   function(cargs) rn.l_prev_cmd(cargs) end, { count = 0, desc = "Go to the [count] previous location list entry. Count is wrapping" } },
+{ "Lnext",   function(cargs) rn.l_next_cmd(cargs) end, { count = 0, desc = "Go to the [count] next location list entry. Count is wrapping" } },
+{ "Ll",      function(cargs) rn.l_l_cmd(cargs) end, { count = 0, desc = "Go to the [count] loclist entry, or under the cursor, or current idx" } },
 { "Lrewind", function(cargs) rn.l_rewind_cmd(cargs) end, { count = 0, desc = "Go to the [count] quickfix entry, or the first if no count" } },
-{ "Llast", function(cargs) rn.l_last_cmd(cargs) end, { count = 0, desc = "Go to the [count] quickfix entry, or the last if no count" } },
-{ "Lpfile", function(cargs) rn.l_pfile_cmd(cargs) end, { count = 0, desc = "Go to the [count] previous quickfix file. Wrap to the last file" } },
-{ "Lnfile", function(cargs) rn.l_nfile_cmd(cargs) end, { count = 0, desc = "Go to the [count] next quickfix file. Wrap to the first file" } },
+{ "Llast",   function(cargs) rn.l_last_cmd(cargs) end, { count = 0, desc = "Go to the [count] quickfix entry, or the last if no count" } },
+{ "Lpfile",  function(cargs) rn.l_pfile_cmd(cargs) end, { count = 0, desc = "Go to the [count] previous quickfix file. Wrap to the last file" } },
+{ "Lnfile",  function(cargs) rn.l_nfile_cmd(cargs) end, { count = 0, desc = "Go to the [count] next quickfix file. Wrap to the first file" } },
 }
 
+M.plug_tbls[#M.plug_tbls + 1] = M.qfr_nav_maps
+M.bufevent_tbls[#M.bufevent_tbls + 1] = M.qfr_nav_maps
+M.cmd_tbls[#M.cmd_tbls + 1] = M.qfr_nav_cmds
 M.doc_tbls[#M.doc_tbls + 1] = { rn_str, M.qfr_nav_maps, M.qfr_nav_cmds }
 
 -- stylua: ignore
@@ -180,46 +191,46 @@ M.qfr_stack_maps = {
 -- stylua: ignore
 ---@type QfrCmdData[]
 M.qfr_stack_cmds = {
-{ "Qolder", function(cargs) ra.q_older_cmd(cargs) end, { count = 0, desc = "Go to the [count] older quickfix list. Count is wrapping" } },
-{ "Qnewer", function(cargs) ra.q_newer_cmd(cargs) end, { count = 0, desc = "Go to the [count] newer quickfix list. Count is wrapping" } },
+{ "Qolder",   function(cargs) ra.q_older_cmd(cargs) end, { count = 0, desc = "Go to the [count] older quickfix list. Count is wrapping" } },
+{ "Qnewer",   function(cargs) ra.q_newer_cmd(cargs) end, { count = 0, desc = "Go to the [count] newer quickfix list. Count is wrapping" } },
 { "Qhistory", function(cargs) ra.q_history_cmd(cargs) end, { count = 0, desc = "Jump to [count] list in the quickfix stack or show the entire stack" } },
-{ "Qdelete", function(cargs) ra.q_delete_cmd(cargs) end, { count = 0, nargs = "?", desc = 'Delete [count] list "all" lists from the quickfix stack' } },
-{ "Lolder", function(cargs) ra.l_older_cmd(cargs) end, { count = 0, desc = "Go to the [count] older location list. Count is wrapping" } },
-{ "Lnewer", function(cargs) ra.l_newer_cmd(cargs) end, { count = 0, desc = "Go to the [count] newer location list. Count is wrapping" } },
+{ "Qdelete",  function(cargs) ra.q_delete_cmd(cargs) end, { count = 0, nargs = "?", desc = 'Delete [count] list "all" lists from the quickfix stack' } },
+{ "Lolder",   function(cargs) ra.l_older_cmd(cargs) end, { count = 0, desc = "Go to the [count] older location list. Count is wrapping" } },
+{ "Lnewer",   function(cargs) ra.l_newer_cmd(cargs) end, { count = 0, desc = "Go to the [count] newer location list. Count is wrapping" } },
 { "Lhistory", function(cargs) ra.l_history_cmd(cargs) end, { count = 0, desc = "Jump to [count] list in the loclist stack or show the entire stack" } },
-{ "Ldelete", function(cargs) ra.l_delete_cmd(cargs) end, { count = 0, nargs = "?", desc = 'Delete [count] list or "all" lists from the loclist stack' } },
+{ "Ldelete",  function(cargs) ra.l_delete_cmd(cargs) end, { count = 0, nargs = "?", desc = 'Delete [count] list or "all" lists from the loclist stack' } },
 }
 
+M.plug_tbls[#M.plug_tbls + 1] = M.qfr_stack_maps
+M.bufevent_tbls[#M.bufevent_tbls + 1] = M.qfr_stack_maps
+M.cmd_tbls[#M.cmd_tbls + 1] = M.qfr_stack_cmds
 M.doc_tbls[#M.doc_tbls + 1] = { ra_str, M.qfr_stack_maps, M.qfr_stack_cmds }
 
 -- stylua: ignore
 ---@type QfrMapData[]
 M.qfr_ftplugin_maps = {
-{ nn, "<Plug>(qfr-list-del-one)",               "dd", "Delete the current list line",                   function() ei._del_one_list_item() end },
-{ xx, "<Plug>(qfr-list-visual-del)",            "d", "Delete a visual line list selection",                 function() ei._visual_del() end },
-{ nn, "<Plug>(qfr-list-toggle-preview)",        "p", "Toggle the list preview win",                         function() ep.toggle_preview_win(cur_win()) end },
-{ nn, "<Plug>(qfr-list-update-preview-pos)",    "P", "Update the preview win position",                function() ep.update_preview_win_pos() end },
-{ nn, "<Plug>(qfr-list-prev)",                  "{", "Go to the previous list entry, keep list focus",   function() ei._open_prev_focuslist() end },
-{ nn, "<Plug>(qfr-list-next)",                  "}", "Go to the next list entry, keep list focus",      function() ei._open_next_focuslist() end },
-{ nn, "<Plug>(qfr-list-open-direct-focuswin)",  "o", "Open a list item",               function() ei._open_direct_focuswin() end },
+{ nn, "<Plug>(qfr-list-del-one)",               "dd", "Delete the current list line",                      function() ei._del_one_list_item() end },
+{ xx, "<Plug>(qfr-list-visual-del)",            "d", "Delete a visual line list selection",                function() ei._visual_del() end },
+{ nn, "<Plug>(qfr-list-toggle-preview)",        "p", "Toggle the list preview win",                        function() ep.toggle_preview_win(cur_win()) end },
+{ nn, "<Plug>(qfr-list-update-preview-pos)",    "P", "Update the preview win position",                    function() ep.update_preview_win_pos() end },
+{ nn, "<Plug>(qfr-list-prev)",                  "{", "Go to the previous list entry, keep list focus",     function() ei._open_prev_focuslist() end },
+{ nn, "<Plug>(qfr-list-next)",                  "}", "Go to the next list entry, keep list focus",         function() ei._open_next_focuslist() end },
+{ nn, "<Plug>(qfr-list-open-direct-focuswin)",  "o", "Open a list item",                                   function() ei._open_direct_focuswin() end },
 { nn, "<Plug>(qfr-list-open-direct-focuslist)", "<C-o>", "Open a list item, keep list focus",              function() ei._open_direct_focuslist() end },
-{ nn, "<Plug>(qfr-list-open-split-focuswin)",   "s", "Open a list item in a split",    function() ei._open_split_focuswin() end },
+{ nn, "<Plug>(qfr-list-open-split-focuswin)",   "s", "Open a list item in a split",                        function() ei._open_split_focuswin() end },
 { nn, "<Plug>(qfr-list-open-split-focuslist)",  "<C-s>", "Open a list item in a split, keep list focus",   function() ei._open_split_focuslist() end },
-{ nn, "<Plug>(qfr-list-open-vsplit-focuswin)",  "v", "Open a list item in a vsplit",   function() ei._open_vsplit_focuswin() end },
+{ nn, "<Plug>(qfr-list-open-vsplit-focuswin)",  "v", "Open a list item in a vsplit",                       function() ei._open_vsplit_focuswin() end },
 { nn, "<Plug>(qfr-list-open-vsplit-focuslist)", "<C-v>", "Open a list item in a vsplit, keep list focus",  function() ei._open_vsplit_focuslist() end },
-{ nn, "<Plug>(qfr-list-open-tabnew-focuswin)",  "x", "Open a list item in a new tab",  function() ei._open_tabnew_focuswin() end },
+{ nn, "<Plug>(qfr-list-open-tabnew-focuswin)",  "x", "Open a list item in a new tab",                      function() ei._open_tabnew_focuswin() end },
 { nn, "<Plug>(qfr-list-open-tabnew-focuslist)", "<C-x>", "Open a list item in a new tab, keep list focus", function() ei._open_tabnew_focuslist() end },
 }
 
+M.plug_tbls[#M.plug_tbls + 1] = M.qfr_ftplugin_maps
 M.doc_tbls[#M.doc_tbls + 1] = { "qf", M.qfr_ftplugin_maps, {} }
 
 -- stylua: ignore
 ---@type QfrMapData[]
 M.qfr_grep_maps = {
--- ==========
--- == GREP ==
--- ==========
-
 { nx, "<Plug>(qfr-qgrep-cwd)",    ql..gp.."d", "Quickfix grep CWD"..vc,  function() rg.grep("cwd", vimcase, sys_opt, new_qflist()) end },
 { nx, "<Plug>(qfr-qgrep-cwdX)",   ql..gp.."D", "Quickfix grep CWD"..rx,  function() rg.grep("cwd", regex, sys_opt, new_qflist()) end },
 { nx, "<Plug>(qfr-qgrep-help)",   ql..gp.."h", "Quickfix grep help"..vc, function() rg.grep("help", vimcase, sys_opt, new_qflist()) end },
@@ -256,6 +267,10 @@ M.qfr_grep_cmds = {
 { "Lgrep", function(cargs) rg.l_grep_cmd(cargs) end, { count = true, nargs = "*", desc = "Grep to the location list" } },
 }
 
+M.plug_tbls[#M.plug_tbls + 1] = all_greps
+M.uienter_tbls[#M.uienter_tbls + 1] = M.qfr_grep_maps
+M.bufevent_tbls[#M.bufevent_tbls + 1] = M.qfr_grep_buf_maps
+M.cmd_tbls[#M.cmd_tbls + 1] = M.qfr_grep_cmds
 M.doc_tbls[#M.doc_tbls + 1] = { rg_str, all_greps, M.qfr_grep_cmds }
 
 -- stylua: ignore
@@ -291,119 +306,127 @@ M.qfr_diag_cmds = {
 { "Ldiag", function(cargs) rd.l_diag_cmd(cargs) end, { bang = true, count = 0, nargs = "*", desc = "Send buf diags to the Location list" } },
 }
 
+M.plug_tbls[#M.plug_tbls + 1] = M.qfr_diag_maps
+M.bufevent_tbls[#M.bufevent_tbls + 1] = M.qfr_diag_maps
+M.cmd_tbls[#M.cmd_tbls + 1] = M.qfr_diag_cmds
 M.doc_tbls[#M.doc_tbls + 1] = { rd_str, M.qfr_diag_maps, M.qfr_diag_cmds }
 
 -- stylua: ignore
 ---@type QfrMapData[]
-M.qfr_buf_maps = {
--- ============
--- == FILTER ==
--- ============
-
+M.qfr_filter_maps = {
 -- Cfilter --
 
-{ nx, "<Plug>(qfr-Qfilter-cfilter)",   ql..kp.."l", "Qfilter cfilter"..vc,  function() ef.filter("cfilter", true, vimcase, replace_qflist()) end },
-{ nx, "<Plug>(qfr-Qfilter!-cfilter)",  ql..rp.."l", "Qfilter! cfilter"..vc, function() ef.filter("cfilter", false, vimcase, replace_qflist()) end },
-{ nx, "<Plug>(qfr-Qfilter-cfilterX)",  ql..kp.."L", "Qfilter cfilter"..rx,  function() ef.filter("cfilter", true, regex, replace_qflist()) end },
-{ nx, "<Plug>(qfr-Qfilter!-cfilterX)", ql..rp.."L", "Qfilter! cfilter"..rx, function() ef.filter("cfilter", false, regex, replace_qflist()) end },
+{ nx, "<Plug>(qfr-qfilter-cfilter)",   ql..kp.."l", "Qfilter keep cfilter"..vc,   function() rf.filter("cfilter", true, vimcase, replace_qflist()) end },
+{ nx, "<Plug>(qfr-qfilter!-cfilter)",  ql..rp.."l", "Qfilter remove cfilter"..vc, function() rf.filter("cfilter", false, vimcase, replace_qflist()) end },
+{ nx, "<Plug>(qfr-qfilter-cfilterX)",  ql..kp.."L", "Qfilter keep cfilter"..rx,   function() rf.filter("cfilter", true, regex, replace_qflist()) end },
+{ nx, "<Plug>(qfr-qfilter!-cfilterX)", ql..rp.."L", "Qfilter remove cfilter"..rx, function() rf.filter("cfilter", false, regex, replace_qflist()) end },
 
-{ nx, "<Plug>(qfr-Lfilter-cfilter)",   ll..kp.."l", "Lfilter cfilter"..vc,  function() ef.filter("cfilter", true, vimcase, replace_loclist()) end },
-{ nx, "<Plug>(qfr-Lfilter!-cfilter)",  ll..rp.."l", "Lfilter! cfilter"..vc, function() ef.filter("cfilter", false, vimcase, replace_loclist()) end },
-{ nx, "<Plug>(qfr-Lfilter-cfilterX)",  ll..kp.."L", "Lfilter cfilter"..rx,  function() ef.filter("cfilter", true, regex, replace_loclist()) end },
-{ nx, "<Plug>(qfr-Lfilter!-cfilterX)", ll..rp.."L", "Lfilter! cfilter"..rx, function() ef.filter("cfilter", false, regex, replace_loclist()) end },
+{ nx, "<Plug>(qfr-lfilter-cfilter)",   ll..kp.."l", "Lfilter keep cfilter"..vc,   function() rf.filter("cfilter", true, vimcase, replace_loclist()) end },
+{ nx, "<Plug>(qfr-lfilter!-cfilter)",  ll..rp.."l", "Lfilter remove cfilter"..vc, function() rf.filter("cfilter", false, vimcase, replace_loclist()) end },
+{ nx, "<Plug>(qfr-lfilter-cfilterX)",  ll..kp.."L", "Lfilter keep cfilter"..rx,   function() rf.filter("cfilter", true, regex, replace_loclist()) end },
+{ nx, "<Plug>(qfr-lfilter!-cfilterX)", ll..rp.."L", "Lfilter remove cfilter"..rx, function() rf.filter("cfilter", false, regex, replace_loclist()) end },
 
 -- Fname --
 
-{ nx, "<Plug>(qfr-Qfilter-fname)",     ql..kp.."f", "Qfilter fname"..vc,    function() ef.filter("fname", true, vimcase, replace_qflist()) end },
-{ nx, "<Plug>(qfr-Qfilter!-fname)",    ql..rp.."f", "Qfilter! fname"..vc,   function() ef.filter("fname", false, vimcase, replace_qflist()) end },
-{ nx, "<Plug>(qfr-Qfilter-fnameX)",    ql..kp.."F", "Qfilter fname"..rx,    function() ef.filter("fname", true, regex, replace_qflist()) end },
-{ nx, "<Plug>(qfr-Qfilter!-fnameX)",   ql..rp.."F", "Qfilter! fname"..rx,   function() ef.filter("fname", false, regex, replace_qflist()) end },
+{ nx, "<Plug>(qfr-qfilter-fname)",     ql..kp.."f", "Qfilter keep fname"..vc,     function() rf.filter("fname", true, vimcase, replace_qflist()) end },
+{ nx, "<Plug>(qfr-qfilter!-fname)",    ql..rp.."f", "Qfilter remove fname"..vc,   function() rf.filter("fname", false, vimcase, replace_qflist()) end },
+{ nx, "<Plug>(qfr-qfilter-fnameX)",    ql..kp.."F", "Qfilter keep fname"..rx,     function() rf.filter("fname", true, regex, replace_qflist()) end },
+{ nx, "<Plug>(qfr-qfilter!-fnameX)",   ql..rp.."F", "Qfilter remove fname"..rx,   function() rf.filter("fname", false, regex, replace_qflist()) end },
 
-{ nx, "<Plug>(qfr-Lfilter-fname)",     ll..kp.."f", "Lfilter fname"..vc,    function() ef.filter("fname", true, vimcase, replace_loclist()) end },
-{ nx, "<Plug>(qfr-Lfilter!-fname)",    ll..rp.."f", "Lfilter! fname"..vc,   function() ef.filter("fname", false, vimcase, replace_loclist()) end },
-{ nx, "<Plug>(qfr-Lfilter-fnameX)",    ll..kp.."F", "Lfilter fname"..rx,    function() ef.filter("fname", true, regex, replace_loclist()) end },
-{ nx, "<Plug>(qfr-Lfilter!-fnameX)",   ll..rp.."F", "Lfilter! fname"..rx,   function() ef.filter("fname", false, regex, replace_loclist()) end },
+{ nx, "<Plug>(qfr-lfilter-fname)",     ll..kp.."f", "Lfilter keep fname"..vc,     function() rf.filter("fname", true, vimcase, replace_loclist()) end },
+{ nx, "<Plug>(qfr-lfilter!-fname)",    ll..rp.."f", "Lfilter remove fname"..vc,   function() rf.filter("fname", false, vimcase, replace_loclist()) end },
+{ nx, "<Plug>(qfr-lfilter-fnameX)",    ll..kp.."F", "Lfilter keep fname"..rx,     function() rf.filter("fname", true, regex, replace_loclist()) end },
+{ nx, "<Plug>(qfr-lfilter!-fnameX)",   ll..rp.."F", "Lfilter remove fname"..rx,   function() rf.filter("fname", false, regex, replace_loclist()) end },
 
 -- Text --
 
-{ nx, "<Plug>(qfr-Qfilter-text)",      ql..kp.."e", "Qfilter text"..vc,     function() ef.filter("text", true, vimcase, replace_qflist()) end },
-{ nx, "<Plug>(qfr-Qfilter!-text)",     ql..rp.."e", "Qfilter! text"..vc,    function() ef.filter("text", false, vimcase, replace_qflist()) end },
-{ nx, "<Plug>(qfr-Qfilter-textX)",     ql..kp.."E", "Qfilter text"..rx,     function() ef.filter("text", true, regex, replace_qflist()) end },
-{ nx, "<Plug>(qfr-Qfilter!-textX)",    ql..rp.."E", "Qfilter! text"..rx,    function() ef.filter("text", false, regex, replace_qflist()) end },
+{ nx, "<Plug>(qfr-qfilter-text)",      ql..kp.."e", "Qfilter keep text"..vc,      function() rf.filter("text", true, vimcase, replace_qflist()) end },
+{ nx, "<Plug>(qfr-qfilter!-text)",     ql..rp.."e", "Qfilter remove text"..vc,    function() rf.filter("text", false, vimcase, replace_qflist()) end },
+{ nx, "<Plug>(qfr-qfilter-textX)",     ql..kp.."E", "Qfilter keep text"..rx,      function() rf.filter("text", true, regex, replace_qflist()) end },
+{ nx, "<Plug>(qfr-qfilter!-textX)",    ql..rp.."E", "Qfilter remove text"..rx,    function() rf.filter("text", false, regex, replace_qflist()) end },
 
-{ nx, "<Plug>(qfr-Lfilter-text)",      ll..kp.."e", "Lfilter text"..vc,     function() ef.filter("text", true, vimcase, replace_loclist()) end },
-{ nx, "<Plug>(qfr-Lfilter!-text)",     ll..rp.."e", "Lfilter! text"..vc,    function() ef.filter("text", false, vimcase, replace_loclist()) end },
-{ nx, "<Plug>(qfr-Lfilter-textX)",     ll..kp.."E", "Lfilter text"..rx,     function() ef.filter("text", true, regex, replace_loclist()) end },
-{ nx, "<Plug>(qfr-Lfilter!-textX)",    ll..rp.."E", "Lfilter! text"..rx,    function() ef.filter("text", false, regex, replace_loclist()) end },
+{ nx, "<Plug>(qfr-lfilter-text)",      ll..kp.."e", "Lfilter keep text"..vc,      function() rf.filter("text", true, vimcase, replace_loclist()) end },
+{ nx, "<Plug>(qfr-lfilter!-text)",     ll..rp.."e", "Lfilter remove text"..vc,    function() rf.filter("text", false, vimcase, replace_loclist()) end },
+{ nx, "<Plug>(qfr-lfilter-textX)",     ll..kp.."E", "Lfilter keep text"..rx,      function() rf.filter("text", true, regex, replace_loclist()) end },
+{ nx, "<Plug>(qfr-lfilter!-textX)",    ll..rp.."E", "Lfilter remove text"..rx,    function() rf.filter("text", false, regex, replace_loclist()) end },
 
 -- Lnum --
 
-{ nx, "<Plug>(qfr-Qfilter-lnum)",      ql..kp.."n", "Qfilter lnum"..vc,     function() ef.filter("lnum", true, vimcase, replace_qflist()) end },
-{ nx, "<Plug>(qfr-Qfilter!-lnum)",     ql..rp.."n", "Qfilter! lnum"..vc,    function() ef.filter("lnum", false, vimcase, replace_qflist()) end },
-{ nx, "<Plug>(qfr-Qfilter-lnumX)",     ql..kp.."N", "Qfilter lnum"..rx,     function() ef.filter("lnum", true, regex, replace_qflist()) end },
-{ nx, "<Plug>(qfr-Qfilter!-lnumX)",    ql..rp.."N", "Qfilter! lnum"..rx,    function() ef.filter("lnum", false, regex, replace_qflist()) end },
+{ nx, "<Plug>(qfr-qfilter-lnum)",      ql..kp.."n", "Qfilter keep lnum"..vc,      function() rf.filter("lnum", true, vimcase, replace_qflist()) end },
+{ nx, "<Plug>(qfr-qfilter!-lnum)",     ql..rp.."n", "Qfilter remove lnum"..vc,    function() rf.filter("lnum", false, vimcase, replace_qflist()) end },
+{ nx, "<Plug>(qfr-qfilter-lnumX)",     ql..kp.."N", "Qfilter keep lnum"..rx,      function() rf.filter("lnum", true, regex, replace_qflist()) end },
+{ nx, "<Plug>(qfr-qfilter!-lnumX)",    ql..rp.."N", "Qfilter remove lnum"..rx,    function() rf.filter("lnum", false, regex, replace_qflist()) end },
 
-{ nx, "<Plug>(qfr-Lfilter-lnum)",      ll..kp.."n", "Lfilter lnum"..vc,     function() ef.filter("lnum", true, vimcase, replace_loclist()) end },
-{ nx, "<Plug>(qfr-Lfilter!-lnum)",     ll..rp.."n", "Lfilter! lnum"..vc,    function() ef.filter("lnum", false, vimcase, replace_loclist()) end },
-{ nx, "<Plug>(qfr-Lfilter-lnumX)",     ll..kp.."N", "Lfilter lnum"..rx,     function() ef.filter("lnum", true, regex, replace_loclist()) end },
-{ nx, "<Plug>(qfr-Lfilter!-lnumX)",    ll..rp.."N", "Lfilter! lnum"..rx,    function() ef.filter("lnum", false, regex, replace_loclist()) end },
+{ nx, "<Plug>(qfr-lfilter-lnum)",      ll..kp.."n", "Lfilter keep lnum"..vc,      function() rf.filter("lnum", true, vimcase, replace_loclist()) end },
+{ nx, "<Plug>(qfr-lfilter!-lnum)",     ll..rp.."n", "Lfilter remove lnum"..vc,    function() rf.filter("lnum", false, vimcase, replace_loclist()) end },
+{ nx, "<Plug>(qfr-lfilter-lnumX)",     ll..kp.."N", "Lfilter keep lnum"..rx,      function() rf.filter("lnum", true, regex, replace_loclist()) end },
+{ nx, "<Plug>(qfr-lfilter!-lnumX)",    ll..rp.."N", "Lfilter remove lnum"..rx,    function() rf.filter("lnum", false, regex, replace_loclist()) end },
 
 -- Type --
 
-{ nx, "<Plug>(qfr-Qfilter-type)",      ql..kp.."t", "Qfilter type"..vc,     function() ef.filter("type", true, vimcase, replace_qflist()) end },
-{ nx, "<Plug>(qfr-Qfilter!-type)",     ql..rp.."t", "Qfilter! type"..vc,    function() ef.filter("type", false, vimcase, replace_qflist()) end },
-{ nx, "<Plug>(qfr-Qfilter-typeX)",     ql..kp.."T", "Qfilter type"..rx,     function() ef.filter("type", true, regex, replace_qflist()) end },
-{ nx, "<Plug>(qfr-Qfilter!-typeX)",    ql..rp.."T", "Qfilter! type"..rx,    function() ef.filter("type", false, regex, replace_qflist()) end },
+{ nx, "<Plug>(qfr-qfilter-type)",      ql..kp.."t", "Qfilter keep type"..vc,      function() rf.filter("type", true, vimcase, replace_qflist()) end },
+{ nx, "<Plug>(qfr-qfilter!-type)",     ql..rp.."t", "Qfilter remove type"..vc,    function() rf.filter("type", false, vimcase, replace_qflist()) end },
+{ nx, "<Plug>(qfr-qfilter-typeX)",     ql..kp.."T", "Qfilter keep type"..rx,      function() rf.filter("type", true, regex, replace_qflist()) end },
+{ nx, "<Plug>(qfr-qfilter!-typeX)",    ql..rp.."T", "Qfilter remove type"..rx,    function() rf.filter("type", false, regex, replace_qflist()) end },
 
-{ nx, "<Plug>(qfr-Lfilter-type)",      ll..kp.."t", "Lfilter type"..vc,     function() ef.filter("type", true, vimcase, replace_loclist()) end },
-{ nx, "<Plug>(qfr-Lfilter!-type)",     ll..rp.."t", "Lfilter! type"..vc,    function() ef.filter("type", false, vimcase, replace_loclist()) end },
-{ nx, "<Plug>(qfr-Lfilter-typeX)",     ll..kp.."T", "Lfilter type"..rx,     function() ef.filter("type", true, regex, replace_loclist()) end },
-{ nx, "<Plug>(qfr-Lfilter!-typeX)",    ll..rp.."T", "Lfilter! type"..rx,    function() ef.filter("type", false, regex, replace_loclist()) end },
-
--- ==========
--- == SORT ==
--- ==========
-
-{ nn, "<Plug>(qfr-qsort-fname-asc)",       ql..sp.."f",     "Qsort by fname asc",       function() es.sort("fname", { dir = "asc" }, replace_qflist()) end },
-{ nn, "<Plug>(qfr-qsort-fname-desc)",      ql..sp.."F",     "Qsort by fname desc",      function() es.sort("fname", { dir = "desc" }, replace_qflist()) end },
-{ nn, "<Plug>(qfr-qsort-fname-diag-asc)",  ql..sp..dp.."f", "Qsort by fname_diag asc",  function() es.sort("fname_diag", { dir = "asc" }, replace_qflist()) end },
-{ nn, "<Plug>(qfr-qsort-fname-diag-desc)", ql..sp..dp.."F", "Qsort by fname_diag desc", function() es.sort("fname_diag", { dir = "desc" }, replace_qflist()) end },
-{ nn, "<Plug>(qfr-qsort-severity-asc)",    ql..sp..dp.."s", "Qsort by severity asc",    function() es.sort("severity", { dir = "asc" }, replace_qflist()) end },
-{ nn, "<Plug>(qfr-qsort-severity-desc)",   ql..sp..dp.."S", "Qsort by severity desc",   function() es.sort("severity", { dir = "desc" }, replace_qflist()) end },
-{ nn, "<Plug>(qfr-qsort-text-asc)",        ql..sp.."e",     "Qsort by text asc",        function() es.sort("text", { dir = "asc" }, replace_qflist()) end },
-{ nn, "<Plug>(qfr-qsort-text-desc)",       ql..sp.."E",     "Qsort by text desc",       function() es.sort("text", { dir = "desc" }, replace_qflist()) end },
-{ nn, "<Plug>(qfr-qsort-type-asc)",        ql..sp.."t",     "Qsort by type asc",        function() es.sort("type", { dir = "asc" }, replace_qflist()) end },
-{ nn, "<Plug>(qfr-qsort-type-desc)",       ql..sp.."T",     "Qsort by type desc",       function() es.sort("type", { dir = "desc" }, replace_qflist()) end },
-
-{ nn, "<Plug>(qfr-lsort-fname-asc)",       ll..sp.."f",     "Lsort by fname asc",       function() es.sort("fname", { dir = "asc" }, replace_loclist()) end },
-{ nn, "<Plug>(qfr-lsort-fname-desc)",      ll..sp.."F",     "Lsort by fname desc",      function() es.sort("fname", { dir = "desc" }, replace_loclist()) end },
-{ nn, "<Plug>(qfr-lsort-fname-diag-asc)",  ll..sp..dp.."f", "Lsort by fname_diag asc",  function() es.sort("fname_diag", { dir = "asc" }, replace_loclist()) end },
-{ nn, "<Plug>(qfr-lsort-fname-diag-desc)", ll..sp..dp.."F", "Lsort by fname_diag desc", function() es.sort("fname_diag", { dir = "desc" }, replace_loclist()) end },
-{ nn, "<Plug>(qfr-lsort-severity-asc)",    ll..sp..dp.."s", "Lsort by severity asc",    function() es.sort("severity", { dir = "asc" }, replace_loclist()) end },
-{ nn, "<Plug>(qfr-lsort-severity-desc)",   ll..sp..dp.."S", "Lsort by severity desc",   function() es.sort("severity", { dir = "desc" }, replace_loclist()) end },
-{ nn, "<Plug>(qfr-lsort-text-asc)",        ll..sp.."e",     "Lsort by text asc",        function() es.sort("text", { dir = "asc" }, replace_loclist()) end },
-{ nn, "<Plug>(qfr-lsort-text-desc)",       ll..sp.."E",     "Lsort by text desc",       function() es.sort("text", { dir = "desc" }, replace_loclist()) end },
-{ nn, "<Plug>(qfr-lsort-type-asc)",        ll..sp.."t",     "Lsort by type asc",        function() es.sort("type", { dir = "asc" }, replace_loclist()) end },
-{ nn, "<Plug>(qfr-lsort-type-desc)",       ll..sp.."T",     "Lsort by type desc",       function() es.sort("type", { dir = "desc" }, replace_loclist()) end },
+{ nx, "<Plug>(qfr-lfilter-type)",      ll..kp.."t", "Lfilter keep type"..vc,      function() rf.filter("type", true, vimcase, replace_loclist()) end },
+{ nx, "<Plug>(qfr-lfilter!-type)",     ll..rp.."t", "Lfilter remove type"..vc,    function() rf.filter("type", false, vimcase, replace_loclist()) end },
+{ nx, "<Plug>(qfr-lfilter-typeX)",     ll..kp.."T", "Lfilter keep type"..rx,      function() rf.filter("type", true, regex, replace_loclist()) end },
+{ nx, "<Plug>(qfr-lfilter!-typeX)",    ll..rp.."T", "Lfilter remove type"..rx,    function() rf.filter("type", false, regex, replace_loclist()) end },
 }
-
 
 -- stylua: ignore
-M.cmds = {
--- ============
--- == FILTER ==
--- ============
+---@type QfrCmdData[]
+M.qfr_filter_cmds = {
+{ "Qfilter", function(cargs) rf.q_filter_cmd(cargs) end, { bang = true, count = true, nargs = "*", desc = "Filter quickfix items" } },
+{ "Lfilter", function(cargs) rf.l_filter_cmd(cargs) end, { bang = true, count = true, nargs = "*", desc = "Filter location list items" } },
+}
 
-{ "Qfilter", function(cargs) ef.q_filter_cmd(cargs) end, { bang = true, count = true, nargs = "*", desc = "Sort quickfix items" } },
-{ "Lfilter", function(cargs) ef.l_filter_cmd(cargs) end, { bang = true, count = true, nargs = "*", desc = "Sort loclist items" } },
+M.plug_tbls[#M.plug_tbls + 1] = M.qfr_filter_maps
+M.bufevent_tbls[#M.bufevent_tbls + 1] = M.qfr_filter_maps
+M.cmd_tbls[#M.cmd_tbls + 1] = M.qfr_filter_cmds
+M.doc_tbls[#M.doc_tbls + 1] = { rf_str, M.qfr_filter_maps, M.qfr_filter_cmds }
 
+-- stylua: ignore
+---@type QfrMapData[]
+M.qfr_sort_maps = {
 -- ==========
 -- == SORT ==
 -- ==========
 
-{ "Qsort", function(cargs) es.q_sort(cargs) end, { bang = true, count = 0, nargs = 1 } },
-{ "Lsort", function(cargs) es.l_sort(cargs) end, { bang = true, count = 0, nargs = 1 } },
+{ nn, "<Plug>(qfr-qsort-fname-asc)",       ql..sp.."f",     "Sort quickfix by fname asc",            function() rs.sort("fname", { dir = "asc" }, replace_qflist()) end },
+{ nn, "<Plug>(qfr-qsort-fname-desc)",      ql..sp.."F",     "Sort quickfix by fname desc",           function() rs.sort("fname", { dir = "desc" }, replace_qflist()) end },
+{ nn, "<Plug>(qfr-qsort-fname-diag-asc)",  ql..sp..dp.."f", "Sort quickfix by fname_diag asc",       function() rs.sort("fname_diag", { dir = "asc" }, replace_qflist()) end },
+{ nn, "<Plug>(qfr-qsort-fname-diag-desc)", ql..sp..dp.."F", "Sort quickfix by fname_diag desc",      function() rs.sort("fname_diag", { dir = "desc" }, replace_qflist()) end },
+{ nn, "<Plug>(qfr-qsort-severity-asc)",    ql..sp..dp.."s", "Sort quickfix by severity asc",         function() rs.sort("severity", { dir = "asc" }, replace_qflist()) end },
+{ nn, "<Plug>(qfr-qsort-severity-desc)",   ql..sp..dp.."S", "Sort quickfix by severity desc",        function() rs.sort("severity", { dir = "desc" }, replace_qflist()) end },
+{ nn, "<Plug>(qfr-qsort-text-asc)",        ql..sp.."e",     "Sort quickfix by text asc",             function() rs.sort("text", { dir = "asc" }, replace_qflist()) end },
+{ nn, "<Plug>(qfr-qsort-text-desc)",       ql..sp.."E",     "Sort quickfix by text desc",            function() rs.sort("text", { dir = "desc" }, replace_qflist()) end },
+{ nn, "<Plug>(qfr-qsort-type-asc)",        ql..sp.."t",     "Sort quickfix by type asc",             function() rs.sort("type", { dir = "asc" }, replace_qflist()) end },
+{ nn, "<Plug>(qfr-qsort-type-desc)",       ql..sp.."T",     "Sort quickfix by type desc",            function() rs.sort("type", { dir = "desc" }, replace_qflist()) end },
+
+{ nn, "<Plug>(qfr-lsort-fname-asc)",       ll..sp.."f",     "Sort location list by fname asc",       function() rs.sort("fname", { dir = "asc" }, replace_loclist()) end },
+{ nn, "<Plug>(qfr-lsort-fname-desc)",      ll..sp.."F",     "Sort location list by fname desc",      function() rs.sort("fname", { dir = "desc" }, replace_loclist()) end },
+{ nn, "<Plug>(qfr-lsort-fname-diag-asc)",  ll..sp..dp.."f", "Sort location list by fname_diag asc",  function() rs.sort("fname_diag", { dir = "asc" }, replace_loclist()) end },
+{ nn, "<Plug>(qfr-lsort-fname-diag-desc)", ll..sp..dp.."F", "Sort location list by fname_diag desc", function() rs.sort("fname_diag", { dir = "desc" }, replace_loclist()) end },
+{ nn, "<Plug>(qfr-lsort-severity-asc)",    ll..sp..dp.."s", "Sort location list by severity asc",    function() rs.sort("severity", { dir = "asc" }, replace_loclist()) end },
+{ nn, "<Plug>(qfr-lsort-severity-desc)",   ll..sp..dp.."S", "Sort location list by severity desc",   function() rs.sort("severity", { dir = "desc" }, replace_loclist()) end },
+{ nn, "<Plug>(qfr-lsort-text-asc)",        ll..sp.."e",     "Sort location list by text asc",        function() rs.sort("text", { dir = "asc" }, replace_loclist()) end },
+{ nn, "<Plug>(qfr-lsort-text-desc)",       ll..sp.."E",     "Sort location list by text desc",       function() rs.sort("text", { dir = "desc" }, replace_loclist()) end },
+{ nn, "<Plug>(qfr-lsort-type-asc)",        ll..sp.."t",     "Sort location list by type asc",        function() rs.sort("type", { dir = "asc" }, replace_loclist()) end },
+{ nn, "<Plug>(qfr-lsort-type-desc)",       ll..sp.."T",     "Sort location list by type desc",       function() rs.sort("type", { dir = "desc" }, replace_loclist()) end },
 }
+
+-- stylua: ignore
+M.qfr_sort_cmds = {
+{ "Qsort", function(cargs) rs.q_sort(cargs) end, { bang = true, count = 0, nargs = 1, desc = "Sort quickfix items" } },
+{ "Lsort", function(cargs) rs.l_sort(cargs) end, { bang = true, count = 0, nargs = 1, desc = "Sort location list items" } },
+}
+
+M.plug_tbls[#M.plug_tbls + 1] = M.qfr_sort_maps
+M.bufevent_tbls[#M.bufevent_tbls + 1] = M.qfr_sort_maps
+M.cmd_tbls[#M.cmd_tbls + 1] = M.qfr_sort_cmds
+M.doc_tbls[#M.doc_tbls + 1] = { rs_str, M.qfr_sort_maps, M.qfr_sort_cmds }
 
 -- NOTE: This table needs to be separate or else the plug mapping pass will map "<nop>", which
 -- causes multiple problems

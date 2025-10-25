@@ -226,8 +226,7 @@ if vim.g.qfr_create_loclist_autocmds then
     })
 end
 
--- TODO: This is not a good place for this. Should be after ftplugin, but unsure how to swing
--- that in the docgen
+-- TODO: Add the types file to docgen and put these at the top
 
 ---@tag qf-rancher-api-types
 ---@tag qfr-api-types
@@ -287,22 +286,10 @@ end
 -- a struct of arrays organization, which would save a small amount of time, especially if more
 -- defaults are added
 
--- TODO: I think these table listings can be created in the maps file itself, but want to
--- do a few more in case a gotcha comes up
-
 local maps = require("qf-rancher.maps")
-local tbls_for_plugs = {
-    maps.qfr_buf_maps,
-    maps.qfr_win_maps,
-    maps.qfr_nav_maps,
-    maps.qfr_stack_maps,
-    maps.qfr_ftplugin_maps,
-    maps.qfr_grep_maps,
-    maps.qfr_diag_maps,
-}
 
 -- Create plug maps
-for _, tbl in ipairs(tbls_for_plugs) do
+for _, tbl in ipairs(maps.plug_tbls) do
     for _, map in ipairs(tbl) do
         for _, mode in ipairs(map[1]) do
             api.nvim_set_keymap(mode, map[2], "", {
@@ -315,12 +302,7 @@ for _, tbl in ipairs(tbls_for_plugs) do
 end
 
 if vim.g.qfr_set_default_keymaps then
-    local tbls_for_uienter = {
-        maps.qfr_win_maps,
-        maps.qfr_grep_maps,
-    }
-
-    for _, tbl in ipairs(tbls_for_uienter) do
+    for _, tbl in ipairs(maps.uienter_tbls) do
         for _, map in ipairs(tbl) do
             for _, mode in ipairs(map[1]) do
                 api.nvim_set_keymap(mode, map[3], map[2], {
@@ -340,20 +322,11 @@ if vim.g.qfr_set_default_keymaps then
         end
     end
 
-    local tbls_for_bufevent = {
-        maps.qfr_nav_maps,
-        maps.qfr_stack_maps,
-        maps.qfr_grep_buf_maps,
-        maps.qfr_diag_maps,
-        maps.qfr_buf_maps,
-    }
-
-    -- Defer creation of maps that can wait for a buffer to be opened
     local bufgroup = "qfr-buf-maps"
     api.nvim_create_autocmd({ "BufNew", "BufReadPre" }, {
         group = api.nvim_create_augroup(bufgroup, {}),
         callback = function()
-            for _, tbl in ipairs(tbls_for_bufevent) do
+            for _, tbl in ipairs(maps.bufevent_tbls) do
                 for _, map in ipairs(tbl) do
                     for _, mode in ipairs(map[1]) do
                         api.nvim_set_keymap(mode, map[3], map[2], {
@@ -370,16 +343,7 @@ if vim.g.qfr_set_default_keymaps then
 end
 
 if vim.g.qfr_set_default_cmds then
-    local cmd_tbls = {
-        maps.cmds,
-        maps.qfr_win_cmds,
-        maps.qfr_nav_cmds,
-        maps.qfr_stack_cmds,
-        maps.qfr_grep_cmds,
-        maps.qfr_diag_cmds,
-    }
-
-    for _, tbl in ipairs(cmd_tbls) do
+    for _, tbl in ipairs(maps.cmd_tbls) do
         for _, cmd in ipairs(tbl) do
             api.nvim_create_user_command(cmd[1], cmd[2], cmd[3])
         end
