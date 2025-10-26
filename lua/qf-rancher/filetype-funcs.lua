@@ -50,11 +50,12 @@ function M._visual_del()
     if #list.items < 1 then return end
     local col = vim.api.nvim_win_get_cursor(list_win)[2] ---@type integer
 
-    local cur = fn.getpos(".") ---@type table
-    local fin = fn.getpos("v") ---@type table
+    local cur = fn.getpos(".") ---@type [integer, integer, integer, integer]
+    local fin = fn.getpos("v") ---@type [integer, integer, integer, integer]
     local selection = api.nvim_get_option_value("selection", { scope = "global" }) ---@type string
     local exclusive = selection == "exclusive" ---@type boolean
-    local region = fn.getregionpos(cur, fin, { type = mode, exclusive = exclusive }) ---@type table
+    --- @type [ [integer, integer, integer, integer], [integer, integer, integer, integer] ][]
+    local region = fn.getregionpos(cur, fin, { type = mode, exclusive = exclusive })
 
     ---@type Range4
     local vrange_4 =

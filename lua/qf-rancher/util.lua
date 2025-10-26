@@ -74,6 +74,13 @@ function M._resolve_input_vimcase(input)
     return "sensitive"
 end
 
+-- LOW: This should pass up the echo chunks rather than doing so here
+-- - You could then pass up errors if there is a bad mode rather than creating an enter error
+--   with vim.validate. But extui might make that irrelevant
+-- LOW: An empty selection is not an error and should not be treated as such
+-- - Issue: Leaving visual mode after a valid selection is handled here. Do we want to do that if
+--   the selection is empty?
+
 ---@param mode string
 ---@return string|nil
 local function get_visual_pattern(mode)
@@ -82,13 +89,15 @@ local function get_visual_pattern(mode)
         return mode == "v" or mode == "V" or mode == "\22"
     end)
 
-    local start_pos = fn.getpos(".") ---@type Range4
-    local end_pos = fn.getpos("v") ---@type Range4
+    local start_pos = fn.getpos(".") ---@type [integer, integer, integer, integer]
+    local end_pos = fn.getpos("v") ---@type [integer, integer, integer, integer]
     local region = fn.getregion(start_pos, end_pos, { type = mode }) ---@type string[]
-
     if #region == 1 then
         local trimmed = region[1]:gsub("^%s*(.-)%s*$", "%1") ---@type string
-        if #trimmed > 0 then return trimmed end
+        if #trimmed > 0 then
+            api.nvim_cmd({ cmd = "normal", args = { "\27" }, bang = true }, {})
+            return trimmed
+        end
     elseif #region > 1 then
         for _, line in ipairs(region) do
             if line ~= "" then
