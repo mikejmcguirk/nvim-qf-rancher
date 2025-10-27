@@ -51,6 +51,9 @@ local fn = vim.fn
 ---TODO: Add installation steps for lazy and vim.pack
 ---(NOTE: For this, make a .config/nvim-lazy dir and an alias that points to it)
 ---
+---vim.pack spec:
+---{ src = "https://github.com/mikejmcguirk/nvim-qf-rancher" },
+---
 ---DEV NOTES:
 ---- Plugin development requires Neovim built with LuaJIT
 ---- Testing is performed with nlua (https://github.com/mfussenegger/nlua)
