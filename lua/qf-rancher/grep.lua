@@ -151,7 +151,7 @@ local function do_grep(grep_info, input_opts, system_opts, output_opts)
     sys_output_opts = et.handle_new_same_title(sys_output_opts)
 
     sys_output_opts.list_item_type = grep_info.list_item_type or output_opts.list_item_type
-    sys_output_opts.sort_func = es._sort_fname_asc
+    sys_output_opts.sort_func = es.sort_fname_asc
 
     ee.system_do(sys_opts, sys_output_opts)
 end
@@ -231,6 +231,15 @@ end
 -- == API ==
 -- =========
 
+---@alias QfrGrepLocs string[]
+
+---Fields:
+---- string pattern
+---- string |QfrInputType|
+---- QfrGrepLocs Locations to grep from
+---Returns: string[]
+---@alias QfrGrepPartsFunc fun(string, string, QfrGrepLocs):string[]
+
 ---@class QfrGrepInfo
 ---@field name string Used for cmds and public API access
 ---@field list_item_type string|nil Type to apply to resulting list items
@@ -268,8 +277,6 @@ end
 ---@param output_opts QfrOutputOpts See |qfr-output-opts|
 ---Any list_item_type provided here will be overridden
 ---by the one provided in the grep config
----If vim.v.count is > 0, that will be used to
----determine the list nr to be acted on
 ---@return nil
 function Grep.grep(name, input_opts, system_opts, output_opts)
     vim.validate("name", name, "string")
@@ -323,7 +330,9 @@ local function grep_cmd(src_win, cargs)
 
     local grep_names = get_grep_names() ---@type string[]
     assert(#grep_names > 1, "No grep commands available")
-    local grep_name = eu._check_cmd_arg(fargs, grep_names, "cwd") ---@type string
+    ---@type string
+    local default_grep = vim.tbl_contains(grep_names, "cwd") and "cwd" or grep_names[1]
+    local grep_name = eu._check_cmd_arg(fargs, grep_names, default_grep) ---@type string
 
     ---@type QfrInputType
     local input_type = eu._check_cmd_arg(fargs, ey._cmd_input_types, ey._default_input_type)
@@ -338,7 +347,7 @@ local function grep_cmd(src_win, cargs)
     local system_opts = { sync = sync, timeout = ee._default_timeout }
 
     ---@type QfrAction
-    local action = eu._check_cmd_arg(fargs, ey._actions, ey._default_action)
+    local action = eu._check_cmd_arg(fargs, ey._actions, " ")
     ---@type QfrOutputOpts
     local output_opts = { src_win = src_win, action = action, what = { nr = cargs.count } }
 
@@ -349,10 +358,11 @@ end
 ---The callbacks to assign the Qgrep and Lgrep commands are below. They expect
 ---count = 0 and nargs = "*" to be present in the user_command table.
 ---They accept the following options:
----- A registered grep name ("cwd" by default)
----  NOTE: The built in quickfix buf grep will search in all open bufs,
----  excluding help buffers. The location list grep will search the
----  current buf, including help buffers
+---- A registered grep name (cwd|help|bufs|cbuf). cwd is default
+---  NOTE: "bufs" searches all open bufs, excluding help bufs
+---  NOTE: "cbuf" searches the current buf, including help buffers
+---  NOTE: The built in quickfix buf grep keymap searches all open bufs.
+---  The location list grep searches the current buf
 ---- A pattern starting with "/"
 ---- A |qfr-input-type| ("vimcase" by default)
 ---- "async" or "sync" to control system behavior (async by default)

@@ -148,7 +148,7 @@ function Diag.diags_to_list(diag_opts, output_opts)
     if diag_opts.top then raw_diags = filter_diags_top_severity(raw_diags) end
     local disp_func = diag_opts.disp_func or convert_diag ---@type QfrDiagDispFunc
     local converted_diags = vim.tbl_map(disp_func, raw_diags) ---@type vim.quickfix.entry[]
-    table.sort(converted_diags, es._sort_fname_asc)
+    table.sort(converted_diags, es.sort_fname_asc)
 
     local adj_output_opts = et.handle_new_same_title(output_opts) ---@type QfrOutputOpts
     local what_set = vim.tbl_deep_extend("force", adj_output_opts.what, {
@@ -173,6 +173,7 @@ end
 -- LOW: Figure out how to customize diag cmd mappings. Could just do cmd registration, but that
 -- would then sit on top of the default cmd structure. Feels more natural to figure out a
 -- cmd syntax that allows for arriving at the various combinations of getopts
+-- - NOTE: This would require adding validation for the registered diag filters
 
 local level_map = {
     hint = ds.HINT,
@@ -207,16 +208,12 @@ local function unpack_diag_cmd(src_win, cargs)
     local diag_opts = { top = top, getopts = getopts } ---@type QfrDiagOpts
 
     ---@type QfrAction
-    local action = eu._check_cmd_arg(fargs, ey._actions, ey._default_action)
+    local action = eu._check_cmd_arg(fargs, ey._actions, " ")
     ---@type QfrOutputOpts
     local output_opts = { src_win = src_win, action = action, what = { nr = cargs.count } }
 
     Diag.diags_to_list(diag_opts, output_opts)
 end
-
--- DOCUMENT: Can use these for customizing the diag user cmd. Note how they work here
--- The way you could do it would be, document the cmd syntax here in a general comment, not that
--- the functions below are for mapping it yourself, then let lemmy-help autogen them
 
 ---@brief [[
 ---The callbacks to assign the Qdiag and Ldiag commands are below. They expect

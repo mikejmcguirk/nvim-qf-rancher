@@ -349,10 +349,7 @@ end
 
 ---@alias QfrAction "a"|"f"|"r"|"u"|" "
 
--- DOCUMENT: new is the default for cmds, can add another action to replace
-
 M._actions = { "a", "f", "r", "u", " " } ---@type string[]
-M._default_action = " " ---@type string
 
 ---@param action QfrAction
 ---@return nil
@@ -498,18 +495,6 @@ end
 -- == CUSTOM TYPES -- FILTER ==
 -- ============================
 
----@class QfrPredicateOpts
----@field pattern? string
----@field regex? vim.regex
-
----@alias QfrPredicate fun(vim.qflist.entry, boolean, QfrPredicateOpts):boolean
-
----@class QfrFilterInfo
----@field name string
----@field insensitive_func QfrPredicate
----@field regex_func QfrPredicate
----@field sensitive_func QfrPredicate
-
 ---@param filter_info QfrFilterInfo
 ---@return nil
 function M._validate_filter_info(filter_info)
@@ -523,9 +508,6 @@ end
 -- ==========================
 -- == CUSTOM TYPES -- GREP ==
 -- ==========================
-
----@alias QfrGrepLocs string[]
----@alias QfrGrepPartsFunc fun(string, string, QfrGrepLocs):string[]
 
 ---@param grep_info QfrGrepInfo
 ---@return nil
@@ -579,16 +561,11 @@ end
 -- SORT TYPES --
 ----------------
 
----@alias QfrSortPredicate fun(table, table): boolean
-
----@class QfrSortInfo
----@field asc_func QfrSortPredicate
----@field desc_func QfrSortPredicate
-
 ---@param sort_info QfrSortInfo
 ---@return nil
 function M._validate_sort_info(sort_info)
     vim.validate("sort_info", sort_info, "table")
+    vim.validate("sort_info.name", sort_info.name, "string")
     vim.validate("sort_info.asc_func", sort_info.asc_func, "callable")
     vim.validate("sort_info.desc_func", sort_info.desc_func, "callable")
 end
@@ -602,9 +579,6 @@ function M._validate_sort_dir(dir)
         return dir == "asc" or dir == "desc"
     end)
 end
-
----@class QfrSortOpts
----@field dir QfrSortDir
 
 ---@param sort_opts QfrSortOpts
 ---@return nil

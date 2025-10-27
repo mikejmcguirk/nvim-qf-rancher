@@ -1,12 +1,17 @@
-local ea = Qfr_Defer_Require("qf-rancher.stack") ---@type QfrStack
-local et = Qfr_Defer_Require("qf-rancher.tools") ---@type QfrTools
-local eu = Qfr_Defer_Require("qf-rancher.util") ---@type QfrUtil
-local ey = Qfr_Defer_Require("qf-rancher.types") ---@type QfrTypes
+local ra = Qfr_Defer_Require("qf-rancher.stack") ---@type QfrStack
+local rt = Qfr_Defer_Require("qf-rancher.tools") ---@type QfrTools
+local ru = Qfr_Defer_Require("qf-rancher.util") ---@type QfrUtil
+local ry = Qfr_Defer_Require("qf-rancher.types") ---@type QfrTypes
 
 local api = vim.api
 local fn = vim.fn
 
 ---@mod Sort Sends diags to the qf list
+---@tag qf-rancher-sort
+---@tag qfr-sort
+---@brief [[
+---
+---@brief ]]
 
 --- @class QfRancherSort
 local Sort = {}
@@ -20,14 +25,14 @@ local Sort = {}
 ---@param output_opts QfrOutputOpts
 ---@return nil
 local function sort_wrapper(sort_info, sort_opts, output_opts)
-    ey._validate_sort_info(sort_info)
-    ey._validate_sort_opts(sort_opts)
-    ey._validate_output_opts(output_opts)
+    ry._validate_sort_info(sort_info)
+    ry._validate_sort_opts(sort_opts)
+    ry._validate_output_opts(output_opts)
 
     local src_win = output_opts.src_win ---@type integer|nil
-    if src_win and not eu._valid_win_for_loclist(src_win) then return end
+    if src_win and not ru._valid_win_for_loclist(src_win) then return end
 
-    local what_ret = et._get_list(src_win, { nr = output_opts.what.nr, all = true }) ---@type table
+    local what_ret = rt._get_list(src_win, { nr = output_opts.what.nr, all = true }) ---@type table
     if what_ret.size <= 1 then
         api.nvim_echo({ { "Not enough entries to sort", "" } }, false, {})
         return
@@ -35,13 +40,13 @@ local function sort_wrapper(sort_info, sort_opts, output_opts)
 
     ---@type QfrSortPredicate
     local predicate = sort_opts.dir == "asc" and sort_info.asc_func or sort_info.desc_func
-    local what_set = et._what_ret_to_set(what_ret) ---@type QfrWhat
+    local what_set = rt._what_ret_to_set(what_ret) ---@type QfrWhat
     table.sort(what_set.items, predicate)
     what_set.nr = output_opts.what.nr
 
-    local dest_nr = et._set_list(src_win, output_opts.action, what_set) ---@type integer
-    if eu._get_g_var("qfr_auto_open_changes") then
-        ea._get_history(src_win, dest_nr, {
+    local dest_nr = rt._set_list(src_win, output_opts.action, what_set) ---@type integer
+    if ru._get_g_var("qfr_auto_open_changes") then
+        ra._get_history(src_win, dest_nr, {
             open_list = true,
             default = "cur_list",
             silent = true,
@@ -138,7 +143,7 @@ local function check_lcol_type(a, b, check)
 end
 
 ---@type table<string, integer>
-local severity_unmap = ey._severity_unmap
+local severity_unmap = ry._severity_unmap
 
 ---@param a table
 ---@param b table
@@ -191,16 +196,6 @@ local function sort_fname(a, b, check)
     end
 end
 
----@type QfrSortPredicate
-function Sort._sort_fname_asc(a, b)
-    return sort_fname(a, b, check_asc)
-end
-
----@type QfrSortPredicate
-function Sort._sort_fname_desc(a, b)
-    return sort_fname(a, b, check_desc)
-end
-
 ---@param a vim.quickfix.entry
 ---@param b vim.quickfix.entry
 ---@param check QfrCheckFunc
@@ -222,16 +217,6 @@ local function sort_text(a, b, check)
     end
 end
 
----@text QfRancherSortPredicate
-function Sort._sort_text_asc(a, b)
-    return sort_text(a, b, check_asc)
-end
-
----@text QfRancherSortPredicate
-function Sort._sort_text_desc(a, b)
-    return sort_text(a, b, check_desc)
-end
-
 ---@param a vim.quickfix.entry
 ---@param b vim.quickfix.entry
 ---@param check QfrCheckFunc
@@ -248,16 +233,6 @@ local function sort_type(a, b, check)
     else
         return false
     end
-end
-
----@type QfrSortPredicate
-function Sort._sort_type_asc(a, b)
-    return sort_type(a, b, check_asc)
-end
-
----@type QfrSortPredicate
-function Sort._sort_type_desc(a, b)
-    return sort_type(a, b, check_desc)
 end
 
 ---@param a vim.quickfix.entry
@@ -279,16 +254,6 @@ local function sort_severity(a, b, check)
     end
 end
 
----@type QfrSortPredicate
-function Sort._sort_severity_asc(a, b)
-    return sort_severity(a, b, check_asc)
-end
-
----@type QfrSortPredicate
-function Sort._sort_severity_desc(a, b)
-    return sort_severity(a, b, check_desc)
-end
-
 ---@param a vim.quickfix.entry
 ---@param b vim.quickfix.entry
 ---@param check QfrCheckFunc
@@ -307,47 +272,139 @@ local function sort_diag_fname(a, b, check)
     end
 end
 
----@type QfrSortPredicate
-function Sort._sort_fname_diag_asc(a, b)
-    return sort_diag_fname(a, b, check_asc)
-end
-
----@type QfrSortPredicate
-function Sort._sort_fname_diag_desc(a, b)
-    return sort_diag_fname(a, b, check_desc)
-end
-
 -- =========
 -- == API ==
 -- =========
 
+---@tag qf-rancher-sort-predicate
+---@tag qfr-sort-predicate
+---Parameters:
+---- vim.qflist.item (first item to sort)
+---- vim.qflist.item (second item to sort)
+---Return: Boolean
+---@alias QfrSortPredicate fun(vim.qflist.item, vim.qflist.item): boolean
+
+---@tag qf-rancher-sort-info
+---@tag qfr-sort-info
+---@class QfrSortInfo
+---@field name string The name of the sort
+---@field asc_func QfrSortPredicate Predicate for asc sorts
+---@field desc_func QfrSortPredicate Predicate for desc sorts
+
+---@tag qf-rancher-sort-opts
+---@tag qfr-sort-opts
+---@class QfrSortOpts
+---@field dir QfrSortDir "asc"|"desc"
+
+-- MID: The sort predicates are here first so they load properly into the sorts table. This is
+-- not the best presentation
+
+---@brief [[
+---The below sort predicates are exposed for use in other functions. All have
+---the type |QfrSortPredicate|
+---@brief ]]
+
+---@type QfrSortPredicate
+---Sort by filename asc. Break ties with line and column numbers
+function Sort.sort_fname_asc(a, b)
+    return sort_fname(a, b, check_asc)
+end
+
+---@type QfrSortPredicate
+---Sort by filename desc. Break ties with line and column numbers
+function Sort.sort_fname_desc(a, b)
+    return sort_fname(a, b, check_desc)
+end
+
+---@type QfrSortPredicate
+---Sort by text asc
+function Sort.sort_text_asc(a, b)
+    return sort_text(a, b, check_asc)
+end
+
+---@type QfrSortPredicate
+---Sort by text desc
+function Sort.sort_text_desc(a, b)
+    return sort_text(a, b, check_desc)
+end
+
+---@type QfrSortPredicate
+---Sort by list item type asc
+function Sort.sort_type_asc(a, b)
+    return sort_type(a, b, check_asc)
+end
+
+---@type QfrSortPredicate
+---Sort by list item type desc
+function Sort.sort_type_desc(a, b)
+    return sort_type(a, b, check_desc)
+end
+
+---@type QfrSortPredicate
+---Sort by filename asc, break ties by diagnostic severity
+function Sort.sort_fname_diag_asc(a, b)
+    return sort_diag_fname(a, b, check_asc)
+end
+
+---@type QfrSortPredicate
+---Sort by filename desc, break ties by diagnostic severity
+function Sort.sort_fname_diag_desc(a, b)
+    return sort_diag_fname(a, b, check_desc)
+end
+
+---@type QfrSortPredicate
+---Sort by diagnostic severity asc
+function Sort.sort_severity_asc(a, b)
+    return sort_severity(a, b, check_asc)
+end
+
+---@type QfrSortPredicate
+---Sort by diagnostic severity desc
+function Sort.sort_severity_desc(a, b)
+    return sort_severity(a, b, check_desc)
+end
+
 local sorts = {
-    fname = { asc_func = Sort._sort_fname_asc, desc_func = Sort._sort_fname_desc },
-    fname_diag = { asc_func = Sort._sort_fname_diag_asc, desc_func = Sort._sort_fname_diag_desc },
-    severity = { asc_func = Sort._sort_severity_asc, desc_func = Sort._sort_severity_desc },
-    text = { asc_func = Sort._sort_text_asc, desc_func = Sort._sort_text_desc },
-    type = { asc_func = Sort._sort_type_asc, desc_func = Sort._sort_type_desc },
+    fname = { name = "fname", asc_func = Sort.sort_fname_asc, desc_func = Sort.sort_fname_desc },
+    fname_diag = {
+        name = "fnam_diag",
+        asc_func = Sort.sort_fname_diag_asc,
+        desc_func = Sort.sort_fname_diag_desc,
+    },
+    severity = {
+        name = "severity",
+        asc_func = Sort.sort_severity_asc,
+        desc_func = Sort.sort_severity_desc,
+    },
+    text = { name = "text", asc_func = Sort.sort_text_asc, desc_func = Sort.sort_text_desc },
+    type = { name = "type", asc_func = Sort.sort_type_asc, desc_func = Sort.sort_type_desc },
 } ---@type table<string, QfrSortInfo>
 
--- DOCUMENT: this
+---Run a registered sort
+---@param name string Which registered sort to run
+---@param sort_opts QfrSortOpts See |qfr-sort-opts|
+---@param output_opts QfrOutputOpts See |qfr-output-opts|
+---@return nil
+function Sort.sort(name, sort_opts, output_opts)
+    local sort_info = sorts[name] ---@type QfrSortInfo
+    if not sort_info then
+        api.nvim_echo({ { "Invalid sort", "ErrorMsg" } }, true, { err = true })
+    end
+
+    sort_wrapper(sort_info, sort_opts, output_opts)
+end
 
 ---@return string[]
-function Sort.get_sort_names()
+local function get_sort_names()
     return vim.tbl_keys(sorts)
 end
 
--- DOCUMENT: Improve this?
-
---- Add your own sort. Can be accessed using Qsort or Lsort
---- name: The name the sort is accessed with
---- asc_func: Predicate to sort ascending. Takes two quickfix items. Returns boolean
---- asc_func: Predicate to sort descending. Takes two quickfix items. Returns boolean
----@param name string
----@param asc_func QfrSortPredicate
----@param desc_func QfrSortPredicate
+---Register a sort for use in commands and API calls
+---@param sort_info QfrSortInfo See |qfr-sort-info| The sort will be
+---registered under the name provided in this table
 ---@return nil
-function Sort.register_sort(name, asc_func, desc_func)
-    sorts[name] = { asc_func = asc_func, desc_func = desc_func }
+function Sort.register_sort(sort_info)
+    sorts[sort_info.name] = sort_info
 end
 
 --- Clears the function name from the registered sorts
@@ -360,28 +417,10 @@ function Sort.clear_sort(name)
 
     if sorts[name] then
         sorts[name] = nil
-        api.nvim_echo({ { name .. " removed from sort list", "" } }, true, {})
+        api.nvim_echo({ { name .. " removed from the sort list", "" } }, true, {})
     else
         api.nvim_echo({ { name .. " is not a registered sort", "" } }, true, {})
     end
-end
-
----Run a registered sort
----name: The registered name of the sort to run
----sort_opts:
----- dir?: "asc"|"desc" Defaults to "asc"
----what
----@param name string
----@param sort_opts QfrSortOpts
----@param output_opts QfrOutputOpts
----@return nil
-function Sort.sort(name, sort_opts, output_opts)
-    local sort_info = sorts[name] ---@type QfrSortInfo
-    if not sort_info then
-        api.nvim_echo({ { "Invalid sort", "ErrorMsg" } }, true, { err = true })
-    end
-
-    sort_wrapper(sort_info, sort_opts, output_opts)
 end
 
 -- ===============
@@ -394,22 +433,35 @@ end
 local function sort_cmd(src_win, cargs)
     local fargs = cargs.fargs
 
-    local sort_names = Sort.get_sort_names() ---@type string[]
-    if #sort_names < 1 then
-        api.nvim_echo({ { "No sort functions available", "ErrorMsg" } }, true, { err = true })
-        return
-    end
-
-    local sort_name = eu._check_cmd_arg(fargs, sort_names, "fname") ---@type string
+    local sort_names = get_sort_names() ---@type string[]
+    assert(#sort_names >= 1, "No sort functions available")
+    ---@type string
+    local default_sort = vim.tbl_contains(sort_names, "fname") and "fname" or sort_names[1]
+    local sort_name = ru._check_cmd_arg(fargs, sort_names, default_sort) ---@type string
     local dir = cargs.bang and "desc" or "asc"
 
     ---@type QfrAction
-    local action = eu._check_cmd_arg(fargs, ey._actions, ey._default_action)
+    local action = ru._check_cmd_arg(fargs, ry._actions, "u")
     ---@type QfrOutputOpts
     local output_opts = { src_win = src_win, action = action, what = { nr = cargs.count } }
 
     Sort.sort(sort_name, { dir = dir }, output_opts)
 end
+
+---@brief [[
+---The callbacks to assign the Qsort and Lsort commands are below. They
+---expect count = 0 and nargs = 1 to be present in the user_command table.
+---They accept the following options:
+---- A registered sort name (fname|fname_diag|severity|text|type)
+---  fname is the default
+---  NOTE: fname_diag sorts by filename, with subsorting by diagnostic
+---  severity
+---- A |setqflist-action| can also be provided (default "u")
+---- If a bang is provided, the sort will be in descending order
+---- If a count is provided, that list nr will be used. Default is the current
+---  list
+---Example: 4Qsort! fname r
+---@brief ]]
 
 ---@param cargs vim.api.keyset.create_user_command.command_args
 ---@return nil
@@ -424,7 +476,6 @@ Sort.l_sort = function(cargs)
 end
 
 return Sort
----@export sort
+---@export Sort
 
 -- TODO: Testing
--- TODO: Docs

@@ -407,6 +407,10 @@ function M._pbuf_rm(buf, force, wipeout)
     return ok and 0 or -1
 end
 
+-- MAYBE: Additional validation, checking, and error messaging could be added here around if the
+-- buf is the list one listed. But, since this is currently only used for deleting list wins, will
+-- opt for simplicity
+
 ---@param win integer
 ---@param force boolean
 ---@param wipeout boolean

@@ -1260,6 +1260,23 @@ Grep items into the list                                                  *Grep*
                                                                       *qfr-grep*
 
 
+QfrGrepLocs                                                        *QfrGrepLocs*
+
+    Type: ~
+        string[]
+
+
+QfrGrepPartsFunc                                              *QfrGrepPartsFunc*
+    Fields:
+    - string pattern
+    - string |QfrInputType|
+    - QfrGrepLocs Locations to grep from
+    Returns: string[]
+
+    Type: ~
+        fun(string:any,string:any,QfrGrepLocs:any):string[]
+
+
 QfrGrepInfo                                                        *QfrGrepInfo*
 
     Fields: ~
@@ -1291,8 +1308,6 @@ Grep.grep({name}, {input_opts}, {system_opts}, {output_opts})
         {output_opts}  (QfrOutputOpts) See |qfr-output-opts|
                        Any list_item_type provided here will be overridden
                        by the one provided in the grep config
-                       If vim.v.count is > 0, that will be used to
-                       determine the list nr to be acted on
 
     Returns: ~
         (nil)
@@ -1322,10 +1337,11 @@ Grep.clear_grep({name})                                        *Grep.clear_grep*
 The callbacks to assign the Qgrep and Lgrep commands are below. They expect
 count = 0 and nargs = "*" to be present in the user_command table.
 They accept the following options:
-- A registered grep name ("cwd" by default)
-  NOTE: The built in quickfix buf grep will search in all open bufs,
-  excluding help buffers. The location list grep will search the
-  current buf, including help buffers
+- A registered grep name (cwd|help|bufs|cbuf). cwd is default
+  NOTE: "bufs" searches all open bufs, excluding help bufs
+  NOTE: "cbuf" searches the current buf, including help buffers
+  NOTE: The built in quickfix buf grep keymap searches all open bufs.
+  The location list grep searches the current buf
 - A pattern starting with "/"
 - A |qfr-input-type| ("vimcase" by default)
 - "async" or "sync" to control system behavior (async by default)
@@ -1482,6 +1498,473 @@ Diag.l_diag_cmd({cargs})                                       *Diag.l_diag_cmd*
 
     Returns: ~
         (nil)
+
+
+==============================================================================
+Qfr Filter controls                                 *qf-rancher-filter-controls*
+
+                                                            *qfr-filter-keymaps*
+                                                           *qfr-filter-commands*
+
+
+Modes: { n, x }, Plug: <Plug>(qfr-qfilter-cfilter), Default: "<leader>qkl"
+ Desc: Qfilter keep cfilter (vimcase)
+
+Modes: { n, x }, Plug: <Plug>(qfr-qfilter!-cfilter), Default: "<leader>qrl"
+ Desc: Qfilter remove cfilter (vimcase)
+
+Modes: { n, x }, Plug: <Plug>(qfr-qfilter-cfilterX), Default: "<leader>qkL"
+ Desc: Qfilter keep cfilter (regex)
+
+Modes: { n, x }, Plug: <Plug>(qfr-qfilter!-cfilterX), Default: "<leader>qrL"
+ Desc: Qfilter remove cfilter (regex)
+
+Modes: { n, x }, Plug: <Plug>(qfr-lfilter-cfilter), Default: "<leader>lkl"
+ Desc: Lfilter keep cfilter (vimcase)
+
+Modes: { n, x }, Plug: <Plug>(qfr-lfilter!-cfilter), Default: "<leader>lrl"
+ Desc: Lfilter remove cfilter (vimcase)
+
+Modes: { n, x }, Plug: <Plug>(qfr-lfilter-cfilterX), Default: "<leader>lkL"
+ Desc: Lfilter keep cfilter (regex)
+
+Modes: { n, x }, Plug: <Plug>(qfr-lfilter!-cfilterX), Default: "<leader>lrL"
+ Desc: Lfilter remove cfilter (regex)
+
+Modes: { n, x }, Plug: <Plug>(qfr-qfilter-fname), Default: "<leader>qkf"
+ Desc: Qfilter keep fname (vimcase)
+
+Modes: { n, x }, Plug: <Plug>(qfr-qfilter!-fname), Default: "<leader>qrf"
+ Desc: Qfilter remove fname (vimcase)
+
+Modes: { n, x }, Plug: <Plug>(qfr-qfilter-fnameX), Default: "<leader>qkF"
+ Desc: Qfilter keep fname (regex)
+
+Modes: { n, x }, Plug: <Plug>(qfr-qfilter!-fnameX), Default: "<leader>qrF"
+ Desc: Qfilter remove fname (regex)
+
+Modes: { n, x }, Plug: <Plug>(qfr-lfilter-fname), Default: "<leader>lkf"
+ Desc: Lfilter keep fname (vimcase)
+
+Modes: { n, x }, Plug: <Plug>(qfr-lfilter!-fname), Default: "<leader>lrf"
+ Desc: Lfilter remove fname (vimcase)
+
+Modes: { n, x }, Plug: <Plug>(qfr-lfilter-fnameX), Default: "<leader>lkF"
+ Desc: Lfilter keep fname (regex)
+
+Modes: { n, x }, Plug: <Plug>(qfr-lfilter!-fnameX), Default: "<leader>lrF"
+ Desc: Lfilter remove fname (regex)
+
+Modes: { n, x }, Plug: <Plug>(qfr-qfilter-text), Default: "<leader>qke"
+ Desc: Qfilter keep text (vimcase)
+
+Modes: { n, x }, Plug: <Plug>(qfr-qfilter!-text), Default: "<leader>qre"
+ Desc: Qfilter remove text (vimcase)
+
+Modes: { n, x }, Plug: <Plug>(qfr-qfilter-textX), Default: "<leader>qkE"
+ Desc: Qfilter keep text (regex)
+
+Modes: { n, x }, Plug: <Plug>(qfr-qfilter!-textX), Default: "<leader>qrE"
+ Desc: Qfilter remove text (regex)
+
+Modes: { n, x }, Plug: <Plug>(qfr-lfilter-text), Default: "<leader>lke"
+ Desc: Lfilter keep text (vimcase)
+
+Modes: { n, x }, Plug: <Plug>(qfr-lfilter!-text), Default: "<leader>lre"
+ Desc: Lfilter remove text (vimcase)
+
+Modes: { n, x }, Plug: <Plug>(qfr-lfilter-textX), Default: "<leader>lkE"
+ Desc: Lfilter keep text (regex)
+
+Modes: { n, x }, Plug: <Plug>(qfr-lfilter!-textX), Default: "<leader>lrE"
+ Desc: Lfilter remove text (regex)
+
+Modes: { n, x }, Plug: <Plug>(qfr-qfilter-lnum), Default: "<leader>qkn"
+ Desc: Qfilter keep lnum (vimcase)
+
+Modes: { n, x }, Plug: <Plug>(qfr-qfilter!-lnum), Default: "<leader>qrn"
+ Desc: Qfilter remove lnum (vimcase)
+
+Modes: { n, x }, Plug: <Plug>(qfr-qfilter-lnumX), Default: "<leader>qkN"
+ Desc: Qfilter keep lnum (regex)
+
+Modes: { n, x }, Plug: <Plug>(qfr-qfilter!-lnumX), Default: "<leader>qrN"
+ Desc: Qfilter remove lnum (regex)
+
+Modes: { n, x }, Plug: <Plug>(qfr-lfilter-lnum), Default: "<leader>lkn"
+ Desc: Lfilter keep lnum (vimcase)
+
+Modes: { n, x }, Plug: <Plug>(qfr-lfilter!-lnum), Default: "<leader>lrn"
+ Desc: Lfilter remove lnum (vimcase)
+
+Modes: { n, x }, Plug: <Plug>(qfr-lfilter-lnumX), Default: "<leader>lkN"
+ Desc: Lfilter keep lnum (regex)
+
+Modes: { n, x }, Plug: <Plug>(qfr-lfilter!-lnumX), Default: "<leader>lrN"
+ Desc: Lfilter remove lnum (regex)
+
+Modes: { n, x }, Plug: <Plug>(qfr-qfilter-type), Default: "<leader>qkt"
+ Desc: Qfilter keep type (vimcase)
+
+Modes: { n, x }, Plug: <Plug>(qfr-qfilter!-type), Default: "<leader>qrt"
+ Desc: Qfilter remove type (vimcase)
+
+Modes: { n, x }, Plug: <Plug>(qfr-qfilter-typeX), Default: "<leader>qkT"
+ Desc: Qfilter keep type (regex)
+
+Modes: { n, x }, Plug: <Plug>(qfr-qfilter!-typeX), Default: "<leader>qrT"
+ Desc: Qfilter remove type (regex)
+
+Modes: { n, x }, Plug: <Plug>(qfr-lfilter-type), Default: "<leader>lkt"
+ Desc: Lfilter keep type (vimcase)
+
+Modes: { n, x }, Plug: <Plug>(qfr-lfilter!-type), Default: "<leader>lrt"
+ Desc: Lfilter remove type (vimcase)
+
+Modes: { n, x }, Plug: <Plug>(qfr-lfilter-typeX), Default: "<leader>lkT"
+ Desc: Lfilter keep type (regex)
+
+Modes: { n, x }, Plug: <Plug>(qfr-lfilter!-typeX), Default: "<leader>lrT"
+ Desc: Lfilter remove type (regex)
+
+Cmd: Qfilter
+Desc: Filter quickfix items
+
+Cmd: Lfilter
+Desc: Filter location list items
+
+==============================================================================
+Filter list items                                                       *Filter*
+
+                                                             *qf-rancher-filter*
+                                                                    *qfr-filter*
+
+
+                                                     *qf-rancher-predicate-opts*
+                                                            *qfr-predicate-opts*
+QfrPredicateOpts                                              *QfrPredicateOpts*
+    NOTE: Each predicate function will use one or the other
+
+    Fields: ~
+        {pattern?}  (string) Pattern to filter against
+        {regex?}    (vim.regex) Regex to filter against
+
+
+                                                   *qf-rancher-filter-predicate*
+                                                          *qfr-filter-predicate*
+QfrFilterPredicate                                          *QfrFilterPredicate*
+    Fields:
+    - vim.qflist.entry
+    - boolean
+    - QfrPredicateOpts
+    Returns: boolean
+
+    Type: ~
+        fun
+
+
+                                                        *qf-rancher-filter-info*
+                                                               *qfr-filter-info*
+QfrFilterInfo                                                    *QfrFilterInfo*
+    NOTE: The filter logic will resolve vimcase and smartcase to either
+    case-sensitive or insensitive
+
+    Fields: ~
+        {name}              (string) Name if the filter, used for cmds
+        {insensitive_func}  (QfrFilterPredicate) Case-insensitive predicate
+        {regex_func}        (QfrFilterPredicate) Regex predicate
+        {sensitive_func}    (QfrFilterPredicate) Case-sensitive predicate
+
+
+                                                                 *Filter.filter*
+Filter.filter({name}, {keep}, {input_opts}, {output_opts})
+
+    Parameters: ~
+        {name}         (string)
+        {keep}         (boolean) If true, matched patterns will be
+                       kept in the list. If false, removed
+        {input_opts}   (QfrInputOpts) See |qfr-input-opts|
+                       If a pattern is provided, that will be used for the
+                       filter. If not, the user will be prompted for one in
+                       normal mode, or the current visual selection will be
+                       used
+        {output_opts}  (QfrOutputOpts) See |qfr-output-opts|
+                       If vim.v.count is > 0, that will be used to
+                       determine the list nr to be acted on
+
+    Returns: ~
+        (nil)
+
+
+Filter.register_filter({filter_info})                   *Filter.register_filter*
+    Register a fitler for use in commands and API Calls
+
+    Parameters: ~
+        {filter_info}  (QfrFilterInfo) The filter will be
+                       registered under the name provided in this table
+
+    Returns: ~
+        (nil)
+
+
+Filter.clear_filter({name})                                *Filter.clear_filter*
+    Remove a registered filter. The last filer cannot be removed
+
+    Parameters: ~
+        {name}  (string)
+
+    Returns: ~
+        (nil)
+
+
+The callbacks to assign the Qfilter and Lfilter commands are below. They
+expect count = 0 and nargs = "*" to be present in the user_command table.
+They accept the following options:
+- A registered filter name. (cfilter|fname|lnum|text|type) cfilter is default
+  NOTE: The "cfilter" option is an emulation of the built-in Cfilter plugin
+  NOTE: For the "lnum" filter, the case-insensitive filter will function like
+     a "contains" filter, whereas the case-sensitive filter requires an exact
+     match
+- A pattern starting with "/"
+- A |qfr-input-type| ("vimcase" by default)
+- A |setqflist-action| (default "u")
+- If a bang is provided, the filter will remove instead of keeping matched
+  items
+- If a count is provided, that list number will be used. The default is the
+  current list
+Example: 3Qfilter! cfilter r vimcase /require
+
+Filter.q_filter_cmd({cargs})                               *Filter.q_filter_cmd*
+
+    Parameters: ~
+        {cargs}  (vim.api.keyset.create_user_command.command_args)
+
+    Returns: ~
+        (nil)
+
+
+Filter.l_filter_cmd({cargs})                               *Filter.l_filter_cmd*
+
+    Parameters: ~
+        {cargs}  (vim.api.keyset.create_user_command.command_args)
+
+    Returns: ~
+        (nil)
+
+
+==============================================================================
+Qfr Sort controls                                     *qf-rancher-sort-controls*
+
+                                                              *qfr-sort-keymaps*
+                                                             *qfr-sort-commands*
+
+
+Modes: { n }, Plug: <Plug>(qfr-qsort-fname-asc), Default: "<leader>qtf"
+ Desc: Sort quickfix by fname asc
+
+Modes: { n }, Plug: <Plug>(qfr-qsort-fname-desc), Default: "<leader>qtF"
+ Desc: Sort quickfix by fname desc
+
+Modes: { n }, Plug: <Plug>(qfr-qsort-fname-diag-asc), Default: "<leader>qtif"
+ Desc: Sort quickfix by fname_diag asc
+
+Modes: { n }, Plug: <Plug>(qfr-qsort-fname-diag-desc), Default: "<leader>qtiF"
+ Desc: Sort quickfix by fname_diag desc
+
+Modes: { n }, Plug: <Plug>(qfr-qsort-severity-asc), Default: "<leader>qtis"
+ Desc: Sort quickfix by severity asc
+
+Modes: { n }, Plug: <Plug>(qfr-qsort-severity-desc), Default: "<leader>qtiS"
+ Desc: Sort quickfix by severity desc
+
+Modes: { n }, Plug: <Plug>(qfr-qsort-text-asc), Default: "<leader>qte"
+ Desc: Sort quickfix by text asc
+
+Modes: { n }, Plug: <Plug>(qfr-qsort-text-desc), Default: "<leader>qtE"
+ Desc: Sort quickfix by text desc
+
+Modes: { n }, Plug: <Plug>(qfr-qsort-type-asc), Default: "<leader>qtt"
+ Desc: Sort quickfix by type asc
+
+Modes: { n }, Plug: <Plug>(qfr-qsort-type-desc), Default: "<leader>qtT"
+ Desc: Sort quickfix by type desc
+
+Modes: { n }, Plug: <Plug>(qfr-lsort-fname-asc), Default: "<leader>ltf"
+ Desc: Sort location list by fname asc
+
+Modes: { n }, Plug: <Plug>(qfr-lsort-fname-desc), Default: "<leader>ltF"
+ Desc: Sort location list by fname desc
+
+Modes: { n }, Plug: <Plug>(qfr-lsort-fname-diag-asc), Default: "<leader>ltif"
+ Desc: Sort location list by fname_diag asc
+
+Modes: { n }, Plug: <Plug>(qfr-lsort-fname-diag-desc), Default: "<leader>ltiF"
+ Desc: Sort location list by fname_diag desc
+
+Modes: { n }, Plug: <Plug>(qfr-lsort-severity-asc), Default: "<leader>ltis"
+ Desc: Sort location list by severity asc
+
+Modes: { n }, Plug: <Plug>(qfr-lsort-severity-desc), Default: "<leader>ltiS"
+ Desc: Sort location list by severity desc
+
+Modes: { n }, Plug: <Plug>(qfr-lsort-text-asc), Default: "<leader>lte"
+ Desc: Sort location list by text asc
+
+Modes: { n }, Plug: <Plug>(qfr-lsort-text-desc), Default: "<leader>ltE"
+ Desc: Sort location list by text desc
+
+Modes: { n }, Plug: <Plug>(qfr-lsort-type-asc), Default: "<leader>ltt"
+ Desc: Sort location list by type asc
+
+Modes: { n }, Plug: <Plug>(qfr-lsort-type-desc), Default: "<leader>ltT"
+ Desc: Sort location list by type desc
+
+Cmd: Qsort
+Desc: Sort quickfix items
+
+Cmd: Lsort
+Desc: Sort location list items
+
+==============================================================================
+Sends diags to the qf list                                                *Sort*
+
+                                                               *qf-rancher-sort*
+                                                                      *qfr-sort*
+
+
+                                                     *qf-rancher-sort-predicate*
+                                                            *qfr-sort-predicate*
+QfrSortPredicate                                              *QfrSortPredicate*
+    Parameters:
+    - vim.qflist.item (first item to sort)
+    - vim.qflist.item (second item to sort)
+    Return: Boolean
+
+    Type: ~
+        fun
+
+
+                                                          *qf-rancher-sort-info*
+                                                                 *qfr-sort-info*
+QfrSortInfo                                                        *QfrSortInfo*
+
+    Fields: ~
+        {name}       (string) The name of the sort
+        {asc_func}   (QfrSortPredicate) Predicate for asc sorts
+        {desc_func}  (QfrSortPredicate) Predicate for desc sorts
+
+
+QfrSortOpts                                                        *QfrSortOpts*
+
+    Fields: ~
+        {dir}  (QfrSortDir) "asc"|"desc"
+
+
+                                                          *qf-rancher-sort-opts*
+                                                                 *qfr-sort-opts*
+Sort.register_sort({sort_info})                             *Sort.register_sort*
+    Register a sort for use in commands and API calls
+
+    Parameters: ~
+        {sort_info}  (QfrSortInfo) See |qfr-sort-info| The sort will be
+                     registered under the name provided in this table
+
+    Returns: ~
+        (nil)
+
+
+Sort.clear_sort({name})                                        *Sort.clear_sort*
+     Clears the function name from the registered sorts
+
+    Parameters: ~
+        {name}  (string)
+
+
+                                                                     *Sort.sort*
+Sort.sort({name}, {sort_opts}, {output_opts})
+    Run a registered sort
+
+    Parameters: ~
+        {name}         (string) Which registered sort to run
+        {sort_opts}    (QfrSortOpts) See |QfrSortOpts|
+        {output_opts}  (QfrOutputOpts) See |qfr-output-opts|
+
+    Returns: ~
+        (nil)
+
+
+The callbacks to assign the Qsort and Lsort commands are below. They
+expect count = 0 and nargs = 1 to be present in the user_command table.
+They accept the following options:
+- A registered sort name (fname|fname_diag|severity|text|type)
+  fname is the default
+  NOTE: fname_diag sorts by filename, with subsorting by diagnostic
+  severity
+- A |setqflist-action| can also be provided (default "u")
+- If a bang is provided, the sort will be in descending order
+- If a count is provided, that list nr will be used. Default is the current
+  list
+Example: 4Qsort! fname r
+
+Sort.q_sort({cargs})                                               *Sort.q_sort*
+
+    Parameters: ~
+        {cargs}  (vim.api.keyset.create_user_command.command_args)
+
+    Returns: ~
+        (nil)
+
+
+Sort.l_sort({cargs})                                               *Sort.l_sort*
+
+    Parameters: ~
+        {cargs}  (vim.api.keyset.create_user_command.command_args)
+
+    Returns: ~
+        (nil)
+
+
+The below sort predicates are exposed for use in other functions. All have
+the type |QfrSortPredicate|
+
+Sort.sort_fname_asc()                                      *Sort.sort_fname_asc*
+    Sort by filename asc. Break ties with line and column numbers
+
+
+Sort.sort_fname_desc()                                    *Sort.sort_fname_desc*
+    Sort by filename desc. Break ties with line and column numbers
+
+
+Sort.sort_text_asc()                                        *Sort.sort_text_asc*
+    Sort by text asc
+
+
+Sort.sort_text_desc()                                      *Sort.sort_text_desc*
+    Sort by text desc
+
+
+Sort.sort_type_asc()                                        *Sort.sort_type_asc*
+    Sort by list item type asc
+
+
+Sort.sort_type_desc()                                      *Sort.sort_type_desc*
+    Sort by list item type desc
+
+
+Sort.sort_fname_diag_asc()                            *Sort.sort_fname_diag_asc*
+    Sort by filename asc, break ties by diagnostic severity
+
+
+Sort.sort_fname_diag_desc()                          *Sort.sort_fname_diag_desc*
+    Sort by filename desc, break ties by diagnostic severity
+
+
+Sort.sort_severity_asc()                                *Sort.sort_severity_asc*
+    Sort by diagnostic severity asc
+
+
+Sort.sort_severity_desc()                              *Sort.sort_severity_desc*
+    Sort by diagnostic severity desc
 
 
 vim:tw=78:ts=8:noet:ft=help:norl:
