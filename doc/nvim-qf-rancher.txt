@@ -9,17 +9,26 @@ and location lists:
 - Autocommands to stop automatic copying of location lists to new windows,
   as well as putting location lists without a home window out to pasture
 - Preview window for list items
-- Built-in functions for lassoing diagnostics by all severities, including
+- Built-in functions for lassoing diagnostics of all severities, including
   highest only
-- Filter and sort functions
-- A variey of grep functions built on rg as a default, with grep available
+- Grep functions built on rg as a default, with grep available
   as a backup
+- Filter and sort functions
 - Capabilities are extensible and available from the cmd line
 
 ==============================================================================
 Installation                                           *qf-rancher-installation*
 
                                                               *qfr-installation*
+Neovim 0.11+ is supported
+TODO: Add installation steps for lazy and vim.pack
+(NOTE: For this, make a .config/nvim-lazy dir and an alias that points to it)
+
+DEV NOTES:
+- Plugin development requires Neovim built with LuaJIT
+- Testing is performed with nlua (https://github.com/mfussenegger/nlua)
+  and Busted
+
 ==============================================================================
 Configuration                                                *qf-rancher-config*
 
@@ -131,8 +140,7 @@ qfr_grepprg                                                        *qfr_grepprg*
         string
 
 
-Control the preview window with the options below
-TODO: link to preview win section
+Control the preview window (|qfr-preview|) with the options below
 
 qfr_preview_border                                          *qfr_preview_border*
 
@@ -343,7 +351,7 @@ Window.close_loclist({src_win})                           *Window.close_loclist*
         (boolean)
 
 
-Window._toggle_qflist({opts})                            *Window._toggle_qflist*
+Window.toggle_qflist({opts})                              *Window.toggle_qflist*
     opts.nop_if_open will be automatically set to true
 
     Parameters: ~
@@ -353,8 +361,7 @@ Window._toggle_qflist({opts})                            *Window._toggle_qflist*
         (nil)
 
 
-                                                        *Window._toggle_loclist*
-Window._toggle_loclist({src_win}, {opts})
+Window.toggle_loclist({src_win}, {opts})                 *Window.toggle_loclist*
     opts.nop_if_open will be automatically set to true
 
     Parameters: ~

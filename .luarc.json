@@ -1,4 +1,6 @@
 {
-  "diagnostics.disable": ["trailing-space",
-        "different-requires"]
+  "diagnostics.disable": ["different-requires", "trailing-space"],
+  "runtime": {
+    "version": "LuaJIT"
+  }
 }

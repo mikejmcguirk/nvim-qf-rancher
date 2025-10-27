@@ -15,7 +15,6 @@ function _G.Qfr_Defer_Require(require_path)
     })
 end
 
--- TODO: Go through all the defer requires in the project and rename them
 local rw = Qfr_Defer_Require("qf-rancher.window") ---@type QfrWins
 
 local api = vim.api
@@ -34,18 +33,29 @@ local fn = vim.fn
 ---- Autocommands to stop automatic copying of location lists to new windows,
 ---  as well as putting location lists without a home window out to pasture
 ---- Preview window for list items
----- Built-in functions for lassoing diagnostics by all severities, including
+---- Built-in functions for lassoing diagnostics of all severities, including
 ---  highest only
----- Filter and sort functions
----- A variey of grep functions built on rg as a default, with grep available
+---- Grep functions built on rg as a default, with grep available
 ---  as a backup
+---- Filter and sort functions
 ---- Capabilities are extensible and available from the cmd line
 ---@brief ]]
 
+-- MID: It would be better to have a more formal Neovim versioning system
+-- NOTE: Support is capped at v0.11 due to diagnostic severity filtering
 
 ---@mod qf-rancher-installation Installation
 ---@tag qfr-installation
----TODO:
+---@brief [[
+---Neovim 0.11+ is supported
+---TODO: Add installation steps for lazy and vim.pack
+---(NOTE: For this, make a .config/nvim-lazy dir and an alias that points to it)
+---
+---DEV NOTES:
+---- Plugin development requires Neovim built with LuaJIT
+---- Testing is performed with nlua (https://github.com/mfussenegger/nlua)
+---  and Busted
+---@brief ]]
 
 ---@mod qf-rancher-config Configuration
 ---@tag qfr-config
@@ -123,8 +133,7 @@ qfr_ftplugin_set_opts = { { "boolean" }, true },
 ---@alias qfr_grepprg string
 qfr_grepprg = { { "string" }, "rg" },
 ---@brief [[
----Control the preview window with the options below
----TODO: link to preview win section
+---Control the preview window (|qfr-preview|) with the options below
 ---@brief ]]
 ---
 ---(Default "single") Set the preview window border. See :h 'winborder' for

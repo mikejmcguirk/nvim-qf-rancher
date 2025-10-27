@@ -298,7 +298,7 @@ end
 ---opts.nop_if_open will be automatically set to true
 ---@param opts QfrListOpenOpts
 ---@return nil
-function Window._toggle_qflist(opts)
+function Window.toggle_qflist(opts)
     local toggle_opts = vim.tbl_extend("force", opts, { nop_if_open = true })
     if not Window.open_qflist(toggle_opts) then Window.close_qflist() end
 end
@@ -307,7 +307,7 @@ end
 ---@param src_win integer
 ---@param opts QfrListOpenOpts
 ---@return nil
-function Window._toggle_loclist(src_win, opts)
+function Window.toggle_loclist(src_win, opts)
     ry._validate_win(src_win)
 
     local toggle_opts = vim.tbl_extend("force", opts, { nop_if_open = true })
@@ -351,7 +351,7 @@ end
 ---@return nil
 function Window.toggle_qflist_cmd(cargs)
     local count = cargs.count > 0 and cargs.count or nil ---@type integer|nil
-    Window._toggle_qflist({ height = count })
+    Window.toggle_qflist({ height = count })
 end
 
 ---Ltoggle cmd callback. Expects count = 0 in the user_command table
@@ -359,7 +359,7 @@ end
 ---@return nil
 function Window.toggle_loclist_cmd(cargs)
     local count = cargs.count > 0 and cargs.count or nil ---@type integer|nil
-    Window._toggle_loclist(vim.api.nvim_get_current_win(), { height = count })
+    Window.toggle_loclist(vim.api.nvim_get_current_win(), { height = count })
 end
 
 ---@export Window

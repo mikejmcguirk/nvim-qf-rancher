@@ -240,7 +240,6 @@ end
 
 return M
 
--- TODO: Docs
 -- TODO: Tests
 
 -- MID: Gated behind a g:var, re-implement the ability to add new lists inside the stack without

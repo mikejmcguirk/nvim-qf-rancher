@@ -788,5 +788,4 @@ end
 
 return M
 
--- TODO: Docs
 -- TODO: Tests

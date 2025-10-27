@@ -836,7 +836,6 @@ return Preview
 -- https://github.com/r0nsha/qfpreview.nvim
 
 -- TODO: Testing
--- TODO: Docs
 
 -- MID: If the file has to be read fresh, that should be handled async
 -- - Study Lua co-routines, built-in async lib, and lewis's async lib
