@@ -1,6 +1,6 @@
-local eo = Qfr_Defer_Require("qf-rancher.window") ---@type QfrWins
-local ey = Qfr_Defer_Require("qf-rancher.types") ---@type QfrTypes
-local eu = Qfr_Defer_Require("qf-rancher.util") ---@type QfrUtil
+local ro = Qfr_Defer_Require("qf-rancher.window") ---@type QfrWins
+local ry = Qfr_Defer_Require("qf-rancher.types") ---@type QfrTypes
+local ru = Qfr_Defer_Require("qf-rancher.util") ---@type QfrUtil
 
 -- local api = vim.api
 local fn = vim.fn
@@ -14,7 +14,7 @@ local M = {}
 ---@param title string
 ---@return integer|nil
 function M._find_list_with_title(src_win, title)
-    ey._validate_win(src_win, true)
+    ry._validate_win(src_win, true)
     vim.validate("title", title, "string")
 
     local max_nr = M._get_list(src_win, { nr = "$" }).nr ---@type integer
@@ -29,8 +29,8 @@ end
 ---@param nr integer|"$"|nil
 ---@return integer|"$"
 local function resolve_list_nr(src_win, nr)
-    ey._validate_win(src_win, true)
-    ey._validate_list_nr(nr, true)
+    ry._validate_win(src_win, true)
+    ry._validate_list_nr(nr, true)
 
     if not nr then return 0 end
     if nr == 0 or type(nr) == "string" then return nr end
@@ -46,8 +46,8 @@ end
 ---@param nr integer|"$"
 ---@return integer
 local function get_result(src_win, nr)
-    ey._validate_win(src_win, true)
-    ey._validate_list_nr(nr)
+    ry._validate_win(src_win, true)
+    ry._validate_list_nr(nr)
 
     -- The output return of set_list might be used by history and navigation functions that
     -- do not treat 0 counts as the current list. Convert here
@@ -64,12 +64,12 @@ end
 ---@param src_win integer|nil
 ---@return integer
 local function del_all(src_win)
-    ey._validate_win(src_win, true)
+    ry._validate_win(src_win, true)
 
     if not src_win then
         local result = fn.setqflist({}, "f") ---@type integer
-        if result == 0 and eu._get_g_var("qfr_close_on_stack_clear") then
-            eo._close_qfwins({ all_tabpages = true })
+        if result == 0 and ru._get_g_var("qfr_close_on_stack_clear") then
+            ro._close_qfwins({ all_tabpages = true })
         end
 
         return result
@@ -77,8 +77,8 @@ local function del_all(src_win)
 
     local qf_id = fn.getloclist(src_win, { id = 0 }).id ---@type integer
     local result = fn.setloclist(src_win, {}, "f") ---@type integer
-    if result == 0 and eu._get_g_var("qfr_close_on_stack_clear") then
-        eo._close_loclists_by_qf_id(qf_id, { all_tabpages = true })
+    if result == 0 and ru._get_g_var("qfr_close_on_stack_clear") then
+        ro._close_loclists_by_qf_id(qf_id, { all_tabpages = true })
     end
 
     return result
@@ -89,9 +89,9 @@ end
 ---@param what QfrWhat
 ---@return integer
 function M._set_list(src_win, action, what)
-    ey._validate_win(src_win, true)
-    ey._validate_action(action)
-    ey._validate_what(what)
+    ry._validate_win(src_win, true)
+    ry._validate_action(action)
+    ry._validate_what(what)
 
     if action == "f" then return del_all(src_win) end
 
@@ -119,8 +119,8 @@ end
 ---@param list_nr integer|"$"|nil
 ---@return integer
 function M._clear_list(src_win, list_nr)
-    ey._validate_win(src_win, true)
-    ey._validate_list_nr(list_nr, true)
+    ry._validate_win(src_win, true)
+    ry._validate_list_nr(list_nr, true)
 
     local nr = resolve_list_nr(src_win, list_nr) ---@type integer|"$"
 
@@ -133,9 +133,9 @@ end
 ---@param output_opts QfrOutputOpts
 ---@return QfrOutputOpts
 function M.handle_new_same_title(output_opts)
-    ey._validate_output_opts(output_opts)
+    ry._validate_output_opts(output_opts)
 
-    if not eu._get_g_var("qfr_reuse_title") then return output_opts end
+    if not ru._get_g_var("qfr_reuse_title") then return output_opts end
 
     if output_opts.action ~= " " then return output_opts end
     local what = output_opts.what
@@ -164,7 +164,7 @@ end
 ---@param what table
 ---@return any
 function M._get_list(src_win, what)
-    ey._validate_win(src_win, true)
+    ry._validate_win(src_win, true)
     vim.validate("what", what, "table")
 
     local what_get = vim.deepcopy(what, true) ---@type table
@@ -177,10 +177,10 @@ end
 ---@param stack table[]
 ---@return nil
 function M._set_stack(src_win, stack)
-    ey._validate_win(src_win, true)
+    ry._validate_win(src_win, true)
     vim.validate("stack", stack, "table")
 
-    if src_win and not eu._valid_win_for_loclist(src_win) then return end
+    if src_win and not ru._valid_win_for_loclist(src_win) then return end
 
     M._set_list(src_win, "f", {})
 
@@ -188,7 +188,7 @@ function M._set_stack(src_win, stack)
         M._set_list(src_win, " ", what)
     end
 
-    if eu._get_g_var("qfr_debug_assertions") then
+    if ru._get_g_var("qfr_debug_assertions") then
         local max_nr = M._get_list(src_win, { nr = "$" }).nr
         assert(#stack == max_nr)
     end
@@ -218,7 +218,7 @@ end
 ---@param src_win integer
 ---@return table[]
 function M._get_stack(src_win)
-    ey._validate_win(src_win, true)
+    ry._validate_win(src_win, true)
 
     local stack = {} ---@type table
 
@@ -233,7 +233,7 @@ function M._get_stack(src_win)
         stack[#stack + 1] = what_set
     end
 
-    if eu._get_g_var("qfr_debug_assertions") then assert(#stack == max_nr) end
+    if ru._get_g_var("qfr_debug_assertions") then assert(#stack == max_nr) end
 
     return stack
 end

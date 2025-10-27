@@ -1,5 +1,5 @@
-local eu = Qfr_Defer_Require("qf-rancher.util") ---@type QfrUtil
-local ey = Qfr_Defer_Require("qf-rancher.types") ---@type QfrTypes
+local ru = Qfr_Defer_Require("qf-rancher.util") ---@type QfrUtil
+local ry = Qfr_Defer_Require("qf-rancher.types") ---@type QfrTypes
 
 local api = vim.api
 local fn = vim.fn
@@ -38,8 +38,8 @@ local preview_state = {
 ---@param preview_win integer
 ---@return nil
 function preview_state:set(list_win, preview_win)
-    ey._validate_list_win(list_win)
-    ey._validate_win(preview_win)
+    ry._validate_list_win(list_win)
+    ry._validate_win(preview_win)
 
     self.list_win = list_win
     self.preview_win = preview_win
@@ -49,7 +49,7 @@ end
 ---@param preview_win integer
 ---@return boolean
 local function is_preview_open(list_win, preview_win)
-    return ey._is_uint(list_win) and ey._is_uint(preview_win)
+    return ry._is_uint(list_win) and ry._is_uint(preview_win)
 end
 
 ---@param list_win integer
@@ -63,8 +63,8 @@ end
 ---@param preview_win integer
 ---@return nil
 local function validate_state(list_win, preview_win)
-    ey._validate_list_win(list_win, true)
-    ey._validate_win(preview_win, true)
+    ry._validate_list_win(list_win, true)
+    ry._validate_win(preview_win, true)
     assert(is_preview_open(list_win, preview_win) or is_preview_closed(list_win, preview_win))
 end
 
@@ -100,7 +100,7 @@ local SCROLLOFF = 6 ---@type integer
 ---@return nil
 local function close_and_clear()
     if preview_state:is_open() then
-        eu._pwin_close(preview_state.preview_win, true)
+        ru._pwin_close(preview_state.preview_win, true)
         preview_state:clear()
     end
 end
@@ -110,7 +110,7 @@ local function clear_session_data()
     close_and_clear()
 
     for _, buf in pairs(bufs) do
-        eu._pbuf_rm(buf, true, true)
+        ru._pbuf_rm(buf, true, true)
     end
 
     bufs = {}
@@ -125,8 +125,8 @@ end
 
 ---@return boolean
 local function has_no_list_wins()
-    local qf_wins = eu._get_qf_wins({ all_tabpages = true }) ---@type integer[]
-    local ll_wins = eu._get_all_loclist_wins({ all_tabpages = true }) ---@type integer[]
+    local qf_wins = ru._get_qf_wins({ all_tabpages = true }) ---@type integer[]
+    local ll_wins = ru._get_all_loclist_wins({ all_tabpages = true }) ---@type integer[]
 
     return #qf_wins == 0 and #ll_wins == 0
 end
@@ -231,25 +231,25 @@ end
 local function get_title_cfg(item_buf)
     -- Do not assert item_buf is not nil because nils are valid in qf entries
     -- Do not assert that item_buf is valid since a buf can be wiped after the list is created
-    ey._validate_uint(item_buf, true)
+    ry._validate_uint(item_buf, true)
 
-    if not eu._get_g_var("qfr_preview_show_title") then return { title = nil } end
+    if not ru._get_g_var("qfr_preview_show_title") then return { title = nil } end
 
     if not (item_buf and api.nvim_buf_is_valid(item_buf)) then return { title = "No buffer" } end
 
     local preview_name = api.nvim_buf_get_name(item_buf) ---@type string
     local relative_name = fn.fnamemodify(preview_name, ":.") ---@type string
     -- TODO: Need validation for title_pos
-    local g_title_pos = eu._get_g_var("qfr_preview_title_pos") ---@type QfrTitlePos
+    local g_title_pos = ru._get_g_var("qfr_preview_title_pos") ---@type QfrTitlePos
     return { title = relative_name, title_pos = g_title_pos }
 end
 
 ---@return QfrBorder
 local function get_winborder()
     ---@type QfrBorder|nil
-    local border = eu._get_g_var("qfr_preview_border", true)
+    local border = ru._get_g_var("qfr_preview_border", true)
     if border then
-        ey._validate_border(border)
+        ry._validate_border(border)
         return border
     end
 
@@ -297,8 +297,8 @@ end
 ---@param item_buf? integer
 ---@return vim.api.keyset.win_config
 local function get_win_cfg(list_win, item_buf)
-    ey._validate_list_win(list_win)
-    ey._validate_uint(item_buf, true)
+    ry._validate_list_win(list_win)
+    ry._validate_uint(item_buf, true)
 
     local list_win_pos = api.nvim_win_get_position(list_win) ---@type [integer, integer]
     local list_win_height = api.nvim_win_get_height(list_win) ---@type integer
@@ -458,7 +458,7 @@ end
 ---@return integer
 local function create_preview_win(win_cfg, preview_buf)
     vim.validate("win_cfg", win_cfg, "table")
-    ey._validate_buf(preview_buf)
+    ry._validate_buf(preview_buf)
 
     local preview_win = api.nvim_open_win(preview_buf, false, win_cfg) ---@type integer
 
@@ -478,7 +478,7 @@ local function create_preview_win(win_cfg, preview_buf)
     set_opt("spell", false, { win = preview_win })
 
     ---@type integer
-    local g_winblend = eu._get_g_var("qfr_preview_winblend")
+    local g_winblend = ru._get_g_var("qfr_preview_winblend")
     set_opt("winblend", g_winblend, { win = preview_win })
 
     set_opt("so", SCROLLOFF, { win = preview_win })
@@ -495,8 +495,8 @@ end
 ---@param item table
 ---@return Range4
 local function range_qf_to_zero_(preview_buf, item)
-    ey._validate_buf(preview_buf)
-    ey._validate_list_item(item)
+    ry._validate_buf(preview_buf)
+    ry._validate_list_item(item)
 
     local row = item.lnum > 0 and item.lnum - 1 or 0 ---@type integer
     row = math.min(row, api.nvim_buf_line_count(preview_buf) - 1)
@@ -508,7 +508,7 @@ local function range_qf_to_zero_(preview_buf, item)
 
         if item.vcol == 1 then
             ---@type boolean, integer, integer
-            local _, start_byte, _ = eu._vcol_to_byte_bounds(item.col, start_line)
+            local _, start_byte, _ = ru._vcol_to_byte_bounds(item.col, start_line)
             return start_byte
         else
             return math.min(item.col - 1, #start_line - 1)
@@ -524,7 +524,7 @@ local function range_qf_to_zero_(preview_buf, item)
     local fin_col_ = (function()
         if item.end_col <= 0 then return #fin_line end
 
-        if item.vcol == 1 then return eu._vcol_to_end_col_(item.col, fin_line) end
+        if item.vcol == 1 then return ru._vcol_to_end_col_(item.col, fin_line) end
 
         local end_idx_ = math.min(item.end_col - 1, #fin_line) ---@type integer
         if fin_row == row and end_idx_ == col then end_idx_ = end_idx_ + 1 end
@@ -562,7 +562,7 @@ end
 ---@param preview_buf integer
 ---@return nil
 local function set_preview_buf_opts(preview_buf)
-    ey._validate_buf(preview_buf)
+    ry._validate_buf(preview_buf)
 
     set_opt("buflisted", false, { buf = preview_buf })
     -- NOTE: Setting a non-"" buftype prevents LSPs from attaching
@@ -590,7 +590,7 @@ end
 ---@return string[]
 local function get_lines(item_buf)
     -- Do not assert that item_buf is valid since a buf can be wiped after the list is created
-    ey._validate_uint(item_buf)
+    ry._validate_uint(item_buf)
 
     if not api.nvim_buf_is_valid(item_buf) then return { item_buf .. " is not valid" } end
 
@@ -608,8 +608,8 @@ end
 ---@return nil
 local function update_preview_buf(item_buf)
     -- This function should only called because of a changedtick update in a known valid buffer
-    ey._validate_buf(item_buf, true)
-    ey._validate_buf(bufs[item_buf], true)
+    ry._validate_buf(item_buf, true)
+    ry._validate_buf(bufs[item_buf], true)
 
     local lines = get_lines(item_buf) ---@type string[]
     set_opt("modifiable", true, { buf = bufs[item_buf] })
@@ -620,7 +620,7 @@ end
 ---@param item_buf integer
 ---@return integer
 local function get_mtime(item_buf)
-    ey._validate_buf(item_buf)
+    ry._validate_buf(item_buf)
 
     local item_buf_full_path = api.nvim_buf_get_name(item_buf) ---@type string
     local stat = vim.uv.fs_stat(item_buf_full_path) ---@type uv.fs_stat.result|nil
@@ -632,8 +632,8 @@ end
 ---@return nil
 local function create_preview_buf_from_lines(item_buf, lines)
     -- Do not assert that item_buf is valid since a buf can be wiped after the list is created
-    ey._validate_uint(item_buf)
-    ey._validate_list(lines, { type = "string" })
+    ry._validate_uint(item_buf)
+    ry._validate_list(lines, { type = "string" })
 
     local preview_buf = api.nvim_create_buf(false, true) ---@type integer
     api.nvim_buf_set_lines(preview_buf, 0, 0, false, lines)
@@ -669,7 +669,7 @@ end
 ---@param item vim.quickfix.entry
 ---@return integer
 local function get_preview_buf(item)
-    ey._validate_list_item(item)
+    ry._validate_list_item(item)
 
     if not item.bufnr then return create_fallback_buf() end
 
@@ -718,19 +718,19 @@ end
 
 local function start_timer()
     timer = timer or vim.uv.new_timer()
-    if timer then timer:start(eu._get_g_var("qfr_preview_debounce"), 0, at_timer_end) end
+    if timer then timer:start(ru._get_g_var("qfr_preview_debounce"), 0, at_timer_end) end
 end
 
 ---@param list_win integer
 ---@return vim.quickfix.entry|nil
 local function get_list_item(list_win)
-    ey._validate_list_win(list_win)
+    ry._validate_list_win(list_win)
 
     local wintype = fn.win_gettype(list_win)
     local is_loclist = wintype == "loclist" ---@type boolean
     local src_win = is_loclist and list_win or nil ---@type integer|nil
 
-    return eu._get_item_under_cursor(src_win)
+    return ru._get_item_under_cursor(src_win)
 end
 
 ---@private
@@ -752,8 +752,8 @@ function Preview._update_preview_win_buf()
     api.nvim_win_set_buf(preview_state.preview_win, preview_buf)
     api.nvim_win_set_config(preview_state.preview_win, get_title_cfg(item.bufnr))
 
-    eu._protected_set_cursor(preview_state.preview_win, eu._qf_pos_to_cur_pos(item.lnum, item.col))
-    eu._do_zzze(preview_state.preview_win, true)
+    ru._protected_set_cursor(preview_state.preview_win, ru._qf_pos_to_cur_pos(item.lnum, item.col))
+    ru._do_zzze(preview_state.preview_win, true)
 
     start_timer()
 end
@@ -765,7 +765,7 @@ function Preview.update_preview_win_pos()
     local win_cfg = get_win_cfg(preview_state.list_win) ---@type vim.api.keyset.win_config
     api.nvim_win_set_config(preview_state.preview_win, win_cfg)
 
-    eu._do_zzze(preview_state.preview_win, true)
+    ru._do_zzze(preview_state.preview_win, true)
 end
 
 ---@param list_win integer
@@ -773,7 +773,7 @@ end
 function Preview.open_preview_win(list_win)
     if preview_state:is_open() then return end
 
-    ey._validate_list_win(list_win)
+    ry._validate_list_win(list_win)
 
     local item = get_list_item(list_win) ---@type vim.quickfix.entry|nil
     if not item then return end
@@ -784,8 +784,8 @@ function Preview.open_preview_win(list_win)
     local preview_win = create_preview_win(win_cfg, preview_buf) ---@type integer
     preview_state:set(list_win, preview_win)
 
-    eu._protected_set_cursor(preview_state.preview_win, eu._qf_pos_to_cur_pos(item.lnum, item.col))
-    eu._do_zzze(preview_state.preview_win, true)
+    ru._protected_set_cursor(preview_state.preview_win, ru._qf_pos_to_cur_pos(item.lnum, item.col))
+    ru._do_zzze(preview_state.preview_win, true)
     create_autocmds()
 
     start_timer()
@@ -799,7 +799,7 @@ end
 ---@param list_win integer
 ---@return nil
 function Preview.toggle_preview_win(list_win)
-    if not eu._is_in_list_win(list_win) then return end
+    if not ru._is_in_list_win(list_win) then return end
 
     local was_open = preview_state:is_open() ---@type boolean
     local start_list_win = preview_state.list_win ---@type integer|nil

@@ -1,6 +1,6 @@
-local et = Qfr_Defer_Require("qf-rancher.tools") ---@type QfrTools
-local eu = Qfr_Defer_Require("qf-rancher.util") ---@type QfrUtil
-local ey = Qfr_Defer_Require("qf-rancher.types") ---@type QfrTypes
+local rt = Qfr_Defer_Require("qf-rancher.tools") ---@type QfrTools
+local ru = Qfr_Defer_Require("qf-rancher.util") ---@type QfrUtil
+local ry = Qfr_Defer_Require("qf-rancher.types") ---@type QfrTypes
 
 local api = vim.api
 local fn = vim.fn
@@ -26,14 +26,14 @@ local Nav = {}
 ---@param opts table
 ---@return boolean
 local function goto_list_entry(new_idx, cmd, opts)
-    ey._validate_uint(new_idx)
+    ry._validate_uint(new_idx)
     vim.validate("cmd", cmd, "string")
     vim.validate("opts", opts, "table")
 
     ---@type boolean, string
     local ok, result = pcall(api.nvim_cmd, { cmd = cmd, count = new_idx }, {})
     if ok then
-        eu._do_zzze(api.nvim_get_current_win())
+        ru._do_zzze(api.nvim_get_current_win())
         return true
     end
 
@@ -46,10 +46,10 @@ end
 ---@param count integer
 ---@return nil
 local function goto_specific_idx(src_win, count)
-    ey._validate_win(src_win, true)
-    ey._validate_uint(count)
+    ry._validate_win(src_win, true)
+    ry._validate_uint(count)
 
-    local size = et._get_list(src_win, { size = 0 }).size ---@type integer
+    local size = rt._get_list(src_win, { size = 0 }).size ---@type integer
     if not size or size < 1 then
         api.nvim_echo({ { "E42: No Errors", "" } }, false, {})
         return nil
@@ -74,7 +74,7 @@ local function goto_specific_idx(src_win, count)
         return
     end
 
-    local cur_idx = et._get_list(src_win, { idx = 0 }).idx ---@type integer
+    local cur_idx = rt._get_list(src_win, { idx = 0 }).idx ---@type integer
     if cur_idx < 1 then return end
 
     goto_list_entry(cur_idx, cmd, {})
@@ -84,14 +84,14 @@ end
 ---@param cmd string
 ---@return nil
 local function bookends(count, cmd)
-    ey._validate_uint(count)
+    ry._validate_uint(count)
     vim.validate("cmd", cmd, "string")
 
     local adj_count = count >= 1 and count or nil ---@type integer|nil
     ---@type boolean, string
     local ok, err = pcall(api.nvim_cmd, { cmd = cmd, count = adj_count }, {})
     if ok then
-        eu._do_zzze(api.nvim_get_current_win())
+        ru._do_zzze(api.nvim_get_current_win())
         return
     end
 
@@ -109,18 +109,18 @@ end
 ---@param backup_cmd string
 ---@return nil
 local function file_nav_wrap(src_win, count, cmd, backup_cmd)
-    ey._validate_win(src_win, true)
-    ey._validate_uint(count)
+    ry._validate_win(src_win, true)
+    ry._validate_uint(count)
     vim.validate("cmd", cmd, "string")
     vim.validate("backup_cmd", backup_cmd, "string")
 
-    local size = et._get_list(src_win, { size = 0 }).size ---@type integer
+    local size = rt._get_list(src_win, { size = 0 }).size ---@type integer
     if not size or size < 1 then
         api.nvim_echo({ { "E42: No Errors", "" } }, false, {})
         return nil
     end
 
-    local adj_count = eu._count_to_count1(count) ---@type integer
+    local adj_count = ru._count_to_count1(count) ---@type integer
 
     ---@type boolean, string
     local ok, err = pcall(api.nvim_cmd, { cmd = cmd, count = adj_count }, {})
@@ -142,7 +142,7 @@ local function file_nav_wrap(src_win, count, cmd, backup_cmd)
         return
     end
 
-    eu._do_zzze(api.nvim_get_current_win())
+    ru._do_zzze(api.nvim_get_current_win())
 end
 
 -- ================
@@ -158,7 +158,7 @@ end
 ---@param opts table Reserved for future use
 ---@return boolean
 function Nav.q_prev(count, opts)
-    local new_idx = eu._get_idx_wrapping_sub(nil, count) ---@type integer|nil
+    local new_idx = ru._get_idx_wrapping_sub(nil, count) ---@type integer|nil
     if new_idx then return goto_list_entry(new_idx, "cc", opts) end
     return false
 end
@@ -167,7 +167,7 @@ end
 ---@param opts table Reserved for future use
 ---@return boolean
 function Nav.q_next(count, opts)
-    local new_idx = eu._get_idx_wrapping_add(nil, count) ---@type integer|nil
+    local new_idx = ru._get_idx_wrapping_add(nil, count) ---@type integer|nil
     if new_idx then return goto_list_entry(new_idx, "cc", opts) end
     return false
 end
@@ -177,8 +177,8 @@ end
 ---@param opts table Reserved for future use
 ---@return boolean
 function Nav.l_prev(src_win, count, opts)
-    return eu._locwin_check(src_win, function()
-        local new_idx = eu._get_idx_wrapping_sub(src_win, count) ---@type integer|nil
+    return ru._locwin_check(src_win, function()
+        local new_idx = ru._get_idx_wrapping_sub(src_win, count) ---@type integer|nil
         if new_idx then goto_list_entry(new_idx, "ll", opts) end
     end)
 end
@@ -188,8 +188,8 @@ end
 ---@param opts table Reserved for future use
 ---@return boolean
 function Nav.l_next(src_win, count, opts)
-    return eu._locwin_check(src_win, function()
-        local new_idx = eu._get_idx_wrapping_add(src_win, count) ---@type integer|nil
+    return ru._locwin_check(src_win, function()
+        local new_idx = ru._get_idx_wrapping_add(src_win, count) ---@type integer|nil
         if new_idx then goto_list_entry(new_idx, "ll", opts) end
     end)
 end
@@ -212,7 +212,7 @@ end
 ---@param count integer
 ---@return nil
 function Nav.l_l(src_win, count)
-    eu._locwin_check(src_win, function()
+    ru._locwin_check(src_win, function()
         goto_specific_idx(src_win, count)
     end)
 end
@@ -235,7 +235,7 @@ end
 ---@param count integer Entry to navigate to. First if no count
 ---@return nil
 function Nav.l_rewind(src_win, count)
-    eu._locwin_check(src_win, function()
+    ru._locwin_check(src_win, function()
         bookends(count, "lrewind")
     end)
 end
@@ -244,7 +244,7 @@ end
 ---@param count integer Entry to navigate to. Last if no count
 ---@return nil
 function Nav.l_last(src_win, count)
-    eu._locwin_check(src_win, function()
+    ru._locwin_check(src_win, function()
         bookends(count, "llast")
     end)
 end
@@ -270,7 +270,7 @@ end
 ---@param count integer Count previous file to navigate to
 ---@return nil
 function Nav.l_pfile(src_win, count)
-    eu._locwin_check(src_win, function()
+    ru._locwin_check(src_win, function()
         file_nav_wrap(src_win, count, "lpfile", "llast")
     end)
 end
@@ -279,7 +279,7 @@ end
 ---@param count integer Count next file to navigate to
 ---@return nil
 function Nav.l_nfile(src_win, count)
-    eu._locwin_check(src_win, function()
+    ru._locwin_check(src_win, function()
         file_nav_wrap(src_win, count, "lnfile", "lrewind")
     end)
 end

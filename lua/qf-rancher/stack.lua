@@ -1,7 +1,7 @@
-local eo = Qfr_Defer_Require("qf-rancher.window") ---@type QfrWins
-local et = Qfr_Defer_Require("qf-rancher.tools") ---@type QfrTools
-local eu = Qfr_Defer_Require("qf-rancher.util") ---@type QfrUtil
-local ey = Qfr_Defer_Require("qf-rancher.types") ---@type QfrTypes
+local ro = Qfr_Defer_Require("qf-rancher.window") ---@type QfrWins
+local rt = Qfr_Defer_Require("qf-rancher.tools") ---@type QfrTools
+local ru = Qfr_Defer_Require("qf-rancher.util") ---@type QfrUtil
+local ry = Qfr_Defer_Require("qf-rancher.types") ---@type QfrTypes
 
 local api = vim.api
 
@@ -24,12 +24,12 @@ local Stack = {}
 ---@param src_win integer|nil
 ---@return nil
 local function resize_after_stack_change(src_win)
-    if not eu._get_g_var("qfr_auto_list_height") then return end
+    if not ru._get_g_var("qfr_auto_list_height") then return end
     if src_win then
         local src_win_tabpage = api.nvim_win_get_tabpage(src_win) ---@type integer
-        eo._resize_loclists_by_win(src_win, { tabpage = src_win_tabpage })
+        ro._resize_loclists_by_win(src_win, { tabpage = src_win_tabpage })
     else
-        eo._resize_qfwins({ all_tabpages = true })
+        ro._resize_qfwins({ all_tabpages = true })
     end
 end
 
@@ -40,18 +40,18 @@ end
 ---@param wrapping function
 ---@return nil
 local function change_history(src_win, count, wrapping)
-    ey._validate_win(src_win, true)
-    ey._validate_uint(count)
+    ry._validate_win(src_win, true)
+    ry._validate_uint(count)
     vim.validate("arithmetic", wrapping, "callable")
 
-    local stack_len = et._get_list(src_win, { nr = "$" }).nr ---@type integer
+    local stack_len = rt._get_list(src_win, { nr = "$" }).nr ---@type integer
     if stack_len < 1 then
         api.nvim_echo({ { "No entries", "" } }, false, {})
         return
     end
 
-    local cur_list_nr = et._get_list(src_win, { nr = 0 }).nr ---@type integer
-    local count1 = eu._count_to_count1(count) ---@type integer
+    local cur_list_nr = rt._get_list(src_win, { nr = 0 }).nr ---@type integer
+    local count1 = ru._count_to_count1(count) ---@type integer
     local new_list_nr = wrapping(cur_list_nr, count1, 1, stack_len) ---@type integer
 
     local cmd = src_win and "lhistory" or "chistory" ---@type string
@@ -64,7 +64,7 @@ end
 ---@param arithmetic function
 ---@return nil
 local function l_change_history(win, count, arithmetic)
-    eu._locwin_check(win, function()
+    ru._locwin_check(win, function()
         change_history(win, count, arithmetic)
     end)
 end
@@ -87,27 +87,27 @@ end
 ---@param count integer Wrapping count previous list to go to
 ---@return nil
 function Stack.q_older(count)
-    change_history(nil, count, eu._wrapping_sub)
+    change_history(nil, count, ru._wrapping_sub)
 end
 
 ---@param count integer Wrapping count next list to go to
 ---@return nil
 function Stack.q_newer(count)
-    change_history(nil, count, eu._wrapping_add)
+    change_history(nil, count, ru._wrapping_add)
 end
 
 ---@param src_win integer Location list window context
 ---@param count integer Wrapping count previous list to go to
 ---@return nil
 function Stack.l_older(src_win, count)
-    l_change_history(src_win, count, eu._wrapping_sub)
+    l_change_history(src_win, count, ru._wrapping_sub)
 end
 
 ---@param src_win integer Location list window context
 ---@param count integer Wrapping count next list to go to
 ---@return nil
 function Stack.l_newer(src_win, count)
-    l_change_history(src_win, count, eu._wrapping_add)
+    l_change_history(src_win, count, ru._wrapping_add)
 end
 
 -- GET HISTORY --
@@ -135,7 +135,7 @@ end
 ---@param opts QfrHistoryOpts
 ---@return nil
 function Stack.l_history(src_win, count, opts)
-    eu._locwin_check(src_win, function()
+    ru._locwin_check(src_win, function()
         Stack._get_history(src_win, count, opts)
     end)
 end
@@ -152,7 +152,7 @@ end
 ---@param count integer List number to delete
 ---@return nil
 function Stack.l_del(src_win, count)
-    eu._locwin_check(src_win, function()
+    ru._locwin_check(src_win, function()
         Stack._del(src_win, count)
     end)
 end
@@ -161,13 +161,13 @@ end
 
 ---@return nil
 function Stack.q_del_all()
-    et._set_list(nil, "f", {})
+    rt._set_list(nil, "f", {})
 end
 
 ---@param src_win integer Location list window context
 ---@return nil
 function Stack.l_del_all(src_win)
-    et._set_list(src_win, "f", {})
+    rt._set_list(src_win, "f", {})
 end
 
 -- CHANGE HISTORY --
@@ -264,17 +264,17 @@ end
 ---@param opts QfrHistoryOpts
 ---@return nil
 function Stack._get_history(src_win, count, opts)
-    ey._validate_win(src_win, true)
-    ey._validate_uint(count)
-    ey._validate_history_opts(opts)
+    ry._validate_win(src_win, true)
+    ry._validate_uint(count)
+    ry._validate_history_opts(opts)
 
-    local max_nr = et._get_list(src_win, { nr = "$" }).nr ---@type integer
+    local max_nr = rt._get_list(src_win, { nr = "$" }).nr ---@type integer
     if max_nr < 1 then
         if not opts.silent then api.nvim_echo({ { "No entries", "" } }, false, {}) end
         return
     end
 
-    local cur_nr = et._get_list(src_win, { nr = 0 }).nr ---@type integer
+    local cur_nr = rt._get_list(src_win, { nr = 0 }).nr ---@type integer
     local default = opts.default == "cur_list" and cur_nr or nil ---@type integer|nil
     local adj_count = count > 0 and math.min(count, max_nr) or default ---@type integer|nil
 
@@ -284,7 +284,7 @@ function Stack._get_history(src_win, count, opts)
 
     resize_after_stack_change(src_win)
     if opts.open_list then
-        eo._open_list(src_win, { keep_win = opts.keep_win, nop_if_open = true })
+        ro._open_list(src_win, { keep_win = opts.keep_win, nop_if_open = true })
     end
 end
 
@@ -292,13 +292,13 @@ end
 ---@param count integer List number to go to
 ---@return nil
 function Stack._del(src_win, count)
-    ey._validate_win(src_win, true)
-    ey._validate_uint(count)
+    ry._validate_win(src_win, true)
+    ry._validate_uint(count)
 
-    local result = et._clear_list(src_win, count)
+    local result = rt._clear_list(src_win, count)
     if result == -1 then return end
 
-    local cur_list_nr = et._get_list(src_win, { nr = 0 }).nr ---@type integer
+    local cur_list_nr = rt._get_list(src_win, { nr = 0 }).nr ---@type integer
     if result == cur_list_nr then resize_after_stack_change(src_win) end
 end
 

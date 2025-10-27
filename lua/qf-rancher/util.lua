@@ -1,10 +1,10 @@
 ---@class QfrUtil
 local M = {}
 
-local eo = Qfr_Defer_Require("qf-rancher.window") ---@type QfrWins
-local et = Qfr_Defer_Require("qf-rancher.tools") ---@type QfrTools
-local eu = Qfr_Defer_Require("qf-rancher.util") ---@type QfrUtil
-local ey = Qfr_Defer_Require("qf-rancher.types") ---@type QfrTypes
+local ro = Qfr_Defer_Require("qf-rancher.window") ---@type QfrWins
+local rt = Qfr_Defer_Require("qf-rancher.tools") ---@type QfrTools
+local ru = Qfr_Defer_Require("qf-rancher.util") ---@type QfrUtil
+local ry = Qfr_Defer_Require("qf-rancher.types") ---@type QfrTypes
 
 local api = vim.api
 local fn = vim.fn
@@ -16,7 +16,7 @@ local fn = vim.fn
 ---@param fargs string[]
 ---@return string|nil
 function M._find_cmd_pattern(fargs)
-    ey._validate_list(fargs, { type = "string" })
+    ry._validate_list(fargs, { type = "string" })
 
     for _, arg in ipairs(fargs) do
         if vim.startswith(arg, "/") then return string.sub(arg, 2) or "" end
@@ -29,8 +29,8 @@ end
 ---@param valid_args string[]
 ---@param default string
 function M._check_cmd_arg(fargs, valid_args, default)
-    ey._validate_list(fargs, { type = "string" })
-    ey._validate_list(valid_args, { type = "string" })
+    ry._validate_list(fargs, { type = "string" })
+    ry._validate_list(valid_args, { type = "string" })
     vim.validate("default", default, "string")
 
     for _, arg in ipairs(fargs) do
@@ -62,7 +62,7 @@ end
 ---@param input QfrInputType
 ---@return QfrInputType
 function M._resolve_input_vimcase(input)
-    ey._validate_input_type(input)
+    ry._validate_input_type(input)
 
     if input ~= "vimcase" then return input end
 
@@ -138,7 +138,7 @@ end
 function M._resolve_pattern(prompt, input_pattern, input_type)
     vim.validate("prompt", prompt, "string")
     vim.validate("input_pattern", input_pattern, "string", true)
-    ey._validate_input_type(input_type)
+    ry._validate_input_type(input_type)
 
     if input_pattern then return input_pattern end
 
@@ -159,18 +159,18 @@ end
 ---@param wrapping_math function
 ---@return integer|nil
 local function get_wrapping_idx(src_win, count, wrapping_math)
-    ey._validate_win(src_win, true)
-    ey._validate_uint(count)
+    ry._validate_win(src_win, true)
+    ry._validate_uint(count)
     vim.validate("arithmetic", wrapping_math, "callable")
 
     local count1 = M._count_to_count1(count) ---@type integer|nil
-    local size = et._get_list(src_win, { nr = 0, size = 0 }).size ---@type integer
+    local size = rt._get_list(src_win, { nr = 0, size = 0 }).size ---@type integer
     if size < 1 then
         api.nvim_echo({ { "E42: No Errors", "" } }, false, {})
         return nil
     end
 
-    local cur_idx = et._get_list(src_win, { nr = 0, idx = 0 }).idx ---@type integer
+    local cur_idx = rt._get_list(src_win, { nr = 0, idx = 0 }).idx ---@type integer
     if cur_idx < 1 then return nil end
 
     return wrapping_math(cur_idx, count1, 1, size)
@@ -220,11 +220,11 @@ end
 ---@param idx integer
 ---@return vim.quickfix.entry|nil, integer|nil
 local function get_item(src_win, idx)
-    ey._validate_win(src_win, true)
-    ey._validate_uint(idx)
+    ry._validate_win(src_win, true)
+    ry._validate_uint(idx)
 
     ---@type vim.quickfix.entry[]
-    local items = et._get_list(src_win, { nr = 0, idx = idx, items = true }).items
+    local items = rt._get_list(src_win, { nr = 0, idx = idx, items = true }).items
     if #items < 1 then return nil, nil end
 
     local item = items[1] ---@type vim.quickfix.entry
@@ -260,7 +260,7 @@ end
 ---@param count integer
 ---@return integer
 function M._count_to_count1(count)
-    ey._validate_uint(count)
+    ry._validate_uint(count)
     return math.max(count, 1)
 end
 
@@ -302,7 +302,7 @@ end
 ---@param list_win integer
 ---@return boolean
 function M._is_in_list_win(list_win)
-    ey._validate_win(list_win)
+    ry._validate_win(list_win)
 
     local list_win_buf = vim.api.nvim_win_get_buf(list_win) ---@type integer
     ---@type string
@@ -317,17 +317,17 @@ end
 ---@param list_nr integer|"$"
 ---@return integer
 function M._clear_list_and_resize(src_win, list_nr)
-    ey._validate_win(src_win, true)
+    ry._validate_win(src_win, true)
 
-    local result = et._clear_list(src_win, list_nr)
+    local result = rt._clear_list(src_win, list_nr)
 
     if result == -1 then return result end
     if not M._get_g_var("qfr_auto_list_height") then return result end
 
-    if result == 0 or result == et._get_list(src_win, { nr = 0 }).nr then
+    if result == 0 or result == rt._get_list(src_win, { nr = 0 }).nr then
         local tabpage = src_win and api.nvim_win_get_tabpage(src_win)
             or api.nvim_get_current_tabpage()
-        eo._resize_lists_by_win(src_win, { tabpage = tabpage })
+        ro._resize_lists_by_win(src_win, { tabpage = tabpage })
     end
 
     return result
@@ -341,8 +341,8 @@ end
 ---@param cur_pos {[1]: integer, [2]: integer}
 ---@return nil
 function M._protected_set_cursor(win, cur_pos)
-    ey._validate_win(win)
-    ey._validate_cur_pos(cur_pos)
+    ry._validate_win(win)
+    ry._validate_cur_pos(cur_pos)
 
     local adj_cur_pos = vim.deepcopy(cur_pos, true) ---@type {[1]: integer, [2]: integer}
     local win_buf = api.nvim_win_get_buf(win) ---@type integer
@@ -362,7 +362,7 @@ end
 ---@param force boolean
 ---@return integer
 function M._pwin_close(win, force)
-    ey._validate_uint(win)
+    ry._validate_uint(win)
     vim.validate("force", force, "boolean")
 
     if not api.nvim_win_is_valid(win) then return -1 end
@@ -387,7 +387,7 @@ end
 ---@param wipeout boolean
 ---@return integer
 function M._pbuf_rm(buf, force, wipeout)
-    ey._validate_uint(buf)
+    ry._validate_uint(buf)
     vim.validate("force", force, "boolean")
     vim.validate("wipeout", wipeout, "boolean")
 
@@ -432,7 +432,7 @@ end
 ---@param buf integer
 ---@return nil
 local function prepare_help_buffer(buf)
-    ey._validate_buf(buf)
+    ry._validate_buf(buf)
 
     api.nvim_set_option_value("bt", "help", { buf = buf })
     api.nvim_set_option_value("bl", false, { buf = buf })
@@ -465,8 +465,8 @@ end
 ---@param opts QfrBufOpenOpts
 ---@return boolean
 function M._open_item_to_win(item, opts)
-    ey._validate_list_item(item)
-    ey._validate_open_buf_opts(opts)
+    ry._validate_list_item(item)
+    ry._validate_open_buf_opts(opts)
 
     local buf = item.bufnr ---@type integer|nil
     if not (buf and api.nvim_buf_is_valid(buf)) then return false end
@@ -522,9 +522,9 @@ end
 ---@param always? boolean
 ---@return nil
 function M._do_zzze(win, always)
-    ey._validate_win(win)
+    ry._validate_win(win)
 
-    if not (eu._get_g_var("qfr_auto_center_result") or always) then return end
+    if not (ru._get_g_var("qfr_auto_center_result") or always) then return end
 
     api.nvim_win_call(win, function()
         api.nvim_cmd({ cmd = "normal", args = { "zz" }, bang = true }, {})
@@ -543,7 +543,7 @@ end
 ---@param line string
 ---@return boolean, integer, integer
 function M._vcol_to_byte_bounds(vcol, line)
-    ey._validate_uint(vcol)
+    ry._validate_uint(vcol)
     vim.validate("line", line, "string")
 
     if vcol == 0 or #line <= 1 then return true, 0, 0 end
@@ -571,7 +571,7 @@ end
 ---@param line string
 ---@return integer
 function M._vcol_to_end_col_(vcol, line)
-    ey._validate_uint(vcol) ---@type QfrTypes
+    ry._validate_uint(vcol) ---@type QfrTypes
     vim.validate("line", line, "string")
 
     local ok, _, fin_byte = M._vcol_to_byte_bounds(vcol, line) ---@type boolean, integer
@@ -602,7 +602,7 @@ end
 ---@param opts QfrTabpageOpts
 ---@return integer[]
 function M._resolve_tabpages(opts)
-    ey._validate_tabpage_opts(opts)
+    ry._validate_tabpage_opts(opts)
 
     if opts.all_tabpages then
         return api.nvim_list_tabpages()
@@ -639,8 +639,8 @@ end
 ---@param opts QfrTabpageOpts
 ---@return integer|nil
 function M._get_loclist_win_by_qf_id(qf_id, opts)
-    ey._validate_uint(qf_id)
-    ey._validate_tabpage_opts(opts)
+    ry._validate_uint(qf_id)
+    ry._validate_tabpage_opts(opts)
 
     local tabpages = M._resolve_tabpages(opts) ---@type integer[]
     for _, tabpage in ipairs(tabpages) do
@@ -657,7 +657,7 @@ end
 ---@param opts QfrTabpageOpts
 ---@return integer[]
 function M._get_loclist_wins_by_win(win, opts)
-    ey._validate_win(win, false)
+    ry._validate_win(win, false)
 
     local qf_id = fn.getloclist(win, { id = 0 }).id ---@type integer
     if qf_id == 0 then return {} end
@@ -669,8 +669,8 @@ end
 ---@param opts QfrTabpageOpts
 ---@return integer[]
 function M._get_ll_wins_by_qf_id(qf_id, opts)
-    ey._validate_uint(qf_id)
-    ey._validate_tabpage_opts(opts)
+    ry._validate_uint(qf_id)
+    ry._validate_tabpage_opts(opts)
 
     local wins = {} ---@type integer[]
     local tabpages = M._resolve_tabpages(opts) ---@type integer[]
@@ -738,7 +738,7 @@ end
 ---@param opts QfrTabpageOpts
 ---@return integer|nil
 function M._find_loclist_origin(list_win, opts)
-    ey._validate_list_win(list_win)
+    ry._validate_list_win(list_win)
 
     local qf_id = fn.getloclist(list_win, { id = 0 }).id ---@type integer
     if qf_id == 0 then return nil end
@@ -760,7 +760,7 @@ end
 ---@param todo function
 ---@return any
 function M._locwin_check(win, todo)
-    ey._validate_win(win, false)
+    ry._validate_win(win, false)
 
     local qf_id = fn.getloclist(win, { id = 0 }).id ---@type integer
     if qf_id == 0 then
@@ -774,7 +774,7 @@ end
 ---@param win integer
 ---@return boolean
 function M._valid_win_for_loclist(win)
-    ey._validate_win(win, true)
+    ry._validate_win(win, true)
     if not win then return false end
 
     local wintype = fn.win_gettype(win)

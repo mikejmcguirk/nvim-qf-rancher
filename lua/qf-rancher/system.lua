@@ -1,7 +1,7 @@
-local ea = Qfr_Defer_Require("qf-rancher.stack") ---@type QfrStack
-local et = Qfr_Defer_Require("qf-rancher.tools") ---@type QfrTools
-local eu = Qfr_Defer_Require("qf-rancher.util") ---@type QfrUtil
-local ey = Qfr_Defer_Require("qf-rancher.types") ---@type QfrTypes
+local ra = Qfr_Defer_Require("qf-rancher.stack") ---@type QfrStack
+local rt = Qfr_Defer_Require("qf-rancher.tools") ---@type QfrTools
+local ru = Qfr_Defer_Require("qf-rancher.util") ---@type QfrUtil
+local ry = Qfr_Defer_Require("qf-rancher.types") ---@type QfrTypes
 
 local api = vim.api
 
@@ -24,7 +24,7 @@ local function handle_output(obj, output_opts)
     end
 
     local src_win = output_opts.src_win ---@type integer
-    if src_win and not eu._valid_win_for_loclist(src_win) then return end
+    if src_win and not ru._valid_win_for_loclist(src_win) then return end
 
     local lines = vim.split(obj.stdout or "", "\n", { trimempty = true }) ---@type string[]
     if #lines == 0 then return end
@@ -44,9 +44,9 @@ local function handle_output(obj, output_opts)
 
     ---@type QfrWhat
     local what_set = vim.tbl_deep_extend("force", output_opts.what, { items = lines_dict.items })
-    local dest_nr = et._set_list(src_win, output_opts.action, what_set) ---@type integer
-    if eu._get_g_var("qfr_auto_open_changes") then
-        ea._get_history(src_win, dest_nr, {
+    local dest_nr = rt._set_list(src_win, output_opts.action, what_set) ---@type integer
+    if ru._get_g_var("qfr_auto_open_changes") then
+        ra._get_history(src_win, dest_nr, {
             open_list = true,
             default = "cur_list",
             silent = true,
@@ -60,8 +60,8 @@ end
 ---@param output_opts QfrOutputOpts
 ---@return nil
 function System.system_do(system_opts, output_opts)
-    ey._validate_system_opts(system_opts)
-    ey._validate_output_opts(output_opts)
+    ry._validate_system_opts(system_opts)
+    ry._validate_output_opts(output_opts)
 
     ---@type vim.SystemOpts
     local vim_system_opts =

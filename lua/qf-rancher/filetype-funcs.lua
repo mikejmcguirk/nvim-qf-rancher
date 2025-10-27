@@ -1,7 +1,7 @@
-local eo = Qfr_Defer_Require("qf-rancher.window") ---@type QfrWins
-local et = Qfr_Defer_Require("qf-rancher.tools") ---@type QfrTools
-local eu = Qfr_Defer_Require("qf-rancher.util") ---@type QfrUtil
-local ey = Qfr_Defer_Require("qf-rancher.types") ---@type QfrTypes
+local ro = Qfr_Defer_Require("qf-rancher.window") ---@type QfrWins
+local rt = Qfr_Defer_Require("qf-rancher.tools") ---@type QfrTools
+local ru = Qfr_Defer_Require("qf-rancher.util") ---@type QfrUtil
+local ry = Qfr_Defer_Require("qf-rancher.types") ---@type QfrTypes
 
 local api = vim.api
 local fn = vim.fn
@@ -21,14 +21,14 @@ function M._del_one_list_item()
     end
 
     local src_win = wintype == "loclist" and list_win or nil ---@type integer|nil
-    local list = et._get_list(src_win, { nr = 0, all = true }) ---@type table
+    local list = rt._get_list(src_win, { nr = 0, all = true }) ---@type table
     if #list.items < 1 then return end
 
     local row, col = unpack(api.nvim_win_get_cursor(list_win)) ---@type integer, integer
     table.remove(list.items, row)
-    et._set_list(src_win, "u", { nr = 0, items = list.items, idx = list.idx })
+    rt._set_list(src_win, "u", { nr = 0, items = list.items, idx = list.idx })
 
-    eu._protected_set_cursor(0, { row, col })
+    ru._protected_set_cursor(0, { row, col })
 end
 
 function M._visual_del()
@@ -46,7 +46,7 @@ function M._visual_del()
     end
 
     local src_win = wintype == "loclist" and list_win or nil ---@type integer|nil
-    local list = et._get_list(src_win, { nr = 0, all = true }) ---@type table
+    local list = rt._get_list(src_win, { nr = 0, all = true }) ---@type table
     if #list.items < 1 then return end
     local col = vim.api.nvim_win_get_cursor(list_win)[2] ---@type integer
 
@@ -65,13 +65,13 @@ function M._visual_del()
         table.remove(list.items, i)
     end
 
-    et._set_list(src_win, "u", {
+    rt._set_list(src_win, "u", {
         nr = 0,
         items = list.items,
         idx = list.idx,
     })
 
-    eu._protected_set_cursor(0, { vrange_4[1], col })
+    ru._protected_set_cursor(0, { vrange_4[1], col })
 end
 
 -- LIST OPEN HELPERS --
@@ -81,21 +81,21 @@ end
 ---@param finish QfrFinishMethod
 ---@return nil
 local function handle_orphan(list_win, buf_win, finish)
-    ey._validate_list_win(list_win)
-    ey._validate_win(buf_win)
-    ey._validate_finish_method(finish)
+    ry._validate_list_win(list_win)
+    ry._validate_win(buf_win)
+    ry._validate_finish_method(finish)
 
     local buf_win_qf_id = fn.getloclist(buf_win, { id = 0 }).id ---@type integer
     if buf_win_qf_id > 0 then return end
 
-    local stack = et._get_stack(list_win) ---@type table[]
-    eo._close_win_save_views(list_win)
-    et._set_stack(buf_win, stack)
+    local stack = rt._get_stack(list_win) ---@type table[]
+    ro._close_win_save_views(list_win)
+    rt._set_stack(buf_win, stack)
 
     api.nvim_set_current_win(buf_win)
-    eo.open_loclist(buf_win, { keep_win = finish == "focusWin" })
+    ro.open_loclist(buf_win, { keep_win = finish == "focusWin" })
 
-    if eu._get_g_var("qfr_debug_assertions") then
+    if ru._get_g_var("qfr_debug_assertions") then
         local cur_win = api.nvim_get_current_win() ---@type integer
         if finish == "focusWin" then assert(cur_win == buf_win) end
         if finish == "focusList" then assert(fn.win_gettype(cur_win) == "loclist") end
@@ -130,9 +130,9 @@ end
 ---@param opts QfrFindWinInTabOpts
 ---@return integer|nil
 local function find_win_in_tab(tabnr, dest_buftype, opts)
-    ey._validate_uint(tabnr)
+    ry._validate_uint(tabnr)
     vim.validate("dest_buftype", dest_buftype, "string")
-    ey._validate_find_win_in_tab_opts(opts)
+    ry._validate_find_win_in_tab_opts(opts)
 
     local max_winnr = fn.tabpagewinnr(tabnr, "$") ---@type integer
     local skip_winnr = opts.skip_winnr ---@type integer|nil
@@ -153,9 +153,9 @@ end
 ---@param buf integer|nil
 ---@return integer|nil
 local function find_win_in_tabs(list_tabnr, dest_buftype, buf)
-    ey._validate_uint(list_tabnr)
+    ry._validate_uint(list_tabnr)
     vim.validate("dest_buftype", dest_buftype, "string")
-    ey._validate_uint(buf, true)
+    ry._validate_uint(buf, true)
 
     local test_tabnr = list_tabnr ---@type integer
     local max_tabnr = fn.tabpagenr("$") ---@type integer
@@ -178,9 +178,9 @@ end
 ---@param opts QfrFindWinInTabOpts
 ---@return integer|nil
 local function find_win_in_tab_reverse(tabnr, dest_buftype, opts)
-    ey._validate_uint(tabnr)
+    ry._validate_uint(tabnr)
     vim.validate("dest_buftype", dest_buftype, "string")
-    ey._validate_find_win_in_tab_opts(opts)
+    ry._validate_find_win_in_tab_opts(opts)
 
     local max_winnr = fn.tabpagewinnr(tabnr, "$") ---@type integer
     local fin_winnr = opts.fin_winnr or 1 ---@type integer
@@ -206,7 +206,7 @@ end
 ---@param dest_buftype string
 ---@return integer|nil
 local function get_count_win(list_tabnr, dest_buftype)
-    ey._validate_uint(list_tabnr)
+    ry._validate_uint(list_tabnr)
     vim.validate("dest_buftype", dest_buftype, "string")
 
     local max_winnr = fn.tabpagewinnr(list_tabnr, "$") ---@type integer
@@ -225,11 +225,11 @@ end
 ---@param loclist_origin? integer
 ---@return boolean, integer|nil
 local function get_dest_win(list_win, dest_buftype, buf, is_loclist, loclist_origin)
-    ey._validate_list_win(list_win)
+    ry._validate_list_win(list_win)
     vim.validate("dest_buftype", dest_buftype, "string")
-    ey._validate_buf(buf)
+    ry._validate_buf(buf)
     vim.validate("is_loclist", is_loclist, "boolean")
-    ey._validate_win(loclist_origin, true)
+    ry._validate_win(loclist_origin, true)
 
     local list_tabpage = api.nvim_win_get_tabpage(list_win) ---@type integer
     local list_tabnr = api.nvim_tabpage_get_number(list_tabpage) ---@type integer
@@ -288,11 +288,11 @@ end
 ---@param is_orphan boolean
 ---@return boolean
 local function should_resize_list_win(list_win, dest_win, is_orphan)
-    ey._validate_list_win(list_win)
-    ey._validate_win(dest_win, true)
+    ry._validate_list_win(list_win)
+    ry._validate_win(dest_win, true)
     vim.validate("is_orphan", is_orphan, "boolean")
 
-    if not eu._get_g_var("qfr_auto_list_height") then return false end
+    if not ru._get_g_var("qfr_auto_list_height") then return false end
 
     if dest_win or is_orphan then return false end
 
@@ -305,10 +305,10 @@ end
 ---@param buf integer
 ---@param list_win integer
 local function get_buf_win(dest_win, split, buf, list_win)
-    ey._validate_win(dest_win, true)
-    ey._validate_list_win(list_win)
-    ey._validate_buf(buf)
-    ey._validate_split(split)
+    ry._validate_win(dest_win, true)
+    ry._validate_list_win(list_win)
+    ry._validate_buf(buf)
+    ry._validate_split(split)
 
     if dest_win and split == "none" then return dest_win end
 
@@ -332,9 +332,9 @@ end
 ---@param finish QfrFinishMethod
 ---@return nil
 local function tabnew_open(list_win, item, finish, is_orphan, pattern)
-    ey._validate_list_win(list_win)
-    ey._validate_list_item(item)
-    ey._validate_finish_method(finish)
+    ry._validate_list_win(list_win)
+    ry._validate_list_item(item)
+    ry._validate_finish_method(finish)
     vim.validate("is_orphan", is_orphan, "boolean")
     vim.validate("pattern", pattern, "string")
 
@@ -345,7 +345,7 @@ local function tabnew_open(list_win, item, finish, is_orphan, pattern)
 
     local buf_win = api.nvim_get_current_win() ---@type integer
     local dest_buftype = item.type == "\1" and "help" or "" ---@type string
-    eu._open_item_to_win(item, { buftype = dest_buftype, win = buf_win })
+    ru._open_item_to_win(item, { buftype = dest_buftype, win = buf_win })
     if finish == "focusList" and not is_orphan then vim.api.nvim_set_current_win(list_win) end
 
     if is_orphan then handle_orphan(list_win, buf_win, finish) end
@@ -359,12 +359,12 @@ end
 ---@param idx_func QfrIdxFunc
 ---@return nil
 local function open_item_from_list(split, finish, idx_func)
-    ey._validate_split(split)
-    ey._validate_finish_method(finish)
+    ry._validate_split(split)
+    ry._validate_finish_method(finish)
     vim.validate("idx_func", idx_func, "callable")
 
     local list_win = api.nvim_get_current_win() ---@type integer
-    if not eu._is_in_list_win(list_win) then
+    if not ru._is_in_list_win(list_win) then
         api.nvim_echo({ { "Not inside a list window", "" } }, false, {})
         return
     end
@@ -372,7 +372,7 @@ local function open_item_from_list(split, finish, idx_func)
     local is_loclist = fn.win_gettype(list_win) == "loclist" ---@type boolean
     local src_win = is_loclist and list_win or nil ---@type integer|nil
     local loclist_origin = (is_loclist and src_win)
-            and eu._find_loclist_origin(src_win, { all_tabpages = true })
+            and ru._find_loclist_origin(src_win, { all_tabpages = true })
         or nil ---@type integer|nil
 
     local is_orphan = is_loclist and not loclist_origin ---@type boolean
@@ -390,7 +390,7 @@ local function open_item_from_list(split, finish, idx_func)
     local pattern = src_win and "ll" or "cc"
     vim.api.nvim_exec_autocmds("QuickFixCmdPre", { pattern = pattern })
 
-    et._set_list(src_win, "u", { nr = 0, idx = idx })
+    rt._set_list(src_win, "u", { nr = 0, idx = idx })
 
     if split == "tabnew" then
         tabnew_open(list_win, item, finish, is_orphan, pattern)
@@ -400,19 +400,19 @@ local function open_item_from_list(split, finish, idx_func)
     local should_resize = should_resize_list_win(list_win, dest_win, is_orphan) ---@type boolean
     local row, col = unpack(api.nvim_win_get_cursor(list_win)) ---@type integer, integer
     if row ~= idx then
-        eu._protected_set_cursor(list_win, { idx, col })
-        eu._do_zzze(list_win)
+        ru._protected_set_cursor(list_win, { idx, col })
+        ru._do_zzze(list_win)
     end
 
     local buf_win = get_buf_win(dest_win, split, item.bufnr, list_win) ---@type integer
     local clearjumps = not (split == "none" and dest_win == buf_win) ---@type boolean
     local goto_win = finish == "focusWin" ---@type boolean
-    eu._open_item_to_win(
+    ru._open_item_to_win(
         item,
         { buftype = dest_buftype, clearjumps = clearjumps, goto_win = goto_win, win = buf_win }
     )
 
-    if should_resize then eo._resize_list_win(list_win) end
+    if should_resize then ro._resize_list_win(list_win) end
     if is_orphan then handle_orphan(list_win, buf_win, finish) end
 
     vim.api.nvim_exec_autocmds("QuickFixCmdPost", { pattern = pattern })
@@ -421,43 +421,43 @@ end
 -- MAPPING FUNCTIONS --
 
 function M._open_direct_focuswin()
-    open_item_from_list("none", "focusWin", eu._get_item_under_cursor)
+    open_item_from_list("none", "focusWin", ru._get_item_under_cursor)
 end
 
 function M._open_direct_focuslist()
-    open_item_from_list("none", "focusList", eu._get_item_under_cursor)
+    open_item_from_list("none", "focusList", ru._get_item_under_cursor)
 end
 
 function M._open_split_focuswin()
-    open_item_from_list("split", "focusWin", eu._get_item_under_cursor)
+    open_item_from_list("split", "focusWin", ru._get_item_under_cursor)
 end
 
 function M._open_split_focuslist()
-    open_item_from_list("split", "focusList", eu._get_item_under_cursor)
+    open_item_from_list("split", "focusList", ru._get_item_under_cursor)
 end
 
 function M._open_vsplit_focuswin()
-    open_item_from_list("vsplit", "focusWin", eu._get_item_under_cursor)
+    open_item_from_list("vsplit", "focusWin", ru._get_item_under_cursor)
 end
 
 function M._open_vsplit_focuslist()
-    open_item_from_list("vsplit", "focusList", eu._get_item_under_cursor)
+    open_item_from_list("vsplit", "focusList", ru._get_item_under_cursor)
 end
 
 function M._open_tabnew_focuswin()
-    open_item_from_list("tabnew", "focusWin", eu._get_item_under_cursor)
+    open_item_from_list("tabnew", "focusWin", ru._get_item_under_cursor)
 end
 
 function M._open_tabnew_focuslist()
-    open_item_from_list("tabnew", "focusList", eu._get_item_under_cursor)
+    open_item_from_list("tabnew", "focusList", ru._get_item_under_cursor)
 end
 
 function M._open_prev_focuslist()
-    open_item_from_list("none", "focusList", eu._get_item_wrapping_sub)
+    open_item_from_list("none", "focusList", ru._get_item_wrapping_sub)
 end
 
 function M._open_next_focuslist()
-    open_item_from_list("none", "focusList", eu._get_item_wrapping_add)
+    open_item_from_list("none", "focusList", ru._get_item_wrapping_add)
 end
 
 return M

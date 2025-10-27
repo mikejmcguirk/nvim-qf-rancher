@@ -1,11 +1,11 @@
 -- Escaping test line from From vim-grepper
 -- ..ad\\f40+$':-# @=,!;%^&&*()_{}/ /4304\'""?`9$343%$ ^adfadf[ad)[(
 
-local ee = Qfr_Defer_Require("qf-rancher.system") ---@type QfrSystem
-local es = Qfr_Defer_Require("qf-rancher.sort") ---@type QfRancherSort
-local et = Qfr_Defer_Require("qf-rancher.tools") ---@type QfrTools
-local eu = Qfr_Defer_Require("qf-rancher.util") ---@type QfrUtil
-local ey = Qfr_Defer_Require("qf-rancher.types") ---@type QfrTypes
+local re = Qfr_Defer_Require("qf-rancher.system") ---@type QfrSystem
+local rs = Qfr_Defer_Require("qf-rancher.sort") ---@type QfRancherSort
+local rt = Qfr_Defer_Require("qf-rancher.tools") ---@type QfrTools
+local ru = Qfr_Defer_Require("qf-rancher.util") ---@type QfrUtil
+local ry = Qfr_Defer_Require("qf-rancher.types") ---@type QfrTypes
 
 local api = vim.api
 local fn = vim.fn
@@ -113,29 +113,29 @@ local get_full_parts = {
 ---@param output_opts QfrOutputOpts
 ---@return nil
 local function do_grep(grep_info, input_opts, system_opts, output_opts)
-    ey._validate_grep_info(grep_info)
-    ey._validate_system_opts(system_opts)
-    ey._validate_input_opts(input_opts)
-    ey._validate_output_opts(output_opts)
+    ry._validate_grep_info(grep_info)
+    ry._validate_system_opts(system_opts)
+    ry._validate_input_opts(input_opts)
+    ry._validate_output_opts(output_opts)
 
     local src_win = output_opts.src_win ---@type integer|nil
-    if src_win and not eu._valid_win_for_loclist(src_win) then return end
+    if src_win and not ru._valid_win_for_loclist(src_win) then return end
 
     local locations = grep_info.location_func() ---@type string[]
     if #locations < 1 then return end
 
-    local grepprg = eu._get_g_var("qfr_grepprg") ---@type string
+    local grepprg = ru._get_g_var("qfr_grepprg") ---@type string
     if fn.executable(grepprg) ~= 1 then
         api.nvim_echo({ { grepprg .. " is not executable", "ErrorMsg" } }, true, { err = true })
         return
     end
 
-    local input_type = eu._resolve_input_vimcase(input_opts.input_type) ---@type QfrInputType
-    local display_input_type = eu._get_display_input_type(input_type) ---@type string
+    local input_type = ru._resolve_input_vimcase(input_opts.input_type) ---@type QfrInputType
+    local display_input_type = ru._get_display_input_type(input_type) ---@type string
     local which_grep = "[" .. grepprg .. "] " .. grep_info.name .. " Grep " ---@type string
     local prompt = which_grep .. "(" .. display_input_type .. "): " ---@type string
 
-    local pattern = eu._resolve_pattern(prompt, input_opts.pattern, input_type) ---@type string|nil
+    local pattern = ru._resolve_pattern(prompt, input_opts.pattern, input_type) ---@type string|nil
     if not pattern or pattern == "" then return end
 
     local grep_parts = get_full_parts[grepprg](pattern, input_type, locations) ---@type string[]
@@ -148,12 +148,12 @@ local function do_grep(grep_info, input_opts, system_opts, output_opts)
     local base_cmd = table.concat(base_parts[grepprg], " ") ---@type string
     -- DOCUMENT: This convention is similar to but distinct from vimgrep
     sys_output_opts.what.title = grep_info.name .. " " .. base_cmd .. "  " .. pattern
-    sys_output_opts = et.handle_new_same_title(sys_output_opts)
+    sys_output_opts = rt.handle_new_same_title(sys_output_opts)
 
     sys_output_opts.list_item_type = grep_info.list_item_type or output_opts.list_item_type
-    sys_output_opts.sort_func = es.sort_fname_asc
+    sys_output_opts.sort_func = rs.sort_fname_asc
 
-    ee.system_do(sys_opts, sys_output_opts)
+    re.system_do(sys_opts, sys_output_opts)
 end
 
 -- ====================
@@ -295,7 +295,7 @@ end
 ---under the name provided in this table
 ---@return nil
 function Grep.register_grep(grep_info)
-    ey._validate_grep_info(grep_info)
+    ry._validate_grep_info(grep_info)
     greps[grep_info.name] = grep_info
 end
 
@@ -332,22 +332,22 @@ local function grep_cmd(src_win, cargs)
     assert(#grep_names > 1, "No grep commands available")
     ---@type string
     local default_grep = vim.tbl_contains(grep_names, "cwd") and "cwd" or grep_names[1]
-    local grep_name = eu._check_cmd_arg(fargs, grep_names, default_grep) ---@type string
+    local grep_name = ru._check_cmd_arg(fargs, grep_names, default_grep) ---@type string
 
     ---@type QfrInputType
-    local input_type = eu._check_cmd_arg(fargs, ey._cmd_input_types, ey._default_input_type)
-    local pattern = eu._find_cmd_pattern(fargs) ---@type string|nil
+    local input_type = ru._check_cmd_arg(fargs, ry._cmd_input_types, ry._default_input_type)
+    local pattern = ru._find_cmd_pattern(fargs) ---@type string|nil
     local input_opts = { input_type = input_type, pattern = pattern } ---@type QfrInputOpts
 
     ---@type "sync"|"async"
-    local sync_str = eu._check_cmd_arg(fargs, ey._sync_opts, ey._default_sync_opt)
+    local sync_str = ru._check_cmd_arg(fargs, ry._sync_opts, ry._default_sync_opt)
     local sync = sync_str == "sync" and true or false ---@type boolean
     -- LOW: Should be able to set the timeout from the cmd
     ---@type QfrSystemOpts
-    local system_opts = { sync = sync, timeout = ee._default_timeout }
+    local system_opts = { sync = sync, timeout = re._default_timeout }
 
     ---@type QfrAction
-    local action = eu._check_cmd_arg(fargs, ey._actions, " ")
+    local action = ru._check_cmd_arg(fargs, ry._actions, " ")
     ---@type QfrOutputOpts
     local output_opts = { src_win = src_win, action = action, what = { nr = cargs.count } }
 

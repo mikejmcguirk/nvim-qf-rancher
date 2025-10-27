@@ -1,8 +1,8 @@
-local ea = Qfr_Defer_Require("qf-rancher.stack") ---@type QfrStack
-local es = Qfr_Defer_Require("qf-rancher.sort") ---@type QfRancherSort
-local et = Qfr_Defer_Require("qf-rancher.tools") ---@type QfrTools
-local eu = Qfr_Defer_Require("qf-rancher.util") ---@type QfrUtil
-local ey = Qfr_Defer_Require("qf-rancher.types") ---@type QfrTypes
+local ra = Qfr_Defer_Require("qf-rancher.stack") ---@type QfrStack
+local rs = Qfr_Defer_Require("qf-rancher.sort") ---@type QfRancherSort
+local rt = Qfr_Defer_Require("qf-rancher.tools") ---@type QfrTools
+local ru = Qfr_Defer_Require("qf-rancher.util") ---@type QfrUtil
+local ry = Qfr_Defer_Require("qf-rancher.types") ---@type QfrTypes
 
 local api = vim.api
 local ds = vim.diagnostic.severity
@@ -41,7 +41,7 @@ local function filter_diags_top_severity(diags)
 end
 
 -- LOW: Does this actually help/matter?
-local severity_map = ey._severity_map ---@type table<integer, string>
+local severity_map = ry._severity_map ---@type table<integer, string>
 
 -- LOW: Come up with a way to specify a custom conversion function
 -- MID: The runtime's add function in get_diagnostics clamps the lnum values to buf_line_count
@@ -68,14 +68,14 @@ end
 ---@param getopts? vim.diagnostic.GetOpts
 ---@return string
 local function get_empty_msg(getopts)
-    ey._validate_diag_getopts(getopts, true)
+    ry._validate_diag_getopts(getopts, true)
 
     local default = "No diagnostics" ---@type string
 
     if not (getopts and getopts.severity) then return default end
 
     if type(getopts.severity) == "number" then
-        local plural = ey._severity_map_plural[getopts.severity] ---@type string|nil
+        local plural = ry._severity_map_plural[getopts.severity] ---@type string|nil
         if plural then return "No " .. plural end
         return default
     end
@@ -88,8 +88,8 @@ local function get_empty_msg(getopts)
     local max_error = type(max) == "nil" or max == ds.ERROR ---@type boolean
     if min_hint and max_error then return default end
 
-    local min_txt = min and ey._severity_map_str[min]
-    local max_txt = max and ey._severity_map_str[max]
+    local min_txt = min and ry._severity_map_str[min]
+    local max_txt = max and ry._severity_map_str[max]
     if not (min_txt or max_txt) then return default end
 
     local parts = {}
@@ -117,11 +117,11 @@ end
 ---@param output_opts QfrOutputOpts See |qfr-output-opts|
 ---@return nil
 function Diag.diags_to_list(diag_opts, output_opts)
-    ey._validate_diag_opts(diag_opts)
-    ey._validate_output_opts(output_opts)
+    ry._validate_diag_opts(diag_opts)
+    ry._validate_output_opts(output_opts)
 
     local src_win = output_opts.src_win ---@type integer|nil
-    if src_win and not eu._valid_win_for_loclist(src_win) then return end
+    if src_win and not ru._valid_win_for_loclist(src_win) then return end
 
     local title = "Diagnostics" ---@type string
     local buf = src_win and api.nvim_win_get_buf(src_win) or nil ---@type integer|nil
@@ -138,8 +138,8 @@ function Diag.diags_to_list(diag_opts, output_opts)
         end
 
         if should_clear() then
-            local diag_nr = et._find_list_with_title(src_win, title) ---@type integer|nil
-            if diag_nr then eu._clear_list_and_resize(src_win, diag_nr) end
+            local diag_nr = rt._find_list_with_title(src_win, title) ---@type integer|nil
+            if diag_nr then ru._clear_list_and_resize(src_win, diag_nr) end
         end
 
         return
@@ -148,17 +148,17 @@ function Diag.diags_to_list(diag_opts, output_opts)
     if diag_opts.top then raw_diags = filter_diags_top_severity(raw_diags) end
     local disp_func = diag_opts.disp_func or convert_diag ---@type QfrDiagDispFunc
     local converted_diags = vim.tbl_map(disp_func, raw_diags) ---@type vim.quickfix.entry[]
-    table.sort(converted_diags, es.sort_fname_asc)
+    table.sort(converted_diags, rs.sort_fname_asc)
 
-    local adj_output_opts = et.handle_new_same_title(output_opts) ---@type QfrOutputOpts
+    local adj_output_opts = rt.handle_new_same_title(output_opts) ---@type QfrOutputOpts
     local what_set = vim.tbl_deep_extend("force", adj_output_opts.what, {
         items = converted_diags,
         title = title,
     }) ---@type QfrWhat
 
-    local dest_nr = et._set_list(src_win, adj_output_opts.action, what_set) ---@type integer
-    if eu._get_g_var("qfr_auto_open_changes") and dest_nr > 0 then
-        ea._get_history(src_win, dest_nr, {
+    local dest_nr = rt._set_list(src_win, adj_output_opts.action, what_set) ---@type integer
+    if ru._get_g_var("qfr_auto_open_changes") and dest_nr > 0 then
+        ra._get_history(src_win, dest_nr, {
             open_list = true,
             default = "cur_list",
             silent = true,
@@ -186,7 +186,7 @@ local level_map = {
 ---@param cargs vim.api.keyset.create_user_command.command_args
 ---@return nil
 local function unpack_diag_cmd(src_win, cargs)
-    ey._validate_win(src_win, true)
+    ry._validate_win(src_win, true)
 
     local fargs = cargs.fargs ---@type string[]
 
@@ -196,7 +196,7 @@ local function unpack_diag_cmd(src_win, cargs)
         if top then return { severity = nil } end
 
         local levels = vim.tbl_keys(level_map) ---@type string[]
-        local level = eu._check_cmd_arg(fargs, levels, "hint") ---@type string
+        local level = ru._check_cmd_arg(fargs, levels, "hint") ---@type string
         local severity = level_map[level] ---@type vim.diagnostic.Severity
 
         if cargs.bang then return { severity = severity } end
@@ -208,7 +208,7 @@ local function unpack_diag_cmd(src_win, cargs)
     local diag_opts = { top = top, getopts = getopts } ---@type QfrDiagOpts
 
     ---@type QfrAction
-    local action = eu._check_cmd_arg(fargs, ey._actions, " ")
+    local action = ru._check_cmd_arg(fargs, ry._actions, " ")
     ---@type QfrOutputOpts
     local output_opts = { src_win = src_win, action = action, what = { nr = cargs.count } }
 
