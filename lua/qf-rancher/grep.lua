@@ -122,7 +122,7 @@ local function do_grep(grep_info, input_opts, system_opts, output_opts)
     if src_win and not ru._valid_win_for_loclist(src_win) then return end
 
     local locations = grep_info.location_func() ---@type string[]
-    if #locations < 1 then return end
+    if (not locations) or #locations < 1 then return end
 
     local grepprg = ru._get_g_var("qfr_grepprg") ---@type string
     if fn.executable(grepprg) ~= 1 then
