@@ -61,6 +61,8 @@ for _, tbl in ipairs(doc_tbls) do
     cmd_parts[#cmd_parts + 1] = dir .. tbl[1] .. ".lua"
 end
 
+cmd_parts[#cmd_parts + 1] = "lua/qf-rancher/system.lua"
+cmd_parts[#cmd_parts + 1] = "lua/qf-rancher/preview.lua"
 cmd_parts[#cmd_parts + 1] = "lua/qf-rancher/types.lua"
 
 for _, path in ipairs(doc_paths) do

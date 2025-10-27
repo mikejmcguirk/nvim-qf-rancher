@@ -6,6 +6,11 @@ local fn = vim.fn
 local set_opt = api.nvim_set_option_value
 
 ---@mod Preview Preview List Items
+---@tag qf-rancher-preview
+---@tag qfr-preview
+---@brief [[
+---
+---@brief ]]
 
 --- @class QfRancherPreview
 local Preview = {}
@@ -24,6 +29,7 @@ if (not cur_hl) or #vim.tbl_keys(cur_hl) == 0 then
     api.nvim_set_hl(0, hl_name, { link = "CurSearch" })
 end
 
+---@private
 ---@class QfRancherPreviewState
 ---@field preview_win integer|nil
 ---@field list_win integer|nil
@@ -175,7 +181,7 @@ local function create_autocmds()
         buffer = list_win_buf,
         callback = function()
             Preview.update_preview_win_pos()
-            Preview._update_preview_win_buf()
+            Preview.update_preview_win_buf()
         end,
     })
 
@@ -706,7 +712,7 @@ local queued_update = false ---@type boolean
 local function at_timer_end()
     if queued_update then
         queued_update = false
-        vim.schedule(Preview._update_preview_win_buf)
+        vim.schedule(Preview.update_preview_win_buf)
     end
 
     if timer then
@@ -733,9 +739,9 @@ local function get_list_item(list_win)
     return ru._get_item_under_cursor(src_win)
 end
 
----@private
+---Update the preview window buffer based on the current list cursor position
 ---@return nil
-function Preview._update_preview_win_buf()
+function Preview.update_preview_win_buf()
     if timer and timer:get_due_in() > 0 then
         queued_update = true
         return
@@ -758,6 +764,7 @@ function Preview._update_preview_win_buf()
     start_timer()
 end
 
+---Re-snap the preview window to the list
 ---@return nil
 function Preview.update_preview_win_pos()
     if not preview_state:is_open() then return end
@@ -768,7 +775,10 @@ function Preview.update_preview_win_pos()
     ru._do_zzze(preview_state.preview_win, true)
 end
 
----@param list_win integer
+---Open the preview window. Sets up buffer cache data
+---If the preview window is already open, this function is
+---a nop
+---@param list_win integer List window context
 ---@return nil
 function Preview.open_preview_win(list_win)
     if preview_state:is_open() then return end
@@ -791,12 +801,16 @@ function Preview.open_preview_win(list_win)
     start_timer()
 end
 
+---Close the preview window
 ---@return nil
 function Preview.close_preview_win()
     close_and_clear()
 end
 
----@param list_win integer
+---Toggle the preview window
+---If the preview window is open in a different list than the one this
+---function is run in, the open preview window will be closed first
+---@param list_win integer List window context
 ---@return nil
 function Preview.toggle_preview_win(list_win)
     if not ru._is_in_list_win(list_win) then return end

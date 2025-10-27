@@ -5,12 +5,17 @@ local ry = Qfr_Defer_Require("qf-rancher.types") ---@type QfrTypes
 
 local api = vim.api
 
----@mod System Sends diags to the qf list
+---@mod System Send system cmd results to the list
+---@tag qf-rancher-system
+---@tag qfr-system
+---@brief [[
+---
+---@brief ]]
 
 ---@class QfrSystem
 local System = {}
 
-System._default_timeout = 2000 ---@type integer
+local default_timeout = 2000 ---@type integer
 
 ---@param obj vim.SystemCompleted
 ---@param output_opts QfrOutputOpts
@@ -28,8 +33,7 @@ local function handle_output(obj, output_opts)
 
     local lines = vim.split(obj.stdout or "", "\n", { trimempty = true }) ---@type string[]
     if #lines == 0 then return end
-
-    local lines_dict = vim.fn.getqflist({ lines = lines }) ---@type {items: table[]}
+    local lines_dict = vim.fn.getqflist({ lines = lines }) ---@type { items: table[] }
     if #lines_dict.items < 1 then
         api.nvim_echo({ { "No items", "" } }, false, {})
         return
@@ -54,21 +58,19 @@ local function handle_output(obj, output_opts)
     end
 end
 
--- DOCUMENT: How to use this
-
----@param system_opts QfrSystemOpts
----@param output_opts QfrOutputOpts
+---Run a system command and sends the results to a list
+---@param system_opts QfrSystemOpts See |qfr-system-opts|
+---@param output_opts QfrOutputOpts See |qfr-output-opts|
 ---@return nil
 function System.system_do(system_opts, output_opts)
     ry._validate_system_opts(system_opts)
     ry._validate_output_opts(output_opts)
 
     ---@type vim.SystemOpts
-    local vim_system_opts =
-        { text = true, timeout = system_opts.timeout or System._default_timeout }
+    local vim_system_opts = { text = true, timeout = system_opts.timeout or default_timeout }
     if system_opts.sync then
         local obj = vim.system(system_opts.cmd_parts, vim_system_opts)
-            :wait(system_opts.timeout or System._default_timeout) ---@type vim.SystemCompleted
+            :wait(system_opts.timeout or default_timeout) ---@type vim.SystemCompleted
         handle_output(obj, output_opts)
     else
         vim.system(system_opts.cmd_parts, vim_system_opts, function(obj)
@@ -80,7 +82,6 @@ function System.system_do(system_opts, output_opts)
 end
 
 return System
----@export sys
+---@export System
 
 -- TODO: Tests
--- TODO: Docs

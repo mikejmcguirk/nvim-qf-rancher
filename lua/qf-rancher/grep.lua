@@ -344,7 +344,7 @@ local function grep_cmd(src_win, cargs)
     local sync = sync_str == "sync" and true or false ---@type boolean
     -- LOW: Should be able to set the timeout from the cmd
     ---@type QfrSystemOpts
-    local system_opts = { sync = sync, timeout = re._default_timeout }
+    local system_opts = { sync = sync }
 
     ---@type QfrAction
     local action = ru._check_cmd_arg(fargs, ry._actions, " ")

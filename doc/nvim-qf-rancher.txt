@@ -1916,6 +1916,80 @@ Sort.l_sort({cargs})                                               *Sort.l_sort*
 
 
 ==============================================================================
+Send system cmd results to the list                                     *System*
+
+                                                             *qf-rancher-system*
+                                                                    *qfr-system*
+
+
+QfrSystem                                                            *QfrSystem*
+
+
+                                                              *System.system_do*
+System.system_do({system_opts}, {output_opts})
+    Run a system command and sends the results to a list
+
+    Parameters: ~
+        {system_opts}  (QfrSystemOpts) See |qfr-system-opts|
+        {output_opts}  (QfrOutputOpts) See |qfr-output-opts|
+
+    Returns: ~
+        (nil)
+
+
+==============================================================================
+Preview List Items                                                     *Preview*
+
+                                                            *qf-rancher-preview*
+                                                                   *qfr-preview*
+
+
+Preview.update_preview_win_buf()                *Preview.update_preview_win_buf*
+    Update the preview window buffer based on the current list cursor position
+
+    Returns: ~
+        (nil)
+
+
+Preview.update_preview_win_pos()                *Preview.update_preview_win_pos*
+    Re-snap the preview window to the list
+
+    Returns: ~
+        (nil)
+
+
+Preview.open_preview_win({list_win})                  *Preview.open_preview_win*
+    Open the preview window. Sets up buffer cache data
+    If the preview window is already open, this function is
+    a nop
+
+    Parameters: ~
+        {list_win}  (integer) List window context
+
+    Returns: ~
+        (nil)
+
+
+Preview.close_preview_win()                          *Preview.close_preview_win*
+    Close the preview window
+
+    Returns: ~
+        (nil)
+
+
+Preview.toggle_preview_win({list_win})              *Preview.toggle_preview_win*
+    Toggle the preview window
+    If the preview window is open in a different list than the one this
+    function is run in, the open preview window will be closed first
+
+    Parameters: ~
+        {list_win}  (integer) List window context
+
+    Returns: ~
+        (nil)
+
+
+==============================================================================
 API Types                                                                *Types*
 
                                                               *qf-rancher-types*
