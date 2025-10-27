@@ -226,49 +226,6 @@ if vim.g.qfr_create_loclist_autocmds then
     })
 end
 
--- TODO: Add the types file to docgen and put these at the top
-
----@tag qf-rancher-api-types
----@tag qfr-api-types
----@brief [[
----
----@brief ]]
----@tag qf-rancher-input-type
----@tag qfr-input-type
----- "insensitive" will always treat the input as case insensitive
----- "regex" will use a regex search. The type of regex is cmd dependent
----- "sensitive" provides a case sensitive search
----- "smartcase" will be case insensitive only if the serach is all lowercase
----- "vimcase" respect the 'ignorecase' and 'smartcase' options
----@alias QfrInputType
----| 'insensitive'
----| 'regex'
----| 'sensitive'
----| 'smartcase'
----| 'vimcase'
-
----@tag qf-rancher-input-opts
----@tag qfr-input-opts
----@class QfrInputOpts
----@field input_type QfrInputType
----@field pattern? string The search pattern for the function
-
----@tag qf-rancher-system-opts
----@tag qfr-system-opts
----@class QfrSystemOpts
----@field sync? boolean Run the operation syncrhonously
----@field cmd_parts? string[] String parts to build the command from
----@field timeout? integer How long to wait. Default 2000 (sync and async)
-
----@tag qf-rancher-output-opts
----@tag qfr-output-opts
----@class QfrOutputOpts
----@field list_item_type? string Usually blank. "\1" for help buffers
----@field sort_func? function A function from the sort module
----@field src_win integer|nil Loclist win context. Quickfix if nil
----@field action QfrAction See |setqflist-action|
----@field what QfrWhat See |setqflist-what|
-
 ---@export nvim-qf-rancher
 
 -- NOTE: In order for the defer require to work, all function calls must be inside of

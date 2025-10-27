@@ -227,58 +227,6 @@ qfr_set_default_keymaps                                *qfr_set_default_keymaps*
         boolean
 
 
-                                                          *qf-rancher-api-types*
-                                                                 *qfr-api-types*
-
-
-                                                         *qf-rancher-input-type*
-                                                                *qfr-input-type*
-QfrInputType                                                      *QfrInputType*
-    - "insensitive" will always treat the input as case insensitive
-    - "regex" will use a regex search. The type of regex is cmd dependent
-    - "sensitive" provides a case sensitive search
-    - "smartcase" will be case insensitive only if the serach is all lowercase
-    - "vimcase" respect the 'ignorecase' and 'smartcase' options
-
-    Variants: ~
-        ("insensitive")
-        ("regex")
-        ("sensitive")
-        ("smartcase")
-        ("vimcase")
-
-
-                                                         *qf-rancher-input-opts*
-                                                                *qfr-input-opts*
-QfrInputOpts                                                      *QfrInputOpts*
-
-    Fields: ~
-        {input_type}  (QfrInputType)
-        {pattern?}    (string) The search pattern for the function
-
-
-                                                        *qf-rancher-system-opts*
-                                                               *qfr-system-opts*
-QfrSystemOpts                                                    *QfrSystemOpts*
-
-    Fields: ~
-        {sync?}       (boolean) Run the operation syncrhonously
-        {cmd_parts?}  (string[]) String parts to build the command from
-        {timeout?}    (integer) How long to wait. Default 2000 (sync and async)
-
-
-                                                        *qf-rancher-output-opts*
-                                                               *qfr-output-opts*
-QfrOutputOpts                                                    *QfrOutputOpts*
-
-    Fields: ~
-        {list_item_type?}  (string) Usually blank. "\1" for help buffers
-        {sort_func?}       (function) A function from the sort module
-        {src_win}          (integer|nil) Loclist win context. Quickfix if nil
-        {action}           (QfrAction) See |setqflist-action|
-        {what}             (QfrWhat) See |setqflist-what|
-
-
 ==============================================================================
 Qfr Window controls                                 *qf-rancher-window-controls*
 
@@ -1643,7 +1591,7 @@ Filter list items                                                       *Filter*
                                                      *qf-rancher-predicate-opts*
                                                             *qfr-predicate-opts*
 QfrPredicateOpts                                              *QfrPredicateOpts*
-    NOTE: Each predicate function will use one or the other
+    NOTE: Each predicate function will use only pattern or regex
 
     Fields: ~
         {pattern?}  (string) Pattern to filter against
@@ -1655,8 +1603,8 @@ QfrPredicateOpts                                              *QfrPredicateOpts*
 QfrFilterPredicate                                          *QfrFilterPredicate*
     Fields:
     - vim.qflist.entry
-    - boolean
-    - QfrPredicateOpts
+    - boolean (true for keep, false for remove)
+    - QfrPredicateOpts |qfr-predicate-opts|
     Returns: boolean
 
     Type: ~
@@ -1854,74 +1802,12 @@ QfrSortInfo                                                        *QfrSortInfo*
         {desc_func}  (QfrSortPredicate) Predicate for desc sorts
 
 
+                                                          *qf-rancher-sort-opts*
+                                                                 *qfr-sort-opts*
 QfrSortOpts                                                        *QfrSortOpts*
 
     Fields: ~
         {dir}  (QfrSortDir) "asc"|"desc"
-
-
-                                                          *qf-rancher-sort-opts*
-                                                                 *qfr-sort-opts*
-Sort.register_sort({sort_info})                             *Sort.register_sort*
-    Register a sort for use in commands and API calls
-
-    Parameters: ~
-        {sort_info}  (QfrSortInfo) See |qfr-sort-info| The sort will be
-                     registered under the name provided in this table
-
-    Returns: ~
-        (nil)
-
-
-Sort.clear_sort({name})                                        *Sort.clear_sort*
-     Clears the function name from the registered sorts
-
-    Parameters: ~
-        {name}  (string)
-
-
-                                                                     *Sort.sort*
-Sort.sort({name}, {sort_opts}, {output_opts})
-    Run a registered sort
-
-    Parameters: ~
-        {name}         (string) Which registered sort to run
-        {sort_opts}    (QfrSortOpts) See |QfrSortOpts|
-        {output_opts}  (QfrOutputOpts) See |qfr-output-opts|
-
-    Returns: ~
-        (nil)
-
-
-The callbacks to assign the Qsort and Lsort commands are below. They
-expect count = 0 and nargs = 1 to be present in the user_command table.
-They accept the following options:
-- A registered sort name (fname|fname_diag|severity|text|type)
-  fname is the default
-  NOTE: fname_diag sorts by filename, with subsorting by diagnostic
-  severity
-- A |setqflist-action| can also be provided (default "u")
-- If a bang is provided, the sort will be in descending order
-- If a count is provided, that list nr will be used. Default is the current
-  list
-Example: 4Qsort! fname r
-
-Sort.q_sort({cargs})                                               *Sort.q_sort*
-
-    Parameters: ~
-        {cargs}  (vim.api.keyset.create_user_command.command_args)
-
-    Returns: ~
-        (nil)
-
-
-Sort.l_sort({cargs})                                               *Sort.l_sort*
-
-    Parameters: ~
-        {cargs}  (vim.api.keyset.create_user_command.command_args)
-
-    Returns: ~
-        (nil)
 
 
 The below sort predicates are exposed for use in other functions. All have
@@ -1965,6 +1851,125 @@ Sort.sort_severity_asc()                                *Sort.sort_severity_asc*
 
 Sort.sort_severity_desc()                              *Sort.sort_severity_desc*
     Sort by diagnostic severity desc
+
+
+                                                                     *Sort.sort*
+Sort.sort({name}, {sort_opts}, {output_opts})
+    Run a registered sort
+
+    Parameters: ~
+        {name}         (string) Which registered sort to run
+        {sort_opts}    (QfrSortOpts) See |qfr-sort-opts|
+        {output_opts}  (QfrOutputOpts) See |qfr-output-opts|
+
+    Returns: ~
+        (nil)
+
+
+Sort.register_sort({sort_info})                             *Sort.register_sort*
+    Register a sort for use in commands and API calls
+
+    Parameters: ~
+        {sort_info}  (QfrSortInfo) See |qfr-sort-info| The sort will be
+                     registered under the name provided in this table
+
+    Returns: ~
+        (nil)
+
+
+Sort.clear_sort({name})                                        *Sort.clear_sort*
+     Clears the function name from the registered sorts
+
+    Parameters: ~
+        {name}  (string)
+
+
+The callbacks to assign the Qsort and Lsort commands are below. They
+expect count = 0 and nargs = 1 to be present in the user_command table.
+They accept the following options:
+- A registered sort name (fname|fname_diag|severity|text|type)
+  fname is the default
+  NOTE: fname_diag sorts by filename, with subsorting by diagnostic
+  severity
+- A |setqflist-action| can also be provided (default "u")
+- If a bang is provided, the sort will be in descending order
+- If a count is provided, that list nr will be used. Default is the current
+  list
+Example: 4Qsort! fname r
+
+Sort.q_sort({cargs})                                               *Sort.q_sort*
+
+    Parameters: ~
+        {cargs}  (vim.api.keyset.create_user_command.command_args)
+
+    Returns: ~
+        (nil)
+
+
+Sort.l_sort({cargs})                                               *Sort.l_sort*
+
+    Parameters: ~
+        {cargs}  (vim.api.keyset.create_user_command.command_args)
+
+    Returns: ~
+        (nil)
+
+
+==============================================================================
+API Types                                                                *Types*
+
+                                                              *qf-rancher-types*
+                                                                     *qfr-types*
+                                                          *qf-rancher-api-types*
+                                                                 *qfr-api-types*
+
+
+                                                         *qf-rancher-input-type*
+                                                                *qfr-input-type*
+QfrInputType                                                      *QfrInputType*
+    - "insensitive" will always treat the input as case insensitive
+    - "regex" will use a regex search. The type of regex is cmd dependent
+    - "sensitive" provides a case sensitive search
+    - "smartcase" will be case insensitive only if the serach is all lowercase
+    - "vimcase" respect the 'ignorecase' and 'smartcase' options
+
+    Variants: ~
+        ("insensitive")
+        ("regex")
+        ("sensitive")
+        ("smartcase")
+        ("vimcase")
+
+
+                                                         *qf-rancher-input-opts*
+                                                                *qfr-input-opts*
+QfrInputOpts                                                      *QfrInputOpts*
+
+    Fields: ~
+        {input_type}  (QfrInputType)
+        {pattern?}    (string) The search pattern for the function
+
+
+                                                        *qf-rancher-system-opts*
+                                                               *qfr-system-opts*
+QfrSystemOpts                                                    *QfrSystemOpts*
+
+    Fields: ~
+        {sync?}       (boolean) Run the operation syncrhonously
+        {cmd_parts?}  (string[]) String parts to build the command from
+        {timeout?}    (integer) How long to wait. Default 2000 (sync and async)
+
+
+                                                        *qf-rancher-output-opts*
+                                                               *qfr-output-opts*
+QfrOutputOpts                                                    *QfrOutputOpts*
+
+    Fields: ~
+        {list_item_type?}  (string) Usually blank. "\1" for help buffers
+        {sort_func?}       (function) A function from the sort module
+        {src_win}          (integer|nil) Loclist win context. Quickfix if nil
+        {action}           (QfrAction) See |setqflist-action|
+        {what}             (QfrWhat) See |setqflist-what|
 
 
 vim:tw=78:ts=8:noet:ft=help:norl:
