@@ -239,6 +239,11 @@ function Window.close_qflist()
     if not qf_win then return false end
 
     local tabpage_wins = api.nvim_tabpage_list_wins(tabpage) ---@type integer[]
+    if #tabpage_wins == 1 then
+        api.nvim_echo({ { "Cannot close the last window" } }, false, {})
+        return false
+    end
+
     tabpage_wins = vim.tbl_filter(function(win)
         return win ~= qf_win
     end, tabpage_wins)
@@ -273,6 +278,11 @@ function Window.close_loclist(src_win)
     if #ll_wins < 1 then return false end
 
     local tabpage_wins = api.nvim_tabpage_list_wins(tabpage) ---@type integer[]
+    if #tabpage_wins == 1 then
+        api.nvim_echo({ { "Cannot close the last window" } }, false, {})
+        return false
+    end
+
     tabpage_wins = vim.tbl_filter(function(win)
         return not vim.tbl_contains(ll_wins, win)
     end, tabpage_wins)
