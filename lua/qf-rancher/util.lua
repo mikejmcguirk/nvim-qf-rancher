@@ -431,17 +431,16 @@ end
 
 ---@param buf integer
 ---@return nil
-local function prepare_help_buffer(buf)
+local function prep_help_buf(buf)
     ry._validate_buf(buf)
 
+    -- NOTE: Do not manually set filetype here. Unsure why, but it makes local opts set improperly
     api.nvim_set_option_value("bt", "help", { buf = buf })
+    -- Have observed inconsistent behavior with these options on their own. Just set always
     api.nvim_set_option_value("bl", false, { buf = buf })
-    api.nvim_set_option_value("filetype", "help", { buf = buf })
-
-    api.nvim_set_option_value("ts", 8, { buf = buf })
-
-    api.nvim_set_option_value("ma", false, { buf = buf })
     api.nvim_set_option_value("bin", false, { buf = buf })
+    api.nvim_set_option_value("ma", false, { buf = buf })
+    api.nvim_set_option_value("ts", 8, { buf = buf })
 end
 
 ---@param win integer
@@ -470,14 +469,13 @@ function M._open_item_to_win(item, opts)
 
     local buf = item.bufnr ---@type integer|nil
     if not (buf and api.nvim_buf_is_valid(buf)) then return false end
-
     local win = opts.win or api.nvim_get_current_win() ---@type integer
     if not api.nvim_win_is_valid(win) then return false end
 
     local already_open = api.nvim_win_get_buf(win) == buf ---@type boolean
     if not already_open then
         if opts.buftype == "help" then
-            prepare_help_buffer(buf)
+            prep_help_buf(buf)
         else
             api.nvim_set_option_value("bl", true, { buf = buf })
         end
@@ -485,15 +483,10 @@ function M._open_item_to_win(item, opts)
         api.nvim_win_call(win, function()
             -- This loads the buf if necessary. Do not use bufload
             api.nvim_set_current_buf(buf)
+            if opts.clearjumps then api.nvim_cmd({ cmd = "clearjumps" }, {}) end
         end)
 
         if opts.buftype == "help" then setup_help_win(win) end
-    end
-
-    if opts.clearjumps then
-        api.nvim_win_call(win, function()
-            api.nvim_cmd({ cmd = "clearjumps" }, {})
-        end)
     end
 
     if not opts.skip_set_cur_pos then
@@ -513,8 +506,7 @@ function M._open_item_to_win(item, opts)
         api.nvim_cmd({ cmd = "normal", args = { "zv" }, bang = true }, {})
     end)
 
-    if opts.goto_win then api.nvim_set_current_win(win) end
-
+    if opts.focus then api.nvim_set_current_win(win) end
     return true
 end
 

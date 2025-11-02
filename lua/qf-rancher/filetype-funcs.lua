@@ -223,17 +223,21 @@ end
 ---@param buf integer
 ---@param is_loclist boolean
 ---@param loclist_origin? integer
+---@param split QfrSplitType
 ---@return boolean, integer|nil
-local function get_dest_win(list_win, dest_buftype, buf, is_loclist, loclist_origin)
-    ry._validate_list_win(list_win)
-    vim.validate("dest_buftype", dest_buftype, "string")
-    ry._validate_buf(buf)
-    vim.validate("is_loclist", is_loclist, "boolean")
-    ry._validate_win(loclist_origin, true)
+local function get_dest_win(list_win, dest_buftype, buf, is_loclist, loclist_origin, split)
+    if ru._get_g_var("qfr_debug_assertions", true) then
+        ry._validate_list_win(list_win)
+        vim.validate("dest_buftype", dest_buftype, "string")
+        ry._validate_buf(buf)
+        vim.validate("is_loclist", is_loclist, "boolean")
+        ry._validate_win(loclist_origin, true)
+        ry._validate_split(split)
+    end
 
+    if split == "tabnew" then return true, nil end
     local list_tabpage = api.nvim_win_get_tabpage(list_win) ---@type integer
     local list_tabnr = api.nvim_tabpage_get_number(list_tabpage) ---@type integer
-
     if vim.v.count > 0 then
         local count_win = get_count_win(list_tabnr, dest_buftype)
         if count_win then return true, count_win end
@@ -242,41 +246,40 @@ local function get_dest_win(list_win, dest_buftype, buf, is_loclist, loclist_ori
 
     local list_winnr = api.nvim_win_get_number(list_win) ---@type integer
     if dest_buftype == "help" then
-        return true, find_win_in_tab(list_tabnr, dest_buftype, { skip_winnr = list_winnr })
+        ---@type integer|nil
+        local win = find_win_in_tab(list_tabnr, dest_buftype, { skip_winnr = list_winnr })
+        if win or split == "none" then return true, win end
     end
 
+    local adj_dest_buftype = dest_buftype == "help" and "" or dest_buftype ---@type string
     if is_loclist and loclist_origin then return true, loclist_origin end
-
     local switchbuf = not is_loclist
             and api.nvim_get_option_value("switchbuf", { scope = "global" })
-        or nil ---@type string
+        or "" ---@type string
 
-    if string.find(switchbuf, "useopen", 1, true) or is_loclist then
+    if dest_buftype ~= "help" and (is_loclist or string.find(switchbuf, "useopen", 1, true)) then
         ---@type QfrFindWinInTabOpts
         local find_opts = { bufnr = buf, skip_winnr = list_winnr }
         ---@type integer|nil
-        local tabpage_buf_win = find_win_in_tab(list_tabnr, dest_buftype, find_opts)
+        local tabpage_buf_win = find_win_in_tab(list_tabnr, adj_dest_buftype, find_opts)
         if tabpage_buf_win then return true, tabpage_buf_win end
     end
 
-    if string.find(switchbuf, "usetab", 1, true) and not is_loclist then
-        local usetab_win = find_win_in_tabs(list_tabnr, dest_buftype, buf) ---@type integer|nil
+    local usetab = string.find(switchbuf, "usetab", 1, true)
+    if dest_buftype ~= "help" and ((not is_loclist) and usetab) then
+        local usetab_win = find_win_in_tabs(list_tabnr, adj_dest_buftype, buf) ---@type integer|nil
         if usetab_win then return true, usetab_win end
     end
 
-    if string.find(switchbuf, "uselast", 1, true) and not is_loclist then
+    if (not is_loclist) and string.find(switchbuf, "uselast", 1, true) then
         local alt_winnr = fn.tabpagewinnr(list_tabnr, "#") ---@type integer
         local alt_win = fn.win_getid(alt_winnr, list_tabnr) ---@type integer
-        if is_valid_dest_win(alt_win, dest_buftype, buf) then return true, alt_win end
+        if is_valid_dest_win(alt_win, adj_dest_buftype, buf) then return true, alt_win end
     end
 
     ---@type QfrFindWinInTabOpts
     local find_opts = { fin_winnr = list_winnr, skip_winnr = list_winnr }
-    ---@type integer|nil
-    local fallback_win = find_win_in_tab_reverse(list_tabnr, dest_buftype, find_opts)
-
-    if fallback_win then return true, fallback_win end
-    return true, nil
+    return true, find_win_in_tab_reverse(list_tabnr, adj_dest_buftype, find_opts)
 end
 
 -- =====================
@@ -288,45 +291,67 @@ end
 ---@param is_orphan boolean
 ---@return boolean
 local function should_resize_list_win(list_win, dest_win, is_orphan)
-    ry._validate_list_win(list_win)
-    ry._validate_win(dest_win, true)
-    vim.validate("is_orphan", is_orphan, "boolean")
+    if ru._get_g_var("qfr_debug_assertions") then
+        ry._validate_list_win(list_win)
+        ry._validate_win(dest_win, true)
+        vim.validate("is_orphan", is_orphan, "boolean")
+    end
 
     if not ru._get_g_var("qfr_auto_list_height") then return false end
-
     if dest_win or is_orphan then return false end
-
     local win_tabpage = vim.api.nvim_win_get_tabpage(list_win) ---@type integer
     return #vim.api.nvim_tabpage_list_wins(win_tabpage) == 1
 end
+
+---@return integer
+local function create_scratch_buf()
+    local buf = api.nvim_create_buf(false, true)
+    api.nvim_set_option_value("buflisted", false, { buf = buf })
+    api.nvim_set_option_value("bufhidden", "wipe", { buf = buf })
+    api.nvim_set_option_value("buftype", "nofile", { buf = buf })
+    api.nvim_set_option_value("modifiable", false, { buf = buf })
+    api.nvim_set_option_value("readonly", false, { buf = buf })
+    api.nvim_set_option_value("swapfile", false, { buf = buf })
+    api.nvim_set_option_value("undofile", false, { buf = buf })
+
+    return buf
+end
+
+-- If splitting from the list_win, a scratch buffer needs to be created or else the list buffer
+-- will be used. The destination buf cannot be used because it affects the buf open logic
+-- Rather than sorting through when to use the origin win's buf, just always make a scratch buf
 
 ---@param dest_win integer|nil
 ---@param split QfrSplitType
 ---@param buf integer
 ---@param list_win integer
 local function get_buf_win(dest_win, split, buf, list_win)
-    ry._validate_win(dest_win, true)
-    ry._validate_list_win(list_win)
-    ry._validate_buf(buf)
-    ry._validate_split(split)
+    if ru._get_g_var("qfr_debug_assertions") then
+        ry._validate_win(dest_win, true)
+        ry._validate_list_win(list_win)
+        ry._validate_buf(buf)
+        ry._validate_split(split)
+    end
 
     if dest_win and split == "none" then return dest_win end
-
+    local scratch = create_scratch_buf() ---@type integer
     if not dest_win then
-        return api.nvim_open_win(buf, false, { win = list_win, split = "above" })
+        return api.nvim_open_win(scratch, false, { win = list_win, split = "above" })
     end
 
-    if split == "split" then
-        ---@type boolean
-        local splitbelow = api.nvim_get_option_value("splitbelow", { scope = "global" })
-        local split_dir = splitbelow and "below" or "above" ---@type string
-        return api.nvim_open_win(buf, false, { win = dest_win, split = split_dir })
-    end
+    local split_dir = (function()
+        if split == "split" then
+            ---@type boolean
+            local splitbelow = api.nvim_get_option_value("splitbelow", { scope = "global" })
+            return splitbelow and "below" or "above" ---@type string
+        else
+            ---@type boolean
+            local splitright = api.nvim_get_option_value("splitright", { scope = "global" })
+            return splitright and "right" or "left" ---@type string
+        end
+    end)() ---@type string
 
-    ---@type boolean
-    local splitright = api.nvim_get_option_value("splitright", { scope = "global" })
-    local split_dir = splitright and "right" or "left" ---@type string
-    return api.nvim_open_win(buf, false, { win = dest_win, split = split_dir })
+    return api.nvim_open_win(scratch, false, { win = dest_win, split = split_dir })
 end
 
 ---@param finish QfrFinishMethod
@@ -353,8 +378,9 @@ local function tabnew_open(list_win, item, finish, is_orphan, pattern)
     vim.api.nvim_exec_autocmds("QuickFixCmdPost", { pattern = pattern })
 end
 
--- LOW: Can this logic be generalized? Should it be?
+-- LOW: Should this logic be generalized to other modules?
 
+---@param split QfrSplitType
 ---@param finish QfrFinishMethod
 ---@param idx_func QfrIdxFunc
 ---@return nil
@@ -376,20 +402,17 @@ local function open_item_from_list(split, finish, idx_func)
         or nil ---@type integer|nil
 
     local is_orphan = is_loclist and not loclist_origin ---@type boolean
-
     local item, idx = idx_func(src_win) ---@type vim.quickfix.entry|nil, integer|nil
     if not (item and item.bufnr and item.type and idx) then return end
 
     local dest_buftype = item.type == "\1" and "help" or "" ---@type string
     ---@type boolean, integer|nil
     local ok, dest_win =
-        get_dest_win(list_win, dest_buftype, item.bufnr, is_loclist, loclist_origin)
-
+        get_dest_win(list_win, dest_buftype, item.bufnr, is_loclist, loclist_origin, split)
     if not ok then return end
 
     local pattern = src_win and "ll" or "cc"
     vim.api.nvim_exec_autocmds("QuickFixCmdPre", { pattern = pattern })
-
     rt._set_list(src_win, "u", { nr = 0, idx = idx })
 
     if split == "tabnew" then
@@ -400,21 +423,25 @@ local function open_item_from_list(split, finish, idx_func)
     local should_resize = should_resize_list_win(list_win, dest_win, is_orphan) ---@type boolean
     local row, col = unpack(api.nvim_win_get_cursor(list_win)) ---@type integer, integer
     if row ~= idx then
+        -- We don't know yet if handle_orphan will close the list_win, so don't skip this
         ru._protected_set_cursor(list_win, { idx, col })
-        ru._do_zzze(list_win)
+        if not should_resize then ru._do_zzze(list_win) end
     end
 
     local buf_win = get_buf_win(dest_win, split, item.bufnr, list_win) ---@type integer
     local clearjumps = not (split == "none" and dest_win == buf_win) ---@type boolean
-    local goto_win = finish == "focusWin" ---@type boolean
+    local focus = finish == "focusWin" ---@type boolean
     ru._open_item_to_win(
         item,
-        { buftype = dest_buftype, clearjumps = clearjumps, goto_win = goto_win, win = buf_win }
+        { buftype = dest_buftype, clearjumps = clearjumps, focus = focus, win = buf_win }
     )
 
-    if should_resize then ro._resize_list_win(list_win) end
-    if is_orphan then handle_orphan(list_win, buf_win, finish) end
+    if should_resize then
+        ro._resize_list_win(list_win)
+        ru._do_zzze(list_win)
+    end
 
+    if is_orphan then handle_orphan(list_win, buf_win, finish) end
     vim.api.nvim_exec_autocmds("QuickFixCmdPost", { pattern = pattern })
 end
 

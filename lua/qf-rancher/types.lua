@@ -459,7 +459,7 @@ end
 ---@class QfrBufOpenOpts
 ---@field buftype? string
 ---@field clearjumps? boolean
----@field goto_win? boolean
+---@field focus? boolean
 ---@field skip_set_cur_pos? boolean
 ---@field skip_zzze? boolean
 ---@field win? integer
@@ -470,7 +470,7 @@ function Types._validate_open_buf_opts(opts)
     vim.validate("opts", opts, "table")
     vim.validate("opts.buftype", opts.buftype, "string", true)
     vim.validate("opts.clearjumps", opts.clearjumps, "boolean", true)
-    vim.validate("opts.goto_win", opts.goto_win, "boolean", true)
+    vim.validate("opts.focus", opts.focus, "boolean", true)
     vim.validate("opts.skip_set_cur_pos", opts.skip_set_cur_pos, "boolean", true)
     vim.validate("opts.skip_zzze", opts.skip_zzze, "boolean", true)
     Types._validate_win(opts.win, true)
