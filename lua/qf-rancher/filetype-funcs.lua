@@ -310,7 +310,6 @@ local function create_scratch_buf()
     api.nvim_set_option_value("bufhidden", "wipe", { buf = buf })
     api.nvim_set_option_value("buftype", "nofile", { buf = buf })
     api.nvim_set_option_value("modifiable", false, { buf = buf })
-    api.nvim_set_option_value("readonly", false, { buf = buf })
     api.nvim_set_option_value("swapfile", false, { buf = buf })
     api.nvim_set_option_value("undofile", false, { buf = buf })
 
