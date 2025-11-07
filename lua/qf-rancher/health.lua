@@ -1,0 +1,29 @@
+local M = {}
+
+M.check = function()
+    vim.health.start("Installation")
+    if vim.fn.has("nvim-0.11") then
+        vim.health.ok("Neovim version is at least 0.11")
+    else
+        vim.health.warn("Neovim version is below 0.11")
+    end
+
+    vim.health.start("Config")
+    for v, t in pairs(_G._QFR_G_VAR_MAP) do
+        local allowed = table.concat(t[1], ", ") ---@type string
+        local val = vim.g[v] ---@type any
+        local val_type = type(val) ---@type string
+        ---@type string
+        local val_fmt = val_type == "table" and table.concat(val, ", ") or tostring(val)
+        ---@type string
+        local var_info = "g:" .. v .. " = " .. val_fmt .. " (Allowed: " .. allowed .. ")"
+
+        if vim.tbl_contains(t[1], val_type) then
+            vim.health.ok(var_info)
+        else
+            vim.health.error(var_info)
+        end
+    end
+end
+
+return M

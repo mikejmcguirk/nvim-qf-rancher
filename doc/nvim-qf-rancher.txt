@@ -21,8 +21,20 @@ Installation                                           *qf-rancher-installation*
 
                                                               *qfr-installation*
 Neovim 0.11+ is supported
-TODO: Add installation steps for lazy and vim.pack
-(NOTE: For this, make a .config/nvim-lazy dir and an alias that points to it)
+
+Lazy.nvim:
+>
+    "mikejmcguirk/nvim-qf-rancher",
+    lazy = false,
+    init = function()
+        -- set g variables here
+    end,
+<
+vim.pack spec (v0.12+):
+>
+    { src = "https://github.com/mikejmcguirk/nvim-qf-rancher" },
+<
+Verify installation and settings with "checkhealth qf-rancher"
 
 DEV NOTES:
 - Plugin development requires Neovim built with LuaJIT
@@ -35,7 +47,9 @@ Configuration                                                *qf-rancher-config*
                                                                     *qfr-config*
 
 Qfr is configured using vim.g variables. For lazy.nvim users, make sure to
-set thse in the "init" section of your plugin spec
+set these in the "init" section of your plugin spec
+
+The current settings can be verified with "checkhealth qf-rancher"
 
 qfr_auto_center_result                                  *qfr_auto_center_result*
 

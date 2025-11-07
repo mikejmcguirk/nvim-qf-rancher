@@ -48,11 +48,20 @@ local fn = vim.fn
 ---@tag qfr-installation
 ---@brief [[
 ---Neovim 0.11+ is supported
----TODO: Add installation steps for lazy and vim.pack
----(NOTE: For this, make a .config/nvim-lazy dir and an alias that points to it)
 ---
----vim.pack spec:
----{ src = "https://github.com/mikejmcguirk/nvim-qf-rancher" },
+---Lazy.nvim:
+--->
+---    "mikejmcguirk/nvim-qf-rancher",
+---    lazy = false,
+---    init = function()
+---        -- set g variables here
+---    end,
+---<
+---vim.pack spec (v0.12+):
+--->
+---    { src = "https://github.com/mikejmcguirk/nvim-qf-rancher" },
+---<
+---Verify installation and settings with "checkhealth qf-rancher"
 ---
 ---DEV NOTES:
 ---- Plugin development requires Neovim built with LuaJIT
@@ -66,7 +75,9 @@ local fn = vim.fn
 ---@brief [[
 ---
 ---Qfr is configured using vim.g variables. For lazy.nvim users, make sure to
----set thse in the "init" section of your plugin spec
+---set these in the "init" section of your plugin spec
+---
+---The current settings can be verified with "checkhealth qf-rancher"
 ---@brief ]]
 
 -- MID: Create specific validator functions for these where appropriate
@@ -240,10 +251,6 @@ end
 
 ---@export nvim-qf-rancher
 
--- NOTE: In order for the defer require to work, all function calls must be inside of
--- anonymous functions. If you pass, for example, eo.closeqflist as a function reference, eo
--- needs to be evaluated at command creation
-
 ------------------------
 -- Map and Cmd Pieces --
 ------------------------
@@ -322,7 +329,6 @@ if vim.g.qfr_set_default_cmds then
     end
 end
 
--- TODO: Add health file :h health-dev
 -- TODO: Move to vimcats: https://github.com/mrcjkb/vimcats
 -- TODO: https://luajit.org/extensions.html
 -- I know some of these functions are in here. They either need to be removed or this needs to be
@@ -353,6 +359,8 @@ end
 -- - :h compiler-select
 -- MID: Add ftplugin files that use rancher, such as make commands piped to the system module
 -- MID: The open mappings and such should work in visual mode
+-- MID: Send marks to list. Bufmarks to location list. Global marks to qflist
+-- https://github.com/chentoast/marks.nvim?tab=readme-ov-file
 
 -- LOW: If we explore the idea of editing the qf buffer, the best way to do it seems to be to
 -- treat "edit mode" as a distinct thing, where it can then be saved and propagate the changes

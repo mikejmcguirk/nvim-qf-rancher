@@ -91,6 +91,10 @@ local function replace_loclist()
     return get_output_opts(cur_win(), "u")
 end
 
+-- NOTE: In order for the defer require to work, all function calls must be inside of
+-- anonymous functions. If you pass, for example, eo.closeqflist as a function reference, eo
+-- needs to be evaluated at command creation
+
 -- Mode(s), Plug Map, User Map, Desc, Action
 --- @alias QfrMapData{ [1]:string[], [2]:string, [3]:string, [4]: string, [5]: function }
 
