@@ -24,6 +24,17 @@ M.check = function()
             vim.health.error(var_info)
         end
     end
+
+    -- MID: This would be better if it checked and reported on the status of all available
+    -- grepprgs, highlighting the one currently selected. Defer this until grep module refactor
+
+    vim.health.start("Grep")
+    local grepprg = tostring(vim.g.qfr_grepprg) ---@type string
+    if vim.fn.executable(grepprg) == 1 then
+        vim.health.ok("Qfr grepprg " .. grepprg .. " is executable")
+    else
+        vim.health.error("Qfr grepprg " .. grepprg .. " is not executable")
+    end
 end
 
 return M

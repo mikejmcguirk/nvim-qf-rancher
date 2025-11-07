@@ -233,6 +233,7 @@ end
 
 ---@alias QfrGrepLocs string[]
 
+---
 ---Fields:
 ---- string pattern
 ---- string |QfrInputType|
@@ -258,14 +259,20 @@ local function get_grep_names()
     return vim.tbl_keys(greps)
 end
 
+---
 ---Run a registered grep function
+---
 ---The list title will be set to:
 ---"[grep name] [base grep cmd] [pattern]"
+---
+---Use "checkhealth qf-rancher" to verify the status of the current
+---g:qfr_grepprg value
+---
 ---If g:qfr_reuse_title is true, output_opts.action is " ", and a list
 ---with the grep's title already exists, that list will be reused
----This command uses the system module to run the grep and print
+---
+---This command uses the |qfr-system| module to run the grep and print
 ---results
----TODO: Make a link to the system doc
 ---@param name string Will check all currently registered greps
 ---@param input_opts QfrInputOpts See |qfr-input-opts|
 ---If a pattern is provided, that will be used for the
@@ -290,6 +297,7 @@ function Grep.grep(name, input_opts, system_opts, output_opts)
     end
 end
 
+---
 ---Register a grep function for use in comands and API calls
 ---@param grep_info QfrGrepInfo The grep will be registered
 ---under the name provided in this table
@@ -299,6 +307,7 @@ function Grep.register_grep(grep_info)
     greps[grep_info.name] = grep_info
 end
 
+---
 ---Remove a registered grep. The last grep cannot be removed
 ---@param name string
 ---@return nil

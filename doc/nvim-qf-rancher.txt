@@ -40,6 +40,7 @@ DEV NOTES:
 - Plugin development requires Neovim built with LuaJIT
 - Testing is performed with nlua (https://github.com/mfussenegger/nlua)
   and Busted
+- Formatting is performed with stylua
 
 ==============================================================================
 Configuration                                                *qf-rancher-config*
@@ -1236,6 +1237,7 @@ QfrGrepLocs                                                        *QfrGrepLocs*
 
 
 QfrGrepPartsFunc                                              *QfrGrepPartsFunc*
+
     Fields:
     - string pattern
     - string |QfrInputType|
@@ -1256,14 +1258,20 @@ QfrGrepInfo                                                        *QfrGrepInfo*
 
                                                                      *Grep.grep*
 Grep.grep({name}, {input_opts}, {system_opts}, {output_opts})
+
     Run a registered grep function
+
     The list title will be set to:
     "[grep name] [base grep cmd] [pattern]"
+
+    Use "checkhealth qf-rancher" to verify the status of the current
+    g:qfr_grepprg value
+
     If g:qfr_reuse_title is true, output_opts.action is " ", and a list
     with the grep's title already exists, that list will be reused
-    This command uses the system module to run the grep and print
+
+    This command uses the |qfr-system| module to run the grep and print
     results
-    TODO: Make a link to the system doc
 
     Parameters: ~
         {name}         (string) Will check all currently registered greps
@@ -1283,6 +1291,7 @@ Grep.grep({name}, {input_opts}, {system_opts}, {output_opts})
 
 
 Grep.register_grep({grep_info})                             *Grep.register_grep*
+
     Register a grep function for use in comands and API calls
 
     Parameters: ~
@@ -1294,6 +1303,7 @@ Grep.register_grep({grep_info})                             *Grep.register_grep*
 
 
 Grep.clear_grep({name})                                        *Grep.clear_grep*
+
     Remove a registered grep. The last grep cannot be removed
 
     Parameters: ~
