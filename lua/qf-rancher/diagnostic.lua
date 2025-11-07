@@ -247,8 +247,6 @@ end
 return Diag
 ---@export Diag
 
--- TODO: Add tests
-
 -- MID: Ability to select/map based on namespace
 -- MID: Possibly related to the above - query by diagnostic producer(s). Glancing at the built-in
 -- code, each LSP has its own namespace. Should be able to make a convenience function to get

@@ -123,6 +123,4 @@ bufmap_plug("n", "<C-x>", "<Plug>(qfr-list-open-tabnew-focuslist)", t_focuslist_
 
 ---@export Ftplugin
 
--- TODO: Tests
-
 -- LOW: Add an undo_ftplugin script

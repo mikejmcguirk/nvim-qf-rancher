@@ -276,8 +276,6 @@ end
 
 return Stack
 
--- TODO: Testing
-
 -- MID: Create a clean stack cmd/map that removes empty stacks and shifts down the remainders. You
 -- should then be able to use the default setqflist " " behavior to delete the tail. You can then
 -- make auto-consolidation a non-default option

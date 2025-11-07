@@ -495,8 +495,6 @@ end
 
 return M
 
--- TODO: tests
-
 -- MAYBE: For some of the context switching, eventignore could be useful. But very bad if we error
 -- with that option on
 

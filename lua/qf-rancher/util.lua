@@ -779,5 +779,3 @@ function M._valid_win_for_loclist(win)
 end
 
 return M
-
--- TODO: Tests

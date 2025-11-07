@@ -396,8 +396,6 @@ end
 return Filter
 ---@export Filter
 
--- TODO: Tests
-
 -- MID: Make a filer for only valid error lines.
 --  (buf_is_valid or fname_is_valid) and (lnum or pattern)
 -- - With this, make an additional entry validation to check for valid errors only

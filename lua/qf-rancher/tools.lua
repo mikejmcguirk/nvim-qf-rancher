@@ -240,8 +240,6 @@ end
 
 return M
 
--- TODO: Tests
-
 -- MID: Gated behind a g:var, re-implement the ability to add new lists inside the stack without
 -- deleting the lists after by shifting the previous lists down and out. Before doing this, it is
 -- necessary to properly understand the nuances of how id, nr, and action interact

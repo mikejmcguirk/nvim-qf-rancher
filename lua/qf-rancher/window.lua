@@ -509,8 +509,6 @@ end
 
 return Window
 
--- TODO: Tests
-
 -- MID: Implement a feature where, if you open list to a blank one, do a wrapping search forward or
 --     backward for a list with items
 -- - Or less obstrusively, showing history on blank lists or a statusline component

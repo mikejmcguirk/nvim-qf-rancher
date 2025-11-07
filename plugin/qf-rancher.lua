@@ -20,7 +20,6 @@ local rw = Qfr_Defer_Require("qf-rancher.window") ---@type QfrWins
 local api = vim.api
 local fn = vim.fn
 
--- TODO: Add a credits/inspiration section
 -- LOW: The g variable docs could also be automatically generated
 
 ---@mod nvim-qf-rancher.txt Error list husbandry
@@ -333,6 +332,8 @@ if vim.g.qfr_set_default_cmds then
     end
 end
 
+-- TODO: Add README
+-- TODO: Add tag. I think v0.1
 -- TODO: Move to vimcats: https://github.com/mrcjkb/vimcats
 -- TODO: https://luajit.org/extensions.html
 -- I know some of these functions are in here. They either need to be removed or this needs to be
