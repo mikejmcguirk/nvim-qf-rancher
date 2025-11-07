@@ -109,7 +109,6 @@ end
 --- NOTE: Because this runs in loops, skip validation
 local function is_valid_dest_win(win, dest_buftype, buf)
     local wintype = fn.win_gettype(win)
-
     local win_buf = api.nvim_win_get_buf(win) ---@type integer
     local win_buftype = api.nvim_get_option_value("buftype", { buf = win_buf }) ---@type string
     local has_buf = (function()
@@ -130,13 +129,14 @@ end
 ---@param opts QfrFindWinInTabOpts
 ---@return integer|nil
 local function find_win_in_tab(tabnr, dest_buftype, opts)
-    ry._validate_uint(tabnr)
-    vim.validate("dest_buftype", dest_buftype, "string")
-    ry._validate_find_win_in_tab_opts(opts)
+    if ru._get_g_var("qfr_debug_assertions") then
+        ry._validate_uint(tabnr)
+        vim.validate("dest_buftype", dest_buftype, "string")
+        ry._validate_find_win_in_tab_opts(opts)
+    end
 
     local max_winnr = fn.tabpagewinnr(tabnr, "$") ---@type integer
     local skip_winnr = opts.skip_winnr ---@type integer|nil
-
     for i = 1, max_winnr do
         if i ~= skip_winnr then
             -- Convert now because win_gettype does not support tab context
@@ -153,13 +153,14 @@ end
 ---@param buf integer|nil
 ---@return integer|nil
 local function find_win_in_tabs(list_tabnr, dest_buftype, buf)
-    ry._validate_uint(list_tabnr)
-    vim.validate("dest_buftype", dest_buftype, "string")
-    ry._validate_uint(buf, true)
+    if ru._get_g_var("qfr_debug_assertions") then
+        ry._validate_uint(list_tabnr)
+        vim.validate("dest_buftype", dest_buftype, "string")
+        ry._validate_uint(buf, true)
+    end
 
     local test_tabnr = list_tabnr ---@type integer
-    local max_tabnr = fn.tabpagenr("$") ---@type integer
-
+    local max_tabnr = #api.nvim_list_tabpages() ---@type integer
     for _ = 1, 100 do
         test_tabnr = test_tabnr + 1
         if test_tabnr > max_tabnr then test_tabnr = 1 end
@@ -178,9 +179,11 @@ end
 ---@param opts QfrFindWinInTabOpts
 ---@return integer|nil
 local function find_win_in_tab_reverse(tabnr, dest_buftype, opts)
-    ry._validate_uint(tabnr)
-    vim.validate("dest_buftype", dest_buftype, "string")
-    ry._validate_find_win_in_tab_opts(opts)
+    if ru._get_g_var("qfr_debug_assertions") then
+        ry._validate_uint(tabnr)
+        vim.validate("dest_buftype", dest_buftype, "string")
+        ry._validate_find_win_in_tab_opts(opts)
+    end
 
     local max_winnr = fn.tabpagewinnr(tabnr, "$") ---@type integer
     local fin_winnr = opts.fin_winnr or 1 ---@type integer
@@ -202,15 +205,19 @@ local function find_win_in_tab_reverse(tabnr, dest_buftype, opts)
     return nil
 end
 
+-- TODO: If you open a help buffer into a non-buftype/wintype win, should just work. I think
+-- you just set dest_buftype to zero, but unsure if Window type checks are needed too
+
 ---@param list_tabnr integer
 ---@param dest_buftype string
 ---@return integer|nil
 local function get_count_win(list_tabnr, dest_buftype)
-    ry._validate_uint(list_tabnr)
-    vim.validate("dest_buftype", dest_buftype, "string")
+    if ru._get_g_var("qfr_debug_assertions") then
+        ry._validate_uint(list_tabnr)
+        vim.validate("dest_buftype", dest_buftype, "string")
+    end
 
-    local max_winnr = fn.tabpagewinnr(list_tabnr, "$") ---@type integer
-    local adj_count = math.min(vim.v.count, max_winnr) ---@type integer
+    local adj_count = math.min(vim.v.count, fn.tabpagewinnr(list_tabnr, "$")) ---@type integer
     local target_win = fn.win_getid(adj_count, list_tabnr) ---@type integer
 
     if is_valid_dest_win(target_win, dest_buftype) then return target_win end
