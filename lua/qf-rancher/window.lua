@@ -58,18 +58,12 @@ end
 ---@return integer
 local function resolve_height_for_list(src_win, height)
     ry._validate_win(src_win, true)
-    vim.validate("height", height, "number", true)
+    ry._validate_uint(height, true)
 
     if height then return height end
-
-    if not ru._get_g_var("qfr_auto_list_height") then return QFR_MAX_HEIGHT end
-
+    if not vim.g.qfr_auto_list_height then return QFR_MAX_HEIGHT end
     local size = rt._get_list(src_win, { nr = 0, size = 0 }).size ---@type integer
-    if not size then return QFR_MAX_HEIGHT end
-    size = math.max(size, 1)
-    size = math.min(size, QFR_MAX_HEIGHT)
-
-    return size
+    return size == 0 and QFR_MAX_HEIGHT or math.min(size, QFR_MAX_HEIGHT)
 end
 
 ---@param opts QfrListOpenOpts
@@ -91,13 +85,11 @@ local function handle_open_list_win(list_win, opts)
     validate_and_clean_open_opts(opts)
 
     if opts.nop_if_open then return false end
-
     if opts.height or ru._get_g_var("qfr_auto_list_height") then
         Window._resize_list_win(list_win, opts.height)
     end
 
     if not opts.keep_win then api.nvim_set_current_win(list_win) end
-
     return true
 end
 
@@ -160,7 +152,6 @@ function Window.open_qflist(opts)
     local cur_win = api.nvim_get_current_win() ---@type integer
     local tabpage = api.nvim_win_get_tabpage(cur_win) ---@type integer
     local list_win = ru._get_qf_win({ tabpage = tabpage }) ---@type integer|nil
-
     if list_win then return handle_open_list_win(list_win, opts) end
 
     local ll_wins = ru._get_all_loclist_wins({ tabpage = tabpage }) ---@type integer[]
@@ -174,7 +165,7 @@ function Window.open_qflist(opts)
         ru._pclose_and_rm(ll_win, true, true)
     end
 
-    local height = resolve_height_for_list(nil, opts.height)
+    local height = resolve_height_for_list(nil, opts.height) ---@type integer
     ---@diagnostic disable: missing-fields
     api.nvim_cmd({ cmd = "copen", count = height, mods = { split = get_qfsplit() } }, {})
     return open_cleanup(views, opts.keep_win, cur_win)
