@@ -63,7 +63,7 @@ local function resolve_height_for_list(src_win, height)
     if height then return height end
     if not vim.g.qfr_auto_list_height then return QFR_MAX_HEIGHT end
     local size = rt._get_list(src_win, { nr = 0, size = 0 }).size ---@type integer
-    return size == 0 and QFR_MAX_HEIGHT or math.min(size, QFR_MAX_HEIGHT)
+    return size == 0 and 1 or math.min(size, QFR_MAX_HEIGHT)
 end
 
 ---@param opts QfrListOpenOpts
