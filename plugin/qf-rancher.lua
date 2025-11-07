@@ -67,6 +67,7 @@ local fn = vim.fn
 ---- Plugin development requires Neovim built with LuaJIT
 ---- Testing is performed with nlua (https://github.com/mfussenegger/nlua)
 ---  and Busted
+---- Formatting is performed with stylua
 ---@brief ]]
 
 ---@mod qf-rancher-config Configuration
@@ -214,6 +215,9 @@ for k, v in pairs(_QFR_G_VAR_MAP) do
     local cur_g_val = vim.g[k] ---@type any
     if not vim.tbl_contains(v[1], type(cur_g_val)) then vim.api.nvim_set_var(k, v[2]) end
 end
+
+-- LOW: A function could be provided to delete or re-create these autocmds. And their current
+-- state could be reported in checkhealth
 
 if vim.g.qfr_create_loclist_autocmds then
     local qfr_loclist_group = vim.api.nvim_create_augroup("qfr-loclist-group", { clear = true })
