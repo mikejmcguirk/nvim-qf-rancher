@@ -238,15 +238,13 @@ local function get_title_cfg(item_buf)
     -- Do not assert item_buf is not nil because nils are valid in qf entries
     -- Do not assert that item_buf is valid since a buf can be wiped after the list is created
     ry._validate_uint(item_buf, true)
-
     if not ru._get_g_var("qfr_preview_show_title") then return { title = nil } end
-
     if not (item_buf and api.nvim_buf_is_valid(item_buf)) then return { title = "No buffer" } end
 
     local preview_name = api.nvim_buf_get_name(item_buf) ---@type string
     local relative_name = fn.fnamemodify(preview_name, ":.") ---@type string
-    -- TODO: Need validation for title_pos
-    local g_title_pos = ru._get_g_var("qfr_preview_title_pos") ---@type QfrTitlePos
+    local g_title_pos = vim.g.qfr_preview_title_pos ---@type QfrTitlePos
+    ry._validate_title_pos(g_title_pos)
     return { title = relative_name, title_pos = g_title_pos }
 end
 
@@ -834,8 +832,6 @@ return Preview
 -- =============
 
 -- https://github.com/r0nsha/qfpreview.nvim
-
--- TODO: Testing
 
 -- MID: If the file has to be read fresh, that should be handled async
 -- - Study Lua co-routines, built-in async lib, and lewis's async lib

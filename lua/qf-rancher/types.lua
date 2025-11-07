@@ -381,6 +381,15 @@ end
 
 ---@alias QfrTitlePos "left"|"center"|"right"
 
+---@param pos QfrTitlePos
+---@return nil
+function Types._validate_title_pos(pos)
+    vim.validate("pos", pos, "string")
+    vim.validate("pos", pos, function()
+        return pos == "left" or pos == "center" or pos == "right"
+    end)
+end
+
 ---@param winblend integer
 ---@return nil
 function Types._validate_winblend(winblend)
@@ -677,7 +686,5 @@ function Types._validate_history_opts(opts)
 end
 
 return Types
-
--- TODO: Tests
 
 -- LOW: Create a type and validation for getqflist returns
