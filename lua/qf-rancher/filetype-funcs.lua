@@ -360,28 +360,42 @@ local function get_buf_win(dest_win, split, buf, list_win)
     return api.nvim_open_win(scratch, false, { win = dest_win, split = split_dir })
 end
 
+---@param buf integer
+---@return boolean
+local function is_buf_empty_noname(buf)
+    if #api.nvim_buf_get_name(buf) > 0 then return false end
+    local lines = api.nvim_buf_get_lines(buf, 0, -1, false) ---@type string[]
+    if #lines > 1 or #lines[1] > 0 then return false end
+    return true
+end
+
+-- MID: This might be better handled with :tabedit
+
 ---@param finish QfrFinishMethod
 ---@return nil
 local function tabnew_open(list_win, item, finish, is_orphan, pattern)
-    ry._validate_list_win(list_win)
-    ry._validate_list_item(item)
-    ry._validate_finish_method(finish)
-    vim.validate("is_orphan", is_orphan, "boolean")
-    vim.validate("pattern", pattern, "string")
+    if vim.g.qfr_debug_assertions then
+        ry._validate_list_win(list_win)
+        ry._validate_list_item(item)
+        ry._validate_finish_method(finish)
+        vim.validate("is_orphan", is_orphan, "boolean")
+        vim.validate("pattern", pattern, "string")
+    end
 
-    local tab_count = fn.tabpagenr("$") ---@type integer
-    ---@type integer
-    local range = vim.v.count > 0 and math.min(vim.v.count, tab_count) or tab_count
-    api.nvim_cmd({ cmd = "tabnew", range = { range } }, {})
+    local tab_count = #api.nvim_list_tabpages() ---@type integer
+    if vim.v.count > 0 then tab_count = math.min(vim.v.count, tab_count) end
+    api.nvim_cmd({ cmd = "tabnew", range = { tab_count } }, {})
+    local tabnew_win = api.nvim_get_current_win() ---@type integer
+    local tabnew_buf = api.nvim_win_get_buf(tabnew_win) ---@type integer
+    if is_buf_empty_noname(tabnew_buf) then
+        api.nvim_set_option_value("bufhidden", "wipe", { buf = tabnew_buf })
+    end
 
-    local buf_win = api.nvim_get_current_win() ---@type integer
     local dest_buftype = item.type == "\1" and "help" or "" ---@type string
-    ru._open_item_to_win(item, { buftype = dest_buftype, win = buf_win })
-    if finish == "focusList" and not is_orphan then vim.api.nvim_set_current_win(list_win) end
-
-    if is_orphan then handle_orphan(list_win, buf_win, finish) end
-
-    vim.api.nvim_exec_autocmds("QuickFixCmdPost", { pattern = pattern })
+    local focus = finish == "focusList" and not is_orphan ---@type boolean
+    ru._open_item_to_win(item, { buftype = dest_buftype, focus = focus, win = tabnew_win })
+    if is_orphan then handle_orphan(list_win, tabnew_win, finish) end
+    api.nvim_exec_autocmds("QuickFixCmdPost", { pattern = pattern })
 end
 
 -- LOW: Should this logic be generalized to other modules?
