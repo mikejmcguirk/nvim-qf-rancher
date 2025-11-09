@@ -320,10 +320,9 @@ function M._clear_list_and_resize(src_win, list_nr)
     ry._validate_win(src_win, true)
 
     local result = rt._clear_list(src_win, list_nr)
+    if result == -1 or not vim.g.qfr_auto_list_height then return result end
 
-    if result == -1 then return result end
-    if not M._get_g_var("qfr_auto_list_height") then return result end
-
+    -- MID: Shouldn't result always be the win that was changed?
     if result == 0 or result == rt._get_list(src_win, { nr = 0 }).nr then
         local tabpage = src_win and api.nvim_win_get_tabpage(src_win)
             or api.nvim_get_current_tabpage()

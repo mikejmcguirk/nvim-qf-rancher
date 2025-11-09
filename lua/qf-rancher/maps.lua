@@ -136,6 +136,12 @@ M.uienter_tbls[#M.uienter_tbls + 1] = M.qfr_win_maps
 M.cmd_tbls[#M.cmd_tbls + 1] = M.qfr_win_cmds
 M.doc_tbls[#M.doc_tbls + 1] = { rw_str, M.qfr_win_maps, M.qfr_win_cmds }
 
+-- MID: Have/create a bespoke version of [q/]q and the like that ignores useopen. It's a nag when
+-- trying to scroll through buffers and the open win changes because of that setting
+-- This would apply to the ftplugin {} maps as well
+-- It could be possible to only apply this logic to {}, but that is weird to reason about, whereas
+-- "qfr_ignore_useopen_on_scroll" or something like that is mentally tractable
+
 -- stylua: ignore
 ---@type QfrMapData[]
 M.qfr_nav_maps = {

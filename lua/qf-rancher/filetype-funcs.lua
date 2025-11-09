@@ -160,7 +160,7 @@ local function find_win_in_tabs(list_tabnr, dest_buftype, buf)
     end
 
     local test_tabnr = list_tabnr ---@type integer
-    local max_tabnr = #api.nvim_list_tabpages() ---@type integer
+    local max_tabnr = fn.tabpagenr("$") ---@type integer
     for _ = 1, 100 do
         test_tabnr = test_tabnr + 1
         if test_tabnr > max_tabnr then test_tabnr = 1 end
@@ -382,7 +382,7 @@ local function tabnew_open(list_win, item, finish, is_orphan, pattern)
         vim.validate("pattern", pattern, "string")
     end
 
-    local tab_count = #api.nvim_list_tabpages() ---@type integer
+    local tab_count = fn.tabpagenr("$") ---@type integer
     if vim.v.count > 0 then tab_count = math.min(vim.v.count, tab_count) end
     api.nvim_cmd({ cmd = "tabnew", range = { tab_count } }, {})
     local tabnew_win = api.nvim_get_current_win() ---@type integer

@@ -6,9 +6,7 @@ local w = require("qf-rancher.window")
 
 ---@return integer|nil
 local function find_qf_win_in_cur_tabpage()
-    local tabpage = api.nvim_get_current_tabpage() ---@type integer
-    local tabpage_wins = api.nvim_tabpage_list_wins(tabpage) ---@type integer[]
-    for _, win in ipairs(tabpage_wins) do
+    for _, win in ipairs(api.nvim_tabpage_list_wins(0)) do
         local wintype = vim.fn.win_gettype(win)
         if wintype == "quickfix" then return win end
     end
@@ -18,9 +16,7 @@ end
 
 ---@return integer|nil
 local function find_ll_win_in_cur_tabpage()
-    local tabpage = api.nvim_get_current_tabpage() ---@type integer
-    local tabpage_wins = api.nvim_tabpage_list_wins(tabpage) ---@type integer[]
-    for _, win in ipairs(tabpage_wins) do
+    for _, win in ipairs(api.nvim_tabpage_list_wins(0)) do
         local wintype = vim.fn.win_gettype(win)
         if wintype == "loclist" then return win end
     end
