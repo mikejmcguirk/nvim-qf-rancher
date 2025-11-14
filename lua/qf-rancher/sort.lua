@@ -367,7 +367,7 @@ end
 local sorts = {
     fname = { name = "fname", asc_func = Sort.sort_fname_asc, desc_func = Sort.sort_fname_desc },
     fname_diag = {
-        name = "fnam_diag",
+        name = "fname_diag",
         asc_func = Sort.sort_fname_diag_asc,
         desc_func = Sort.sort_fname_diag_desc,
     },
