@@ -2,7 +2,7 @@
 -- ..ad\\f40+$':-# @=,!;%^&&*()_{}/ /4304\'""?`9$343%$ ^adfadf[ad)[(
 
 local re = Qfr_Defer_Require("qf-rancher.system") ---@type QfrSystem
-local rs = Qfr_Defer_Require("qf-rancher.sort") ---@type QfRancherSort
+local rs_lib = Qfr_Defer_Require("qf-rancher.lib.sort") ---@type QfrLibSort
 local rt = Qfr_Defer_Require("qf-rancher.tools") ---@type QfrTools
 local ru = Qfr_Defer_Require("qf-rancher.util") ---@type QfrUtil
 local ry = Qfr_Defer_Require("qf-rancher.types") ---@type QfrTypes
@@ -151,7 +151,7 @@ local function do_grep(grep_info, input_opts, system_opts, output_opts)
     sys_output_opts = rt.handle_new_same_title(sys_output_opts)
 
     sys_output_opts.list_item_type = grep_info.list_item_type or output_opts.list_item_type
-    sys_output_opts.sort_func = rs.sort_fname_asc
+    sys_output_opts.sort_func = rs_lib.sort_fname_asc
 
     re.system_do(sys_opts, sys_output_opts)
 end

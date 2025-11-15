@@ -1762,12 +1762,6 @@ Modes: { n }, Plug: <Plug>(qfr-qsort-text-asc), Default: "<leader>qte"
 Modes: { n }, Plug: <Plug>(qfr-qsort-text-desc), Default: "<leader>qtE"
  Desc: Sort quickfix by text desc
 
-Modes: { n }, Plug: <Plug>(qfr-qsort-type-asc), Default: "<leader>qtt"
- Desc: Sort quickfix by type asc
-
-Modes: { n }, Plug: <Plug>(qfr-qsort-type-desc), Default: "<leader>qtT"
- Desc: Sort quickfix by type desc
-
 Modes: { n }, Plug: <Plug>(qfr-lsort-fname-asc), Default: "<leader>ltf"
  Desc: Sort location list by fname asc
 
@@ -1792,12 +1786,6 @@ Modes: { n }, Plug: <Plug>(qfr-lsort-text-asc), Default: "<leader>lte"
 Modes: { n }, Plug: <Plug>(qfr-lsort-text-desc), Default: "<leader>ltE"
  Desc: Sort location list by text desc
 
-Modes: { n }, Plug: <Plug>(qfr-lsort-type-asc), Default: "<leader>ltt"
- Desc: Sort location list by type asc
-
-Modes: { n }, Plug: <Plug>(qfr-lsort-type-desc), Default: "<leader>ltT"
- Desc: Sort location list by type desc
-
 Cmd: Qsort
 Desc: Sort quickfix items
 
@@ -1805,7 +1793,7 @@ Cmd: Lsort
 Desc: Sort location list items
 
 ==============================================================================
-Sends diags to the qf list                                                *Sort*
+Sort list items                                                           *Sort*
 
                                                                *qf-rancher-sort*
                                                                       *qfr-sort*
@@ -1823,96 +1811,42 @@ QfrSortPredicate                                              *QfrSortPredicate*
         fun
 
 
+                                                                     *Sort.sort*
+Sort.sort({pred}, {src_win}, {action}, {nr})
+
+    Parameters: ~
+        {pred}     (QfrSortPredicate) A function to sort the list items
+        {src_win}  (integer|nil) Optional location list window context
+        {action}   (QfrAction) What action to take when setting the list
+        {nr}       (integer|"$") Which list nr to operate on
+
+    Returns: ~
+        (nil)
+
+
                                                           *qf-rancher-sort-info*
                                                                  *qfr-sort-info*
 QfrSortInfo                                                        *QfrSortInfo*
 
     Fields: ~
-        {name}       (string) The name of the sort
-        {asc_func}   (QfrSortPredicate) Predicate for asc sorts
-        {desc_func}  (QfrSortPredicate) Predicate for desc sorts
+        {asc}   (QfrSortPredicate) Predicate for asc Sort.sorts
+        {desc}  (QfrSortPredicate) Predicate for desc Sort.sorts
 
 
-                                                          *qf-rancher-sort-opts*
-                                                                 *qfr-sort-opts*
-QfrSortOpts                                                        *QfrSortOpts*
+Sort.sorts                                                          *Sort.sorts*
+     Sorts available to the Qsort and Lsort cmds. The string table key can be
+     fed to those cmds as an argument to use the sorts. Because this table is
+     public, sorts can be directly added or removed
+     Pre-built sorts are available in "qf-rancher.lib.sort"
 
-    Fields: ~
-        {dir}  (QfrSortDir) "asc"|"desc"
-
-
-The below sort predicates are exposed for use in other functions. All have
-the type |QfrSortPredicate|
-
-Sort.sort_fname_asc()                                      *Sort.sort_fname_asc*
-    Sort by filename asc. Break ties with line and column numbers
+    Type: ~
+        (table<string,QfrSortInfo>)
 
 
-Sort.sort_fname_desc()                                    *Sort.sort_fname_desc*
-    Sort by filename desc. Break ties with line and column numbers
+QfrSortDir                                                          *QfrSortDir*
 
-
-Sort.sort_text_asc()                                        *Sort.sort_text_asc*
-    Sort by text asc
-
-
-Sort.sort_text_desc()                                      *Sort.sort_text_desc*
-    Sort by text desc
-
-
-Sort.sort_type_asc()                                        *Sort.sort_type_asc*
-    Sort by list item type asc
-
-
-Sort.sort_type_desc()                                      *Sort.sort_type_desc*
-    Sort by list item type desc
-
-
-Sort.sort_fname_diag_asc()                            *Sort.sort_fname_diag_asc*
-    Sort by filename asc, break ties by diagnostic severity
-
-
-Sort.sort_fname_diag_desc()                          *Sort.sort_fname_diag_desc*
-    Sort by filename desc, break ties by diagnostic severity
-
-
-Sort.sort_severity_asc()                                *Sort.sort_severity_asc*
-    Sort by diagnostic severity asc
-
-
-Sort.sort_severity_desc()                              *Sort.sort_severity_desc*
-    Sort by diagnostic severity desc
-
-
-                                                                     *Sort.sort*
-Sort.sort({name}, {sort_opts}, {output_opts})
-    Run a registered sort
-
-    Parameters: ~
-        {name}         (string) Which registered sort to run
-        {sort_opts}    (QfrSortOpts) See |qfr-sort-opts|
-        {output_opts}  (QfrOutputOpts) See |qfr-output-opts|
-
-    Returns: ~
-        (nil)
-
-
-Sort.register_sort({sort_info})                             *Sort.register_sort*
-    Register a sort for use in commands and API calls
-
-    Parameters: ~
-        {sort_info}  (QfrSortInfo) See |qfr-sort-info| The sort will be
-                     registered under the name provided in this table
-
-    Returns: ~
-        (nil)
-
-
-Sort.clear_sort({name})                                        *Sort.clear_sort*
-     Clears the function name from the registered sorts
-
-    Parameters: ~
-        {name}  (string)
+    Type: ~
+        
 
 
 The callbacks to assign the Qsort and Lsort commands are below. They
@@ -1920,7 +1854,7 @@ expect count = 0 and nargs = 1 to be present in the user_command table.
 They accept the following options:
 - A registered sort name (fname|fname_diag|severity|text|type)
   fname is the default
-  NOTE: fname_diag sorts by filename, with subsorting by diagnostic
+  NOTE: fname_diag Sort.sorts by filename, with subsorting by diagnostic
   severity
 - A |setqflist-action| can also be provided (default "u")
 - If a bang is provided, the sort will be in descending order

@@ -57,12 +57,13 @@ local Types = {}
 -- MID: Triple check the source that the max is 10 and add that validation here. Would need to be
 -- sure not to put it anywhere with an unchecked user count
 
----@param nr integer|"$"|nil
+-- TODO: Should underline scope functions validate internals?
+
+---@param nr? integer|"$"
 ---@param optional? boolean
 ---@return nil
 function Types._validate_list_nr(nr, optional)
     vim.validate("optional", optional, "boolean", true)
-
     vim.validate("nr", nr, { "number", "string" }, optional)
     if type(nr) == "number" then Types._validate_uint(nr) end
     if type(nr) == "string" then
@@ -621,27 +622,17 @@ end
 ---@return nil
 function Types._validate_sort_info(sort_info)
     vim.validate("sort_info", sort_info, "table")
-    vim.validate("sort_info.name", sort_info.name, "string")
-    vim.validate("sort_info.asc_func", sort_info.asc_func, "callable")
-    vim.validate("sort_info.desc_func", sort_info.desc_func, "callable")
+    vim.validate("sort_info.asc_func", sort_info.asc, "callable")
+    vim.validate("sort_info.desc_func", sort_info.desc, "callable")
 end
-
----@alias QfrSortDir "asc"|"desc"
 
 ---@param dir QfrSortDir
 ---@return nil
 function Types._validate_sort_dir(dir)
+    vim.validate("dir", dir, "string")
     vim.validate("dir", dir, function()
         return dir == "asc" or dir == "desc"
     end)
-end
-
----@param sort_opts QfrSortOpts
----@return nil
-function Types._validate_sort_opts(sort_opts)
-    vim.validate("sort_opts", sort_opts, "table")
-    vim.validate("sort_opts.dir", sort_opts.dir, "string")
-    if type(sort_opts.dir) == "string" then Types._validate_sort_dir(sort_opts.dir) end
 end
 
 ---@alias QfrSortable string|integer

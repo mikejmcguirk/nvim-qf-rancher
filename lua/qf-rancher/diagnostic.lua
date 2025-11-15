@@ -1,5 +1,5 @@
 local ra = Qfr_Defer_Require("qf-rancher.stack") ---@type QfrStack
-local rs = Qfr_Defer_Require("qf-rancher.sort") ---@type QfRancherSort
+local rs_lib = Qfr_Defer_Require("qf-rancher.lib.sort") ---@type QfrLibSort
 local rt = Qfr_Defer_Require("qf-rancher.tools") ---@type QfrTools
 local ru = Qfr_Defer_Require("qf-rancher.util") ---@type QfrUtil
 local ry = Qfr_Defer_Require("qf-rancher.types") ---@type QfrTypes
@@ -148,7 +148,7 @@ function Diag.diags_to_list(diag_opts, output_opts)
     if diag_opts.top then raw_diags = filter_diags_top_severity(raw_diags) end
     local disp_func = diag_opts.disp_func or convert_diag ---@type QfrDiagDispFunc
     local converted_diags = vim.tbl_map(disp_func, raw_diags) ---@type vim.quickfix.entry[]
-    table.sort(converted_diags, rs.sort_fname_asc)
+    table.sort(converted_diags, rs_lib.sort_fname_asc)
 
     local adj_output_opts = rt.handle_new_same_title(output_opts) ---@type QfrOutputOpts
     local what_set = vim.tbl_deep_extend("force", adj_output_opts.what, {

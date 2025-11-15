@@ -400,31 +400,23 @@ M.doc_tbls[#M.doc_tbls + 1] = { rf_str, M.qfr_filter_maps, M.qfr_filter_cmds }
 -- stylua: ignore
 ---@type QfrMapData[]
 M.qfr_sort_maps = {
--- ==========
--- == SORT ==
--- ==========
+{ nn, "<Plug>(qfr-qsort-fname-asc)",       ql..sp.."f",     "Sort quickfix by fname asc",            function() rs.sort(rs.sorts.fname.asc,       nil,       "r", vim.v.count) end },
+{ nn, "<Plug>(qfr-qsort-fname-desc)",      ql..sp.."F",     "Sort quickfix by fname desc",           function() rs.sort(rs.sorts.fname.desc,      nil,       "r", vim.v.count) end },
+{ nn, "<Plug>(qfr-qsort-fname-diag-asc)",  ql..sp..dp.."f", "Sort quickfix by fname_diag asc",       function() rs.sort(rs.sorts.fname_diag.asc,  nil,       "r", vim.v.count) end },
+{ nn, "<Plug>(qfr-qsort-fname-diag-desc)", ql..sp..dp.."F", "Sort quickfix by fname_diag desc",      function() rs.sort(rs.sorts.fname_diag.desc, nil,       "r", vim.v.count) end },
+{ nn, "<Plug>(qfr-qsort-severity-asc)",    ql..sp..dp.."s", "Sort quickfix by severity asc",         function() rs.sort(rs.sorts.severity.asc,    nil,       "r", vim.v.count) end },
+{ nn, "<Plug>(qfr-qsort-severity-desc)",   ql..sp..dp.."S", "Sort quickfix by severity desc",        function() rs.sort(rs.sorts.severity.desc,   nil,       "r", vim.v.count) end },
+{ nn, "<Plug>(qfr-qsort-text-asc)",        ql..sp.."e",     "Sort quickfix by text asc",             function() rs.sort(rs.sorts.text.asc,        nil,       "r", vim.v.count) end },
+{ nn, "<Plug>(qfr-qsort-text-desc)",       ql..sp.."E",     "Sort quickfix by text desc",            function() rs.sort(rs.sorts.text.desc,       nil,       "r", vim.v.count) end },
 
-{ nn, "<Plug>(qfr-qsort-fname-asc)",       ql..sp.."f",     "Sort quickfix by fname asc",            function() rs.sort("fname", { dir = "asc" }, replace_qflist()) end },
-{ nn, "<Plug>(qfr-qsort-fname-desc)",      ql..sp.."F",     "Sort quickfix by fname desc",           function() rs.sort("fname", { dir = "desc" }, replace_qflist()) end },
-{ nn, "<Plug>(qfr-qsort-fname-diag-asc)",  ql..sp..dp.."f", "Sort quickfix by fname_diag asc",       function() rs.sort("fname_diag", { dir = "asc" }, replace_qflist()) end },
-{ nn, "<Plug>(qfr-qsort-fname-diag-desc)", ql..sp..dp.."F", "Sort quickfix by fname_diag desc",      function() rs.sort("fname_diag", { dir = "desc" }, replace_qflist()) end },
-{ nn, "<Plug>(qfr-qsort-severity-asc)",    ql..sp..dp.."s", "Sort quickfix by severity asc",         function() rs.sort("severity", { dir = "asc" }, replace_qflist()) end },
-{ nn, "<Plug>(qfr-qsort-severity-desc)",   ql..sp..dp.."S", "Sort quickfix by severity desc",        function() rs.sort("severity", { dir = "desc" }, replace_qflist()) end },
-{ nn, "<Plug>(qfr-qsort-text-asc)",        ql..sp.."e",     "Sort quickfix by text asc",             function() rs.sort("text", { dir = "asc" }, replace_qflist()) end },
-{ nn, "<Plug>(qfr-qsort-text-desc)",       ql..sp.."E",     "Sort quickfix by text desc",            function() rs.sort("text", { dir = "desc" }, replace_qflist()) end },
-{ nn, "<Plug>(qfr-qsort-type-asc)",        ql..sp.."t",     "Sort quickfix by type asc",             function() rs.sort("type", { dir = "asc" }, replace_qflist()) end },
-{ nn, "<Plug>(qfr-qsort-type-desc)",       ql..sp.."T",     "Sort quickfix by type desc",            function() rs.sort("type", { dir = "desc" }, replace_qflist()) end },
-
-{ nn, "<Plug>(qfr-lsort-fname-asc)",       ll..sp.."f",     "Sort location list by fname asc",       function() rs.sort("fname", { dir = "asc" }, replace_loclist()) end },
-{ nn, "<Plug>(qfr-lsort-fname-desc)",      ll..sp.."F",     "Sort location list by fname desc",      function() rs.sort("fname", { dir = "desc" }, replace_loclist()) end },
-{ nn, "<Plug>(qfr-lsort-fname-diag-asc)",  ll..sp..dp.."f", "Sort location list by fname_diag asc",  function() rs.sort("fname_diag", { dir = "asc" }, replace_loclist()) end },
-{ nn, "<Plug>(qfr-lsort-fname-diag-desc)", ll..sp..dp.."F", "Sort location list by fname_diag desc", function() rs.sort("fname_diag", { dir = "desc" }, replace_loclist()) end },
-{ nn, "<Plug>(qfr-lsort-severity-asc)",    ll..sp..dp.."s", "Sort location list by severity asc",    function() rs.sort("severity", { dir = "asc" }, replace_loclist()) end },
-{ nn, "<Plug>(qfr-lsort-severity-desc)",   ll..sp..dp.."S", "Sort location list by severity desc",   function() rs.sort("severity", { dir = "desc" }, replace_loclist()) end },
-{ nn, "<Plug>(qfr-lsort-text-asc)",        ll..sp.."e",     "Sort location list by text asc",        function() rs.sort("text", { dir = "asc" }, replace_loclist()) end },
-{ nn, "<Plug>(qfr-lsort-text-desc)",       ll..sp.."E",     "Sort location list by text desc",       function() rs.sort("text", { dir = "desc" }, replace_loclist()) end },
-{ nn, "<Plug>(qfr-lsort-type-asc)",        ll..sp.."t",     "Sort location list by type asc",        function() rs.sort("type", { dir = "asc" }, replace_loclist()) end },
-{ nn, "<Plug>(qfr-lsort-type-desc)",       ll..sp.."T",     "Sort location list by type desc",       function() rs.sort("type", { dir = "desc" }, replace_loclist()) end },
+{ nn, "<Plug>(qfr-lsort-fname-asc)",       ll..sp.."f",     "Sort location list by fname asc",       function() rs.sort(rs.sorts.fname.asc,       cur_win(), "r", vim.v.count) end },
+{ nn, "<Plug>(qfr-lsort-fname-desc)",      ll..sp.."F",     "Sort location list by fname desc",      function() rs.sort(rs.sorts.fname.desc,      cur_win(), "r", vim.v.count) end },
+{ nn, "<Plug>(qfr-lsort-fname-diag-asc)",  ll..sp..dp.."f", "Sort location list by fname_diag asc",  function() rs.sort(rs.sorts.fname_diag.asc,  cur_win(), "r", vim.v.count) end },
+{ nn, "<Plug>(qfr-lsort-fname-diag-desc)", ll..sp..dp.."F", "Sort location list by fname_diag desc", function() rs.sort(rs.sorts.fname_diag.desc, cur_win(), "r", vim.v.count) end },
+{ nn, "<Plug>(qfr-lsort-severity-asc)",    ll..sp..dp.."s", "Sort location list by severity asc",    function() rs.sort(rs.sorts.severity.asc,    cur_win(), "r", vim.v.count) end },
+{ nn, "<Plug>(qfr-lsort-severity-desc)",   ll..sp..dp.."S", "Sort location list by severity desc",   function() rs.sort(rs.sorts.severity.desc,   cur_win(), "r", vim.v.count) end },
+{ nn, "<Plug>(qfr-lsort-text-asc)",        ll..sp.."e",     "Sort location list by text asc",        function() rs.sort(rs.sorts.text.asc,        cur_win(), "r", vim.v.count) end },
+{ nn, "<Plug>(qfr-lsort-text-desc)",       ll..sp.."E",     "Sort location list by text desc",       function() rs.sort(rs.sorts.text.desc,       cur_win(), "r", vim.v.count) end },
 }
 
 -- stylua: ignore
