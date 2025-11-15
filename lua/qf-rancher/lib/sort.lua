@@ -40,8 +40,8 @@ end
 ---@return string|nil, string|nil
 local function get_fnames(a, b)
     if not (a.bufnr and b.bufnr) then return nil, nil end
-    local fname_a = api.nvim_call_function("bufname", a.bufnr) ---@type string|nil
-    local fname_b = api.nvim_call_function("bufname", b.bufnr) ---@type string|nil
+    local fname_a = api.nvim_call_function("bufname", { a.bufnr }) ---@type string|nil
+    local fname_b = api.nvim_call_function("bufname", { b.bufnr }) ---@type string|nil
     return fname_a, fname_b
 end
 
