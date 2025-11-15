@@ -141,6 +141,9 @@ M.doc_tbls[#M.doc_tbls + 1] = { rw_str, M.qfr_win_maps, M.qfr_win_cmds }
 -- This would apply to the ftplugin {} maps as well
 -- It could be possible to only apply this logic to {}, but that is weird to reason about, whereas
 -- "qfr_ignore_useopen_on_scroll" or something like that is mentally tractable
+-- UPDATE: Should be an option to use the current window
+-- qfr_quickfix_nav_use_cur_win is long though
+-- Can't apply to location lists since they're window bound
 
 -- stylua: ignore
 ---@type QfrMapData[]

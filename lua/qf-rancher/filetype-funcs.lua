@@ -25,8 +25,11 @@ function M._del_one_list_item()
     if #list.items < 1 then return end
 
     local row, col = unpack(api.nvim_win_get_cursor(list_win)) ---@type integer, integer
+    local cur_idx = rt._get_list(src_win, { idx = 0 }).idx ---@type integer
+    local new_idx = cur_idx > row and math.max(cur_idx - 1, 0) or cur_idx ---@type integer
     table.remove(list.items, row)
-    rt._set_list(src_win, "u", { nr = 0, items = list.items, idx = list.idx })
+    local adj_idx = math.min(new_idx, #list.items) ---@type integer
+    rt._set_list(src_win, "u", { nr = 0, items = list.items, idx = adj_idx })
 
     ru._protected_set_cursor(0, { row, col })
 end
@@ -48,27 +51,32 @@ function M._visual_del()
     local src_win = wintype == "loclist" and list_win or nil ---@type integer|nil
     local list = rt._get_list(src_win, { nr = 0, all = true }) ---@type table
     if #list.items < 1 then return end
-    local col = vim.api.nvim_win_get_cursor(list_win)[2] ---@type integer
 
     local cur = fn.getpos(".") ---@type [integer, integer, integer, integer]
     local fin = fn.getpos("v") ---@type [integer, integer, integer, integer]
     local selection = api.nvim_get_option_value("selection", { scope = "global" }) ---@type string
-    local exclusive = selection == "exclusive" ---@type boolean
     --- @type [ [integer, integer, integer, integer], [integer, integer, integer, integer] ][]
-    local region = fn.getregionpos(cur, fin, { type = mode, exclusive = exclusive })
-
+    local region = fn.getregionpos(cur, fin, { type = mode, exclusive = selection == "exclusive" })
     ---@type Range4
     local vrange_4 =
         { region[1][1][2], region[1][1][3], region[#region][2][2], region[#region][2][3] }
+
+    local cur_idx = rt._get_list(src_win, { idx = 0 }).idx ---@type integer
+    local idx_dist = math.max(cur_idx - vrange_4[1], 0) ---@type integer
+    local idx_move = math.min(idx_dist, vrange_4[3] - vrange_4[1] + 1) ---@type integer
+    local new_idx = math.max(cur_idx - idx_move, 0) ---@type integer
+
+    local col = vim.api.nvim_win_get_cursor(list_win)[2] ---@type integer
     api.nvim_cmd({ cmd = "normal", args = { "\27" }, bang = true }, {})
     for i = vrange_4[3], vrange_4[1], -1 do
         table.remove(list.items, i)
     end
 
+    local adj_idx = math.min(new_idx, #list.items) ---@type integer
     rt._set_list(src_win, "u", {
         nr = 0,
         items = list.items,
-        idx = list.idx,
+        idx = adj_idx,
     })
 
     ru._protected_set_cursor(0, { vrange_4[1], col })
