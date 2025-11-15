@@ -113,8 +113,7 @@ local function get_alt_win(list_win, cur_win)
     if list_win ~= cur_win then return nil end
     ---@type string
     local switchbuf = api.nvim_get_option_value("switchbuf", { scope = "global" })
-    local uselast = string.find(switchbuf, "uselast", 1, true) ---@type integer|nil
-    if not uselast then return nil end
+    if not string.find(switchbuf, "uselast", 1, true) then return nil end
 
     local alt_winnr = fn.winnr("#") ---@type integer
     return fn.win_getid(alt_winnr)

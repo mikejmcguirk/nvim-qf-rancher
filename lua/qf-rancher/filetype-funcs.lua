@@ -272,7 +272,9 @@ local function get_dest_win(list_win, dest_buftype, buf, is_loclist, loclist_ori
             and api.nvim_get_option_value("switchbuf", { scope = "global" })
         or "" ---@type string
 
-    if dest_buftype ~= "help" and (is_loclist or string.find(switchbuf, "useopen", 1, true)) then
+    local useopen = string.find(switchbuf, "useopen", 1, true)
+    local usetab = string.find(switchbuf, "usetab", 1, true)
+    if dest_buftype ~= "help" and (is_loclist or (useopen or usetab)) then
         ---@type QfrFindWinInTabOpts
         local find_opts = { bufnr = buf, skip_winnr = list_winnr }
         ---@type integer|nil
@@ -280,7 +282,6 @@ local function get_dest_win(list_win, dest_buftype, buf, is_loclist, loclist_ori
         if tabpage_buf_win then return true, tabpage_buf_win end
     end
 
-    local usetab = string.find(switchbuf, "usetab", 1, true)
     if dest_buftype ~= "help" and ((not is_loclist) and usetab) then
         local usetab_win = find_win_in_tabs(list_tabnr, adj_dest_buftype, buf) ---@type integer|nil
         if usetab_win then return true, usetab_win end
