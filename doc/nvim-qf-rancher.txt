@@ -1846,7 +1846,7 @@ Sort.sorts                                                          *Sort.sorts*
 QfrSortDir                                                          *QfrSortDir*
 
     Type: ~
-        
+        "asc"|"desc"
 
 
 The callbacks to assign the Qsort and Lsort commands are below. They

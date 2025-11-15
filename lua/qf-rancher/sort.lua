@@ -75,7 +75,7 @@ Sort.sorts = {
     type = { asc = lib.sort_type_asc, desc = lib.sort_type_desc },
 }
 
----@alias QfrSortDir "asc"|"desc"
+---@alias QfrSortDir 'asc'|'desc'
 
 ---@param src_win integer|nil
 ---@param cargs vim.api.keyset.create_user_command.command_args
