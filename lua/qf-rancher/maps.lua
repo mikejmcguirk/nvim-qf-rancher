@@ -111,11 +111,9 @@ M.doc_tbls = {} ---@type { [1]: string, [2]:QfrMapData[], [3]: QfrCmdData[] }[]
 ---@type QfrMapData[]
 M.qfr_win_maps = {
 { nn, "<Plug>(qfr-open-qf-list)",     ql.."p", "Open the quickfix list to [count] height (focus if already open)", function() rw.open_qflist({ height = vim.v.count }) end },
-{ nn, "<Plug>(qfr-open-qf-list-max)", ql.."P", "Open the quickfix list to max height",                             function() rw.open_qflist({ height = QFR_MAX_HEIGHT }) end },
 { nn, "<Plug>(qfr-close-qf-list)",    ql.."o", "Close the quickfix list",                                          function() rw.close_qflist() end },
 { nn, "<Plug>(qfr-toggle-qf-list)",   ql..qp,  "Toggle the quickfix list (count sets height on open)",             function() rw.toggle_qflist({})  end },
 { nn, "<Plug>(qfr-open-loclist)",     ll.."p", "Open the location list to [count] height (focus if already open)", function() rw.open_loclist(cur_win(), { height = vim.v.count }) end },
-{ nn, "<Plug>(qfr-open-loclist-max)", ll.."P", "Open the location list to max height",                             function() rw.open_loclist(cur_win(), { height = QFR_MAX_HEIGHT }) end },
 { nn, "<Plug>(qfr-close-loclist)",    ll.."o", "Close the location list",                                          function() rw.close_loclist(cur_win()) end },
 { nn, "<Plug>(qfr-toggle-loclist)",   ll..lp,  "Toggle the location list (count sets height on open)",             function() rw.toggle_loclist(cur_win(), {}) end },
 }
@@ -324,11 +322,12 @@ M.bufevent_tbls[#M.bufevent_tbls + 1] = M.qfr_diag_maps
 M.cmd_tbls[#M.cmd_tbls + 1] = M.qfr_diag_cmds
 M.doc_tbls[#M.doc_tbls + 1] = { rd_str, M.qfr_diag_maps, M.qfr_diag_cmds }
 
+-- MAYBE: Add filters by diagnostic severity. But not sure if this is faster than simply using a
+-- a diagnostic cmd/map. And more default maps = more startup time
+
 -- stylua: ignore
 ---@type QfrMapData[]
 M.qfr_filter_maps = {
--- Cfilter --
-
 { nx, "<Plug>(qfr-qfilter-cfilter)",   ql..kp.."l", "Qfilter keep cfilter"..vc,   function() rf.filter("cfilter", true, vimcase, replace_qflist()) end },
 { nx, "<Plug>(qfr-qfilter!-cfilter)",  ql..rp.."l", "Qfilter remove cfilter"..vc, function() rf.filter("cfilter", false, vimcase, replace_qflist()) end },
 { nx, "<Plug>(qfr-qfilter-cfilterX)",  ql..kp.."L", "Qfilter keep cfilter"..rx,   function() rf.filter("cfilter", true, regex, replace_qflist()) end },
@@ -338,8 +337,6 @@ M.qfr_filter_maps = {
 { nx, "<Plug>(qfr-lfilter!-cfilter)",  ll..rp.."l", "Lfilter remove cfilter"..vc, function() rf.filter("cfilter", false, vimcase, replace_loclist()) end },
 { nx, "<Plug>(qfr-lfilter-cfilterX)",  ll..kp.."L", "Lfilter keep cfilter"..rx,   function() rf.filter("cfilter", true, regex, replace_loclist()) end },
 { nx, "<Plug>(qfr-lfilter!-cfilterX)", ll..rp.."L", "Lfilter remove cfilter"..rx, function() rf.filter("cfilter", false, regex, replace_loclist()) end },
-
--- Fname --
 
 { nx, "<Plug>(qfr-qfilter-fname)",     ql..kp.."f", "Qfilter keep fname"..vc,     function() rf.filter("fname", true, vimcase, replace_qflist()) end },
 { nx, "<Plug>(qfr-qfilter!-fname)",    ql..rp.."f", "Qfilter remove fname"..vc,   function() rf.filter("fname", false, vimcase, replace_qflist()) end },
@@ -351,8 +348,6 @@ M.qfr_filter_maps = {
 { nx, "<Plug>(qfr-lfilter-fnameX)",    ll..kp.."F", "Lfilter keep fname"..rx,     function() rf.filter("fname", true, regex, replace_loclist()) end },
 { nx, "<Plug>(qfr-lfilter!-fnameX)",   ll..rp.."F", "Lfilter remove fname"..rx,   function() rf.filter("fname", false, regex, replace_loclist()) end },
 
--- Text --
-
 { nx, "<Plug>(qfr-qfilter-text)",      ql..kp.."e", "Qfilter keep text"..vc,      function() rf.filter("text", true, vimcase, replace_qflist()) end },
 { nx, "<Plug>(qfr-qfilter!-text)",     ql..rp.."e", "Qfilter remove text"..vc,    function() rf.filter("text", false, vimcase, replace_qflist()) end },
 { nx, "<Plug>(qfr-qfilter-textX)",     ql..kp.."E", "Qfilter keep text"..rx,      function() rf.filter("text", true, regex, replace_qflist()) end },
@@ -363,8 +358,6 @@ M.qfr_filter_maps = {
 { nx, "<Plug>(qfr-lfilter-textX)",     ll..kp.."E", "Lfilter keep text"..rx,      function() rf.filter("text", true, regex, replace_loclist()) end },
 { nx, "<Plug>(qfr-lfilter!-textX)",    ll..rp.."E", "Lfilter remove text"..rx,    function() rf.filter("text", false, regex, replace_loclist()) end },
 
--- Lnum --
-
 { nx, "<Plug>(qfr-qfilter-lnum)",      ql..kp.."n", "Qfilter keep lnum"..vc,      function() rf.filter("lnum", true, vimcase, replace_qflist()) end },
 { nx, "<Plug>(qfr-qfilter!-lnum)",     ql..rp.."n", "Qfilter remove lnum"..vc,    function() rf.filter("lnum", false, vimcase, replace_qflist()) end },
 { nx, "<Plug>(qfr-qfilter-lnumX)",     ql..kp.."N", "Qfilter keep lnum"..rx,      function() rf.filter("lnum", true, regex, replace_qflist()) end },
@@ -374,18 +367,6 @@ M.qfr_filter_maps = {
 { nx, "<Plug>(qfr-lfilter!-lnum)",     ll..rp.."n", "Lfilter remove lnum"..vc,    function() rf.filter("lnum", false, vimcase, replace_loclist()) end },
 { nx, "<Plug>(qfr-lfilter-lnumX)",     ll..kp.."N", "Lfilter keep lnum"..rx,      function() rf.filter("lnum", true, regex, replace_loclist()) end },
 { nx, "<Plug>(qfr-lfilter!-lnumX)",    ll..rp.."N", "Lfilter remove lnum"..rx,    function() rf.filter("lnum", false, regex, replace_loclist()) end },
-
--- Type --
-
-{ nx, "<Plug>(qfr-qfilter-type)",      ql..kp.."t", "Qfilter keep type"..vc,      function() rf.filter("type", true, vimcase, replace_qflist()) end },
-{ nx, "<Plug>(qfr-qfilter!-type)",     ql..rp.."t", "Qfilter remove type"..vc,    function() rf.filter("type", false, vimcase, replace_qflist()) end },
-{ nx, "<Plug>(qfr-qfilter-typeX)",     ql..kp.."T", "Qfilter keep type"..rx,      function() rf.filter("type", true, regex, replace_qflist()) end },
-{ nx, "<Plug>(qfr-qfilter!-typeX)",    ql..rp.."T", "Qfilter remove type"..rx,    function() rf.filter("type", false, regex, replace_qflist()) end },
-
-{ nx, "<Plug>(qfr-lfilter-type)",      ll..kp.."t", "Lfilter keep type"..vc,      function() rf.filter("type", true, vimcase, replace_loclist()) end },
-{ nx, "<Plug>(qfr-lfilter!-type)",     ll..rp.."t", "Lfilter remove type"..vc,    function() rf.filter("type", false, vimcase, replace_loclist()) end },
-{ nx, "<Plug>(qfr-lfilter-typeX)",     ll..kp.."T", "Lfilter keep type"..rx,      function() rf.filter("type", true, regex, replace_loclist()) end },
-{ nx, "<Plug>(qfr-lfilter!-typeX)",    ll..rp.."T", "Lfilter remove type"..rx,    function() rf.filter("type", false, regex, replace_loclist()) end },
 }
 
 -- stylua: ignore

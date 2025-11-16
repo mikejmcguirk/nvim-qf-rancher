@@ -34,7 +34,7 @@ vim.pack spec (v0.12+):
 >
     { src = "https://github.com/mikejmcguirk/nvim-qf-rancher" },
 <
-Verify installation and settings with "checkhealth qf-rancher"
+Verify installation and settings with ":checkhealth qf-rancher"
 
 DEV NOTES:
 - Plugin development requires Neovim built with LuaJIT
@@ -260,9 +260,6 @@ Qfr Window controls                                 *qf-rancher-window-controls*
 Modes: { n }, Plug: <Plug>(qfr-open-qf-list), Default: "<leader>qp"
  Desc: Open the quickfix list to [count] height (focus if already open)
 
-Modes: { n }, Plug: <Plug>(qfr-open-qf-list-max), Default: "<leader>qP"
- Desc: Open the quickfix list to max height
-
 Modes: { n }, Plug: <Plug>(qfr-close-qf-list), Default: "<leader>qo"
  Desc: Close the quickfix list
 
@@ -271,9 +268,6 @@ Modes: { n }, Plug: <Plug>(qfr-toggle-qf-list), Default: "<leader>qq"
 
 Modes: { n }, Plug: <Plug>(qfr-open-loclist), Default: "<leader>lp"
  Desc: Open the location list to [count] height (focus if already open)
-
-Modes: { n }, Plug: <Plug>(qfr-open-loclist-max), Default: "<leader>lP"
- Desc: Open the location list to max height
 
 Modes: { n }, Plug: <Plug>(qfr-close-loclist), Default: "<leader>lo"
  Desc: Close the location list
@@ -1199,12 +1193,6 @@ Modes: { n, x }, Plug: <Plug>(qfr-lgrep-cwd), Default: "<leader>lgd"
 Modes: { n, x }, Plug: <Plug>(qfr-lgrep-cwdX), Default: "<leader>lgD"
  Desc: Loclist grep CWD (regex)
 
-Modes: { n, x }, Plug: <Plug>(qfr-lgrep-help), Default: "<leader>lgh"
- Desc: Loclist grep help (vimcase)
-
-Modes: { n, x }, Plug: <Plug>(qfr-lgrep-helpX), Default: "<leader>lgH"
- Desc: Loclist grep help (regex)
-
 Modes: { n, x }, Plug: <Plug>(qfr-qgrep-bufs), Default: "<leader>qgu"
  Desc: Quickfix grep open bufs (vimcase)
 
@@ -1326,6 +1314,7 @@ They accept the following options:
 - "async" or "sync" to control system behavior (async by default)
 - A |setqflist-action| (default " ")
 Example: 2Qgrep help r vimcase /setqflist
+KNOWN ISSUE: Lgrep help does not open a new help win
 
 Grep.q_grep_cmd({cargs})                                       *Grep.q_grep_cmd*
 
@@ -1581,30 +1570,6 @@ Modes: { n, x }, Plug: <Plug>(qfr-lfilter-lnumX), Default: "<leader>lkN"
 
 Modes: { n, x }, Plug: <Plug>(qfr-lfilter!-lnumX), Default: "<leader>lrN"
  Desc: Lfilter remove lnum (regex)
-
-Modes: { n, x }, Plug: <Plug>(qfr-qfilter-type), Default: "<leader>qkt"
- Desc: Qfilter keep type (vimcase)
-
-Modes: { n, x }, Plug: <Plug>(qfr-qfilter!-type), Default: "<leader>qrt"
- Desc: Qfilter remove type (vimcase)
-
-Modes: { n, x }, Plug: <Plug>(qfr-qfilter-typeX), Default: "<leader>qkT"
- Desc: Qfilter keep type (regex)
-
-Modes: { n, x }, Plug: <Plug>(qfr-qfilter!-typeX), Default: "<leader>qrT"
- Desc: Qfilter remove type (regex)
-
-Modes: { n, x }, Plug: <Plug>(qfr-lfilter-type), Default: "<leader>lkt"
- Desc: Lfilter keep type (vimcase)
-
-Modes: { n, x }, Plug: <Plug>(qfr-lfilter!-type), Default: "<leader>lrt"
- Desc: Lfilter remove type (vimcase)
-
-Modes: { n, x }, Plug: <Plug>(qfr-lfilter-typeX), Default: "<leader>lkT"
- Desc: Lfilter keep type (regex)
-
-Modes: { n, x }, Plug: <Plug>(qfr-lfilter!-typeX), Default: "<leader>lrT"
- Desc: Lfilter remove type (regex)
 
 Cmd: Qfilter
 Desc: Filter quickfix items
