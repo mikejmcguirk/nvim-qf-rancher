@@ -116,7 +116,7 @@ end
 -- LOW: Add validation for win config
 
 ---@class QfrFindWinInTabOpts
----@field bufnr? integer
+---@field buf? integer
 ---@field fin_winnr? integer
 ---@field skip_winnr? integer
 
@@ -124,7 +124,7 @@ end
 ---@return nil
 function Types._validate_find_win_in_tab_opts(opts)
     vim.validate("opts", opts, "table")
-    Types._validate_uint(opts.bufnr, true)
+    Types._validate_uint(opts.buf, true)
     Types._validate_uint(opts.fin_winnr, true)
     vim.validate("opts.skip_winnr", opts.skip_winnr, "number", true)
 end

@@ -426,55 +426,58 @@ function M._pclose_and_rm(win, force, wipeout)
     return buf
 end
 
--- Adapted from the source's "prepare_help_buffer" function
-
 ---@param buf integer
----@return nil
-local function prep_help_buf(buf)
-    ry._validate_buf(buf)
-
-    -- NOTE: Do not manually set filetype here. Unsure why, but it makes local opts set improperly
-    api.nvim_set_option_value("bt", "help", { buf = buf })
-    -- Have observed inconsistent behavior with these options on their own. Just set always
-    api.nvim_set_option_value("bl", false, { buf = buf })
-    api.nvim_set_option_value("bin", false, { buf = buf })
-    api.nvim_set_option_value("ma", false, { buf = buf })
-    api.nvim_set_option_value("ts", 8, { buf = buf })
-end
-
 ---@param win integer
 ---@return nil
-local function setup_help_win(win)
-    api.nvim_win_call(win, function()
-        -- api.set_option_value("iskeyword", '!-~,^*,^|,^",192-255', { scope = "local" })
-        api.nvim_set_option_value("fdm", "manual", { scope = "local" })
-        api.nvim_set_option_value("list", false, { scope = "local" })
-        api.nvim_set_option_value("arabic", false, { scope = "local" })
-        api.nvim_set_option_value("rl", false, { scope = "local" })
-        api.nvim_set_option_value("fen", false, { scope = "local" })
-        api.nvim_set_option_value("diff", false, { scope = "local" })
-        api.nvim_set_option_value("spell", false, { scope = "local" })
-    end)
+--- See :h help-buffer-options
+--- NOTE: While the source is based on help buffers and their options, Vim's help model can be more
+--- accurately understood as creating help *windows*. Thus, options are set at Window rather than
+--- local scope. And this function should not be called for bufs/wins expected to be used normally
+local function prep_help_buf(buf, win)
+    if vim.g.qfr_debug_assertions then
+        ry._validate_buf(buf)
+        ry._validate_win(win)
+    end
 
+    api.nvim_set_option_value("bin", false, { buf = buf })
+    api.nvim_set_option_value("bl", false, { buf = buf })
+    api.nvim_set_option_value("isk", '!-~,^*,^|,^",192-255', { buf = buf })
+    api.nvim_set_option_value("ma", false, { buf = buf })
+    api.nvim_set_option_value("ts", 8, { buf = buf })
+
+    api.nvim_set_option_value("arabic", false, { win = win })
+    api.nvim_set_option_value("crb", false, { win = win })
+    api.nvim_set_option_value("diff", false, { win = win })
+    api.nvim_set_option_value("fen", false, { win = win })
+    api.nvim_set_option_value("fdm", "manual", { win = win })
+    api.nvim_set_option_value("list", false, { win = win })
+    api.nvim_set_option_value("nu", false, { win = win })
+    api.nvim_set_option_value("rl", false, { win = win })
+    api.nvim_set_option_value("rnu", false, { win = win })
     api.nvim_set_option_value("scb", false, { win = win })
+    api.nvim_set_option_value("spell", false, { win = win })
+
+    api.nvim_set_option_value("bt", "help", { buf = buf })
+    -- NOTE: Do not manually set filetype. Causes ftplugin files to work improperly
 end
 
 ---@param item vim.quickfix.entry
 ---@param opts QfrBufOpenOpts
 ---@return boolean
-function M._open_item_to_win(item, opts)
-    ry._validate_list_item(item)
-    ry._validate_open_buf_opts(opts)
+function M._open_item_to_win(item, win, opts)
+    if vim.g.qfr_debug_assertions then
+        ry._validate_list_item(item)
+        ry._validate_win(win)
+        ry._validate_open_buf_opts(opts)
+    end
 
     local buf = item.bufnr ---@type integer|nil
     if not (buf and api.nvim_buf_is_valid(buf)) then return false end
-    local win = opts.win or api.nvim_get_current_win() ---@type integer
-    if not api.nvim_win_is_valid(win) then return false end
 
     local already_open = api.nvim_win_get_buf(win) == buf ---@type boolean
     if not already_open then
         if opts.buftype == "help" then
-            prep_help_buf(buf)
+            prep_help_buf(buf, win)
         else
             api.nvim_set_option_value("bl", true, { buf = buf })
         end
@@ -484,8 +487,6 @@ function M._open_item_to_win(item, opts)
             api.nvim_set_current_buf(buf)
             if opts.clearjumps then api.nvim_cmd({ cmd = "clearjumps" }, {}) end
         end)
-
-        if opts.buftype == "help" then setup_help_win(win) end
     end
 
     if not opts.skip_set_cur_pos then
@@ -495,9 +496,7 @@ function M._open_item_to_win(item, opts)
             end)
         end
 
-        ---@type {[1]:integer, [2]:integer}
-        local cur_pos = M._qf_pos_to_cur_pos(item.lnum, item.col)
-        M._protected_set_cursor(win, cur_pos)
+        M._protected_set_cursor(win, M._qf_pos_to_cur_pos(item.lnum, item.col))
     end
 
     if not opts.skip_zzze then M._do_zzze(win) end

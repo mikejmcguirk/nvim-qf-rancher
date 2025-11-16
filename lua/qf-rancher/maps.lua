@@ -251,8 +251,8 @@ M.qfr_grep_maps = {
 
 { nx, "<Plug>(qfr-lgrep-cwd)",   ll..gp.."d", "Loclist grep CWD"..vc,    function() rg.grep("cwd", vimcase, sys_opt, new_loclist()) end },
 { nx, "<Plug>(qfr-lgrep-cwdX)",  ll..gp.."D", "Loclist grep CWD"..rx,    function() rg.grep("cwd", regex, sys_opt, new_loclist()) end },
-{ nx, "<Plug>(qfr-lgrep-help)",  ll..gp.."h", "Loclist grep help"..vc,   function() rg.grep("help", vimcase, sys_opt, new_loclist()) end },
-{ nx, "<Plug>(qfr-lgrep-helpX)", ll..gp.."H", "Loclist grep help"..rx,   function() rg.grep("help", regex, sys_opt, new_loclist()) end },
+-- { nx, "<Plug>(qfr-lgrep-help)",  ll..gp.."h", "Loclist grep help"..vc,   function() rg.grep("help", vimcase, sys_opt, new_loclist()) end },
+-- { nx, "<Plug>(qfr-lgrep-helpX)", ll..gp.."H", "Loclist grep help"..rx,   function() rg.grep("help", regex, sys_opt, new_loclist()) end },
 }
 
 -- stylua: ignore

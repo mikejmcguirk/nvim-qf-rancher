@@ -248,7 +248,6 @@ end
 
 local greps = {
     cwd = { name = "CWD", list_item_type = nil, location_func = get_cwd },
-    -- DOCUMENT: This will overwrite arbitrary data passed from the caller
     help = { name = "Help", list_item_type = "\1", location_func = get_help_dirs },
     bufs = { name = "Buf", list_item_type = nil, location_func = get_buflist },
     cbuf = { name = "Cur Buf", list_item_type = nil, location_func = get_cur_buf },
@@ -363,6 +362,10 @@ local function grep_cmd(src_win, cargs)
     Grep.grep(grep_name, input_opts, system_opts, output_opts)
 end
 
+-- TODO: This does not properly handle lhelpgrep. lhelpgrep needs to attach the location list to
+-- an existing or new help window. I think that output would actually need to be handled in the
+-- system module, but the practical effect is seen here.
+
 ---@brief [[
 ---The callbacks to assign the Qgrep and Lgrep commands are below. They expect
 ---count = 0 and nargs = "*" to be present in the user_command table.
@@ -377,6 +380,7 @@ end
 ---- "async" or "sync" to control system behavior (async by default)
 ---- A |setqflist-action| (default " ")
 ---Example: 2Qgrep help r vimcase /setqflist
+---KNOWN ISSUE: Lgrep help does not open a new help win
 ---@brief ]]
 
 ---@param cargs vim.api.keyset.create_user_command.command_args
