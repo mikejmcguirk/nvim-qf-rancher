@@ -97,6 +97,7 @@ end
 
 local bufs = {} ---@type integer[]
 local extmarks = {} ---@type integer[]
+local ts_parsers = {} ---@type boolean[]
 
 local group_name = "qfr-preview-group" ---@type string
 local group = api.nvim_create_augroup(group_name, {}) ---@type integer
@@ -566,7 +567,7 @@ end
 ---@param preview_buf integer
 ---@return nil
 local function set_preview_buf_opts(preview_buf)
-    ry._validate_buf(preview_buf)
+    if vim.g.qfr_debug_assertions then ry._validate_buf(preview_buf) end
 
     set_opt("buflisted", false, { buf = preview_buf })
     -- NOTE: Setting a non-"" buftype prevents LSPs from attaching
@@ -636,13 +637,14 @@ end
 ---@return nil
 local function create_preview_buf_from_lines(item_buf, lines)
     -- Do not assert that item_buf is valid since a buf can be wiped after the list is created
-    ry._validate_uint(item_buf)
-    ry._validate_list(lines, { type = "string" })
+    if vim.g.qfr_debug_assertions then
+        ry._validate_uint(item_buf)
+        ry._validate_list(lines, { type = "string" })
+    end
 
     local preview_buf = api.nvim_create_buf(false, true) ---@type integer
     api.nvim_buf_set_lines(preview_buf, 0, 0, false, lines)
     set_preview_buf_opts(preview_buf)
-
     if not api.nvim_buf_is_valid(item_buf) then return preview_buf end
 
     local src_changedtick = api.nvim_buf_get_changedtick(item_buf) ---@type integer
@@ -650,21 +652,36 @@ local function create_preview_buf_from_lines(item_buf, lines)
     api.nvim_buf_set_var(preview_buf, "src_mtime", get_mtime(item_buf))
 
     local item_ft = api.nvim_get_option_value("filetype", { buf = item_buf }) ---@type string
-    item_ft = item_ft ~= "" and item_ft or (vim.filetype.match({ buf = item_buf }) or "")
-    if item_ft == "" then
-        set_opt("syntax", item_ft, { buf = preview_buf })
+    ---@type string
+    local ft = item_ft ~= "" and item_ft or (vim.filetype.match({ buf = item_buf }) or "")
+    if ft == "" then
+        set_opt("syntax", ft, { buf = preview_buf })
         return preview_buf
     end
 
-    local item_lang = vim.treesitter.language.get_lang(item_ft) or item_ft ---@type string
-    -- LOW: Has to be a more efficient way to do this
-    -- TODO: If we can't get out of this, note that at some point a change will be made in 0.12 to
-    --  make error = false the default behavior and remove the option. This will require a has()
-    --  check to determine which syntax is used to run the check
-    if vim.treesitter.get_parser(preview_buf, item_lang, { error = false }) then
-        pcall(vim.treesitter.start, preview_buf, item_lang)
+    local lang = vim.treesitter.language.get_lang(ft) or ft ---@type string
+    local has_parser = (function()
+        if type(ts_parsers[lang]) ~= "boolean" then
+            -- Credit fzflua for this method
+            local has_parser = vim.fn.has("nvim-0.11") == 1 and vim.treesitter.language.add(lang)
+                or pcall(vim.treesitter.language.add, lang) ---@type boolean?
+
+            -- TODO: Once v12 is out and below v11 compatibility is removed, ts_parsers[lang] can
+            -- just be set to the first return of vim.treesitter.language.add
+            if has_parser then
+                ts_parsers[lang] = true
+            else
+                ts_parsers[lang] = false
+            end
+        end
+
+        return ts_parsers[lang]
+    end)() ---@type boolean
+
+    if has_parser then
+        pcall(vim.treesitter.start, preview_buf, lang)
     else
-        set_opt("syntax", item_ft, { buf = preview_buf })
+        set_opt("syntax", ft, { buf = preview_buf })
     end
 
     return preview_buf
