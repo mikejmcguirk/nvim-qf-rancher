@@ -233,12 +233,10 @@ if vim.g.qfr_create_loclist_autocmds then
         callback = function(ev)
             local win = tonumber(ev.match) ---@type number?
             if not win then return end
-
             if not api.nvim_win_is_valid(win) then return end
 
             local config = vim.api.nvim_win_get_config(win) ---@type vim.api.keyset.win_config
             if config.relative and config.relative ~= "" then return end
-
             local qf_id = fn.getloclist(win, { id = 0 }).id ---@type integer
             if qf_id < 1 then return end
 

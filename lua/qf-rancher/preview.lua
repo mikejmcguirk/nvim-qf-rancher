@@ -483,8 +483,7 @@ local function create_preview_win(win_cfg, preview_buf)
     set_opt("spell", false, { win = preview_win })
 
     ---@type integer
-    local g_winblend = ru._get_g_var("qfr_preview_winblend")
-    set_opt("winblend", g_winblend, { win = preview_win })
+    set_opt("winblend", ru._get_g_var("qfr_preview_winblend"), { win = preview_win })
 
     set_opt("so", SCROLLOFF, { win = preview_win })
     set_opt("siso", SCROLLOFF, { win = preview_win })
@@ -503,14 +502,13 @@ local function range_qf_to_zero_(preview_buf, item)
     ry._validate_buf(preview_buf)
     ry._validate_list_item(item)
 
-    local row = item.lnum > 0 and item.lnum - 1 or 0 ---@type integer
+    local row = math.max(item.lnum - 1, 0) ---@type integer
     row = math.min(row, api.nvim_buf_line_count(preview_buf) - 1)
 
     ---@type string
     local start_line = api.nvim_buf_get_lines(preview_buf, row, row + 1, false)[1]
     local col = (function()
         if item.col <= 0 then return 0 end
-
         if item.vcol == 1 then
             ---@type boolean, integer, integer
             local _, start_byte, _ = ru._vcol_to_byte_bounds(item.col, start_line)
@@ -528,12 +526,10 @@ local function range_qf_to_zero_(preview_buf, item)
         or api.nvim_buf_get_lines(preview_buf, fin_row, fin_row + 1, false)[1]
     local fin_col_ = (function()
         if item.end_col <= 0 then return #fin_line end
-
         if item.vcol == 1 then return ru._vcol_to_end_col_(item.col, fin_line) end
 
         local end_idx_ = math.min(item.end_col - 1, #fin_line) ---@type integer
         if fin_row == row and end_idx_ == col then end_idx_ = end_idx_ + 1 end
-
         return end_idx_
     end)() ---@type integer
 
@@ -564,18 +560,17 @@ local function set_err_range_extmark(preview_buf, item)
         })
 end
 
----@param preview_buf integer
+---@param p_buf integer
 ---@return nil
-local function set_preview_buf_opts(preview_buf)
-    if vim.g.qfr_debug_assertions then ry._validate_buf(preview_buf) end
+local function setup_preview_buf(p_buf)
+    if vim.g.qfr_debug_assertions then ry._validate_buf(p_buf) end
 
-    set_opt("buflisted", false, { buf = preview_buf })
-    -- NOTE: Setting a non-"" buftype prevents LSPs from attaching
-    set_opt("buftype", "nofile", { buf = preview_buf })
-    set_opt("modifiable", false, { buf = preview_buf })
-    set_opt("readonly", true, { buf = preview_buf })
-    set_opt("swapfile", false, { buf = preview_buf })
-    set_opt("undofile", false, { buf = preview_buf })
+    set_opt("buflisted", false, { buf = p_buf })
+    set_opt("buftype", "nofile", { buf = p_buf })
+    set_opt("modifiable", false, { buf = p_buf })
+    set_opt("readonly", true, { buf = p_buf })
+    set_opt("swapfile", false, { buf = p_buf })
+    set_opt("undofile", false, { buf = p_buf })
 end
 
 ---@return integer
@@ -583,7 +578,7 @@ local function create_fallback_buf()
     local buf = api.nvim_create_buf(false, true) ---@type integer
 
     set_opt("bufhidden", "wipe", { buf = buf })
-    set_preview_buf_opts(buf)
+    setup_preview_buf(buf)
 
     local lines = { "No bufnr for this list entry" } ---@type string[]
     api.nvim_buf_set_lines(buf, 0, 0, false, lines)
@@ -625,7 +620,7 @@ end
 ---@param item_buf integer
 ---@return integer
 local function get_mtime(item_buf)
-    ry._validate_buf(item_buf)
+    if vim.g.qfr_debug_assertions then ry._validate_buf(item_buf) end
 
     local item_buf_full_path = api.nvim_buf_get_name(item_buf) ---@type string
     local stat = vim.uv.fs_stat(item_buf_full_path) ---@type uv.fs_stat.result|nil
@@ -644,7 +639,7 @@ local function create_preview_buf_from_lines(item_buf, lines)
 
     local preview_buf = api.nvim_create_buf(false, true) ---@type integer
     api.nvim_buf_set_lines(preview_buf, 0, 0, false, lines)
-    set_preview_buf_opts(preview_buf)
+    setup_preview_buf(preview_buf)
     if not api.nvim_buf_is_valid(item_buf) then return preview_buf end
 
     local src_changedtick = api.nvim_buf_get_changedtick(item_buf) ---@type integer
@@ -763,7 +758,6 @@ function Preview.update_preview_win_buf()
     end
 
     if not preview_state:is_open() then return end
-
     if not preview_state:is_cur_list_win(api.nvim_get_current_win()) then return end
 
     local item = get_list_item(preview_state.list_win) ---@type vim.quickfix.entry|nil
@@ -828,7 +822,8 @@ end
 ---@param list_win integer List window context
 ---@return nil
 function Preview.toggle_preview_win(list_win)
-    if not ru._is_in_list_win(list_win) then return end
+    local list_win_buf = api.nvim_win_get_buf(list_win) ---@type integer
+    if api.nvim_get_option_value("buftype", { buf = list_win_buf }) ~= "quickfix" then return end
 
     local was_open = preview_state:is_open() ---@type boolean
     local start_list_win = preview_state.list_win ---@type integer|nil
