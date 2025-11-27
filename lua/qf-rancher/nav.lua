@@ -151,7 +151,7 @@ end
 
 ---@brief [[
 ---NOTE: All navigation commands will auto-center the buffer view if
----g:qfr_auto_center_result is true
+---g:qfr_auto_center is true
 ---@brief ]]
 
 ---@param count integer Wrapping count previous entry to navigate to

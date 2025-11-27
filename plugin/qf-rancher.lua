@@ -88,8 +88,8 @@ local fn = vim.fn
 _G._QFR_G_VAR_MAP = {
 ---
 ---(Default true) Qfr commands will auto-center opened buffers
----@alias qfr_auto_center_result string
-qfr_auto_center_result = { { "boolean" }, false },
+---@alias qfr_auto_center boolean
+qfr_auto_center = { { "boolean" }, false },
 ---
 ---(Default true) Always open the list when its contents are changed
 ---@alias qfr_auto_open_changes boolean
