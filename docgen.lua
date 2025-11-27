@@ -80,3 +80,5 @@ os.execute(cmd)
 for _, path in ipairs(doc_paths) do
     os.remove(path[1])
 end
+
+-- LOW: Auto-generate the variable docs

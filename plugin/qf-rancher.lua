@@ -20,8 +20,6 @@ local rw = Qfr_Defer_Require("qf-rancher.window") ---@type QfrWins
 local api = vim.api
 local fn = vim.fn
 
--- LOW: The g variable docs could also be automatically generated
-
 ---@mod nvim-qf-rancher.txt Error list husbandry
 ---@brief [[
 ---Nvim Quickfix Rancher provides a stable of tools for taming the quickfix

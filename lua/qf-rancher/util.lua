@@ -363,7 +363,7 @@ function M._pwin_close(win, force)
 end
 
 -- TODO: https://github.com/neovim/neovim/pull/33402
--- Redo this once this issue is resolved
+-- Redo this once this issue is resolved. Be sure to use has() for compatibility
 
 -- Return an integer to stay consistent with pwin_close
 

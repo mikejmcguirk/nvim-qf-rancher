@@ -56,8 +56,7 @@ local Types = {}
 
 -- MID: Triple check the source that the max is 10 and add that validation here. Would need to be
 -- sure not to put it anywhere with an unchecked user count
-
--- TODO: Should underline scope functions validate internals?
+-- MID: Should underline scope functions validate internals?
 
 ---@param nr? integer|"$"
 ---@param optional? boolean
