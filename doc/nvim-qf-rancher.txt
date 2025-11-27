@@ -1152,7 +1152,6 @@ If g:qfr_ftplugin_demap is true, disable the following defaults:
 
 - <C-w>s (split)
 - <C-w>v (vsplit)
-- <C-i> / <C-o> (jumplist navigation)
 
 The |qf-rancher-ftplugin-keymaps| will be set if g:qfr_ftplugin_keymap
 is true.

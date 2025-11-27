@@ -37,16 +37,26 @@ end
 ---
 ---- <C-w>s (split)
 ---- <C-w>v (vsplit)
----- <C-i> / <C-o> (jumplist navigation)
 ---@brief ]]
 if vim.g.qfr_ftplugin_demap then
-    bufmap(0, "n", "<C-w>v", "<nop>", { noremap = true, nowait = true })
-    bufmap(0, "n", "<C-w><C-v>", "<nop>", { noremap = true, nowait = true })
-    bufmap(0, "n", "<C-w>s", "<nop>", { noremap = true, nowait = true })
-    bufmap(0, "n", "<C-w><C-s>", "<nop>", { noremap = true, nowait = true })
+    local nops = {
+        "<C-w>v",
+        "<C-w><C-v>",
+        "<C-w>s",
+        "<C-w><C-s>",
+    }
 
-    bufmap(0, "n", "<C-i>", "<nop>", { noremap = true, nowait = true })
-    bufmap(0, "n", "<C-o>", "<nop>", { noremap = true, nowait = true })
+    for _, n in ipairs(nops) do
+        if #fn.maparg(n, "n", false) == 0 then
+            bufmap(0, "n", n, "<nop>", { noremap = true, nowait = true })
+        end
+    end
+
+    -- MID: This currently does not work because it destroys unsimplified mappings. Would be good
+    -- to figure out how to avoid this. Perhaps you re-maparg to whatever was on tab
+    -- See :h <tab> and https://github.com/neovim/neovim/pull/17932
+    -- bufmap(0, "n", "<C-i>", "<nop>", { noremap = true, nowait = true })
+    -- bufmap(0, "n", "<C-o>", "<nop>", { noremap = true, nowait = true })
 end
 
 -- MID: Doc wise, it would be less awkward if the "<" and ">" maps were included in the ftplugin
