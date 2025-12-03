@@ -61,12 +61,6 @@ local fn = vim.fn
 ---    { src = "https://github.com/mikejmcguirk/nvim-qf-rancher" },
 ---<
 ---Verify installation and settings with ":checkhealth qf-rancher"
----
----DEV NOTES:
----- Plugin development requires Neovim built with LuaJIT
----- Testing is performed with nlua (https://github.com/mfussenegger/nlua)
----  and Busted
----- Formatting is performed with stylua
 ---@brief ]]
 
 ---@mod qf-rancher-config Configuration
