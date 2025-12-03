@@ -21,7 +21,7 @@ end
 local maps_tbls = require("lua.qf-rancher.maps")
 local doc_tbls = maps_tbls.doc_tbls ---@type { [1]: string, [2]:QfrMapData[], [3]: QfrCmdData[] }[]
 local doc_paths = {} ---@type {[1]:string, [2]:string[] }[]
-local cmd_parts = { "lemmy-help", "-l", '"compact"', "plugin/qf-rancher.lua" } ---@type string[]
+local cmd_parts = { "vimcats", "-l", '"compact"', "plugin/qf-rancher.lua" } ---@type string[]
 
 local qf = "qf"
 

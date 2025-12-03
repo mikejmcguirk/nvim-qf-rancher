@@ -317,7 +317,6 @@ if vim.g.qfr_set_default_cmds then
 end
 
 -- TODO: Add tag. I think v0.1
--- TODO: Move to vimcats: https://github.com/mrcjkb/vimcats
 -- TODO: https://luajit.org/extensions.html
 -- I know some of these functions are in here. They either need to be removed or this needs to be
 -- advertised as a LuaJIT exclusive plugin
