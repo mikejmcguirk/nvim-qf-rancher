@@ -316,7 +316,6 @@ if vim.g.qfr_set_default_cmds then
     end
 end
 
--- TODO: Add README
 -- TODO: Add tag. I think v0.1
 -- TODO: Move to vimcats: https://github.com/mrcjkb/vimcats
 -- TODO: https://luajit.org/extensions.html
