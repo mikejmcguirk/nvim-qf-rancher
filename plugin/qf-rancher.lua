@@ -20,8 +20,6 @@ local rw = Qfr_Defer_Require("qf-rancher.window") ---@type QfrWins
 local api = vim.api
 local fn = vim.fn
 
--- LOW: The g variable docs could also be automatically generated
-
 ---@mod nvim-qf-rancher.txt Error list husbandry
 ---@brief [[
 ---Nvim Quickfix Rancher provides a stable of tools for taming the quickfix
@@ -82,8 +80,8 @@ local fn = vim.fn
 _G._QFR_G_VAR_MAP = {
 ---
 ---(Default true) Qfr commands will auto-center opened buffers
----@alias qfr_auto_center_result string
-qfr_auto_center_result = { { "boolean" }, false },
+---@alias qfr_auto_center boolean
+qfr_auto_center = { { "boolean" }, false },
 ---
 ---(Default true) Always open the list when its contents are changed
 ---@alias qfr_auto_open_changes boolean
@@ -227,12 +225,10 @@ if vim.g.qfr_create_loclist_autocmds then
         callback = function(ev)
             local win = tonumber(ev.match) ---@type number?
             if not win then return end
-
             if not api.nvim_win_is_valid(win) then return end
 
             local config = vim.api.nvim_win_get_config(win) ---@type vim.api.keyset.win_config
             if config.relative and config.relative ~= "" then return end
-
             local qf_id = fn.getloclist(win, { id = 0 }).id ---@type integer
             if qf_id < 1 then return end
 

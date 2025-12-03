@@ -247,7 +247,7 @@ function Window.close_qflist()
     return true
 end
 
--- TODO: Unsure exactly where this goes, but for Fugitive, I want an API out of here that I can
+-- MID: Unsure exactly where this goes, but for Fugitive, I want an API out of here that I can
 -- use to close all loclists in the current window, and not display a nag if there aren't any
 
 ----If switchbuf contains uselast, focus will be changed to the alternate

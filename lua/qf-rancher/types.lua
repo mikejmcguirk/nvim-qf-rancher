@@ -56,8 +56,7 @@ local Types = {}
 
 -- MID: Triple check the source that the max is 10 and add that validation here. Would need to be
 -- sure not to put it anywhere with an unchecked user count
-
--- TODO: Should underline scope functions validate internals?
+-- MID: Should underline scope functions validate internals?
 
 ---@param nr? integer|"$"
 ---@param optional? boolean
@@ -217,6 +216,14 @@ local function validate_validate_list_opts(opts)
     Types._validate_uint(opts.len, true)
     vim.validate("opts.optional", opts.optional, "boolean", true)
     vim.validate("opts.type", opts.type, "string", true)
+end
+
+---@param tabnr integer
+function Types._validate_tabnr(tabnr)
+    Types._validate_uint(tabnr)
+    vim.validate("tabnr", tabnr, function()
+        return tabnr <= vim.fn.tabpagenr("$")
+    end)
 end
 
 -- LOW: This should be able to take a function as a validator
@@ -588,9 +595,10 @@ function Types._validate_open_opts(open_opts)
     vim.validate("open_opts.nop_if_open", open_opts.nop_if_open, "boolean", true)
 end
 
----@alias QfrIdxFunc fun(integer?):vim.quickfix.entry|nil, integer|nil
+---@alias QfrGetItemFunc fun(integer?):vim.quickfix.entry|nil, integer|nil
 
 ---@alias QfrSplitType "none"|"split"|"tabnew"|"vsplit"
+
 local valid_splits = { "none", "split", "tabnew", "vsplit" }
 
 ---@alias QfrFinishMethod "focusList"|"focusWin"
@@ -607,7 +615,7 @@ end
 
 ---@param finish QfrFinishMethod
 ---@return nil
-function Types._validate_finish_method(finish)
+function Types._validate_finish(finish)
     vim.validate("finish", finish, "string")
     vim.validate("finish", finish, function()
         return vim.tbl_contains(valid_finishes, finish)

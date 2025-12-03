@@ -37,7 +37,7 @@ describe("qf-rancher.stack", function()
         api.nvim_cmd({ cmd = "cclose" }, {})
         api.nvim_cmd({ cmd = "lclose" }, {})
         fn.setqflist({}, "f")
-        fn.setloclist(0, {}, "f")
+        fn.setloclist(1000, {}, "f")
     end)
 
     describe("_get_history", function()

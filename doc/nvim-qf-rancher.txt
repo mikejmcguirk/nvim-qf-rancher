@@ -46,12 +46,12 @@ set these in the "init" section of your plugin spec
 
 The current settings can be verified with "checkhealth qf-rancher"
 
-qfr_auto_center_result                                  *qfr_auto_center_result*
+qfr_auto_center                                                *qfr_auto_center*
 
     (Default true) Qfr commands will auto-center opened buffers
 
     Type: ~
-        string
+        boolean
 
 
 qfr_auto_open_changes                                    *qfr_auto_open_changes*
@@ -522,7 +522,7 @@ Navigate lists                                                             *Nav*
 
 
 NOTE: All navigation commands will auto-center the buffer view if
-g:qfr_auto_center_result is true
+g:qfr_auto_center is true
 
 Nav.q_prev({count}, {opts})                                         *Nav.q_prev*
 
@@ -1146,7 +1146,6 @@ If g:qfr_ftplugin_demap is true, disable the following defaults:
 
 - <C-w>s (split)
 - <C-w>v (vsplit)
-- <C-i> / <C-o> (jumplist navigation)
 
 The |qf-rancher-ftplugin-keymaps| will be set if g:qfr_ftplugin_keymap
 is true.

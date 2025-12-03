@@ -234,19 +234,19 @@ local function get_item(src_win, idx)
     return nil, nil
 end
 
----@type QfrIdxFunc
+---@type QfrGetItemFunc
 function M._get_item_under_cursor(src_win)
     return get_item(src_win, fn.line("."))
 end
 
----@type QfrIdxFunc
+---@type QfrGetItemFunc
 function M._get_item_wrapping_sub(src_win)
     local idx = M._get_idx_wrapping_sub(src_win, vim.v.count)
     if not idx then return nil, nil end
     return get_item(src_win, idx)
 end
 
----@type QfrIdxFunc
+---@type QfrGetItemFunc
 function M._get_item_wrapping_add(src_win)
     local idx = M._get_idx_wrapping_add(src_win, vim.v.count)
     if not idx then return nil, nil end
@@ -299,20 +299,6 @@ function M._get_g_var(g_var, allow_nil)
     end
 end
 
----@param list_win integer
----@return boolean
-function M._is_in_list_win(list_win)
-    ry._validate_win(list_win)
-
-    local list_win_buf = vim.api.nvim_win_get_buf(list_win) ---@type integer
-    ---@type string
-    local buftype = vim.api.nvim_get_option_value("buftype", { buf = list_win_buf })
-
-    if buftype == "quickfix" then return true end
-    vim.api.nvim_echo({ { "Window " .. list_win .. " is not a list", "" } }, false, {})
-    return false
-end
-
 ---@param src_win integer|nil
 ---@param list_nr integer|"$"
 ---@return integer
@@ -340,15 +326,15 @@ end
 ---@param cur_pos {[1]: integer, [2]: integer}
 ---@return nil
 function M._protected_set_cursor(win, cur_pos)
-    ry._validate_win(win)
-    ry._validate_cur_pos(cur_pos)
+    if vim.g.qfr_debug_assertions then
+        ry._validate_win(win)
+        ry._validate_cur_pos(cur_pos)
+    end
 
     local adj_cur_pos = vim.deepcopy(cur_pos, true) ---@type {[1]: integer, [2]: integer}
     local win_buf = api.nvim_win_get_buf(win) ---@type integer
 
-    local line_count = api.nvim_buf_line_count(win_buf) ---@type integer
-    adj_cur_pos[1] = math.min(adj_cur_pos[1], line_count)
-
+    adj_cur_pos[1] = math.min(adj_cur_pos[1], api.nvim_buf_line_count(win_buf))
     local row = adj_cur_pos[1] ---@type integer
     local set_line = api.nvim_buf_get_lines(win_buf, row - 1, row, false)[1] ---@type string
     adj_cur_pos[2] = math.min(adj_cur_pos[2], #set_line - 1)
@@ -377,7 +363,7 @@ function M._pwin_close(win, force)
 end
 
 -- TODO: https://github.com/neovim/neovim/pull/33402
--- Redo this once this issue is resolved
+-- Redo this once this issue is resolved. Be sure to use has() for compatibility
 
 -- Return an integer to stay consistent with pwin_close
 
@@ -464,7 +450,7 @@ end
 ---@param item vim.quickfix.entry
 ---@param opts QfrBufOpenOpts
 ---@return boolean
-function M._open_item_to_win(item, win, opts)
+function M._open_item(item, win, opts)
     if vim.g.qfr_debug_assertions then
         ry._validate_list_item(item)
         ry._validate_win(win)
@@ -484,6 +470,8 @@ function M._open_item_to_win(item, win, opts)
 
         api.nvim_win_call(win, function()
             -- This loads the buf if necessary. Do not use bufload
+            -- Have seen in FzfLua's docs that they've had problems with nvim_win_set_buf causing
+            -- focus to change. win_call set_current_buf instead
             api.nvim_set_current_buf(buf)
             if opts.clearjumps then api.nvim_cmd({ cmd = "clearjumps" }, {}) end
         end)
@@ -514,8 +502,7 @@ end
 function M._do_zzze(win, always)
     ry._validate_win(win)
 
-    if not (ru._get_g_var("qfr_auto_center_result") or always) then return end
-
+    if not (vim.g.qfr_auto_center or always) then return end
     api.nvim_win_call(win, function()
         api.nvim_cmd({ cmd = "normal", args = { "zz" }, bang = true }, {})
         api.nvim_cmd({ cmd = "normal", args = { "ze" }, bang = true }, {})
