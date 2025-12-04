@@ -375,6 +375,12 @@ end
 -- code actions. It would be useful to see them all in a menu. The idea of having hover windows
 -- in the qflist is also interesting, to show more info about the entry, but I'm not sure you
 -- need the lsp for that
+-- LOW: Right now, c/l open/close are used for opening and closing the lists in order to preserve
+-- autocmd behavior. This imposes the limitation that both functions need to be called in the
+-- proper window/tab context. Low priority because I think you can just get around it with a
+-- win_call, but it would be better if using the base code were abandoned in favor of more
+-- flexible functions. For close this is not so bad, but for open I'm not sure how you would
+-- run the proper processes under the hood for building the list buffer
 
 -- DOCUMENT: vim.regex currently uses case sensitive default behavior
 -- DOCUMENT: cmds are not designed to be run in visual mode

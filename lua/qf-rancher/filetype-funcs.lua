@@ -100,6 +100,7 @@ local function handle_orphan(list_win, dest_win, finish)
     rt._set_stack(dest_win, stack)
 
     -- open_loclist uses :lopen, so must set win for proper context
+    -- LOW: Does win_call provide proper context? Does it actually help the logic at all?
     api.nvim_set_current_win(dest_win)
     rw.open_loclist(dest_win, { keep_win = finish == "focusWin" })
 
@@ -162,6 +163,53 @@ local function find_win_in_tab(tabnr, dest_bt, opts)
 
     return nil
 end
+
+-- -- MID: This would be an improvement
+-- ---@param tabnr integer
+-- ---@param winnrs integer[]
+-- ---@param dest_bt string
+-- ---@param but integer?
+-- ---@return integer|nil
+-- local function find_win_in_tab(tabnr, winnrs, dest_bt, buf)
+--     if ru._get_g_var("qfr_debug_assertions") then
+--         ry._validate_uint(tabnr)
+--         ry._validate_list(winnrs, { type = "number" })
+--         vim.validate("dest_buftype", dest_bt, "string")
+--         ry._validate_uint(buf, true)
+--     end
+--
+--     for _, n in ipairs(winnrs) do
+--         local win = fn.win_getid(n, tabnr)
+--         if is_valid_dest_win(win, dest_bt) then
+--             if not buf then return win end
+--             if buf and api.nvim_win_get_buf(win) == buf then return win end
+--         end
+--     end
+--
+--     return nil
+-- end
+--
+-- local winnrs = { 1, 2, 3, 4 }
+-- local list_winnr = 4
+-- -- Or skip this if we want the list included
+-- local winnrs_nolist = vim.tbl_map(function(w)
+--     return w ~= list_winnr
+-- end, winnrs)
+--
+-- local dest_bt = "help"
+-- local tabnr = 1
+-- local buf = nil
+-- local dest_winnr = vim.iter(winnrs_nolist):find(function(n)
+--     local win = fn.win_getid(n, tabnr)
+--     if is_valid_dest_win(win, dest_bt) then
+--         if not buf then return true end
+--         return buf and api.nvim_win_get_buf(win) == buf
+--     end
+--
+--     return false
+-- end)
+--
+-- find_win_in_tab(1, winnrs_nolist, "help", nil)
 
 ---@param list_tabnr integer
 ---@param dest_buftype string
