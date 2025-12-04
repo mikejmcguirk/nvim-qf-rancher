@@ -13,6 +13,7 @@ M.check = function()
         local allowed = table.concat(t[1], ", ") ---@type string
         local val = vim.g[v] ---@type any
         local val_type = type(val) ---@type string
+        -- NOTE: tostring being able to handle NaN and +/-inf is LuaJIT exclusive
         ---@type string
         local val_fmt = val_type == "table" and table.concat(val, ", ") or tostring(val)
         ---@type string

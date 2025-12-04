@@ -317,9 +317,6 @@ if vim.g.qfr_set_default_cmds then
 end
 
 -- TODO: Add tag. I think v0.1
--- TODO: https://luajit.org/extensions.html
--- I know some of these functions are in here. They either need to be removed or this needs to be
--- advertised as a LuaJIT exclusive plugin
 
 -- DOCUMENT: For cmd mappings, document what cmd opts they expect to be available. Can do this
 -- in docgen with a k, v loop
