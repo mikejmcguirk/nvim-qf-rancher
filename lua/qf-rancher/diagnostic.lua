@@ -203,7 +203,7 @@ function Diag.diags_to_list(diag_opts, output_opts)
 
     local disp_func = diag_opts.disp_func or convert_diag ---@type QfrDiagDispFunc
     local converted_diags = vim.tbl_map(disp_func, raw_diags) ---@type vim.quickfix.entry[]
-    table.sort(converted_diags, rs_lib.sort_fname_asc)
+    table.sort(converted_diags, rs_lib.sort_fname_diag_asc)
 
     if vim.g.qfr_reuse_title then
         local cur_diag_nr = rt._find_list_with_title(src_win, title) ---@type integer|nil
