@@ -1174,17 +1174,17 @@ Modes: { n, x }, Plug: <Plug>(qfr-qgrep-cwd), Default: "<leader>qgd"
 Modes: { n, x }, Plug: <Plug>(qfr-qgrep-cwdX), Default: "<leader>qgD"
  Desc: Quickfix grep CWD (regex)
 
-Modes: { n, x }, Plug: <Plug>(qfr-qgrep-help), Default: "<leader>qgh"
- Desc: Quickfix grep help (vimcase)
-
-Modes: { n, x }, Plug: <Plug>(qfr-qgrep-helpX), Default: "<leader>qgH"
- Desc: Quickfix grep help (regex)
-
 Modes: { n, x }, Plug: <Plug>(qfr-lgrep-cwd), Default: "<leader>lgd"
  Desc: Loclist grep CWD (vimcase)
 
 Modes: { n, x }, Plug: <Plug>(qfr-lgrep-cwdX), Default: "<leader>lgD"
  Desc: Loclist grep CWD (regex)
+
+Modes: { n, x }, Plug: <Plug>(qfr-lgrep-help), Default: "<leader>lgh"
+ Desc: Loclist grep help (vimcase)
+
+Modes: { n, x }, Plug: <Plug>(qfr-lgrep-helpX), Default: "<leader>lgH"
+ Desc: Loclist grep help (regex)
 
 Modes: { n, x }, Plug: <Plug>(qfr-qgrep-bufs), Default: "<leader>qgu"
  Desc: Quickfix grep open bufs (vimcase)
@@ -1211,87 +1211,64 @@ Grep items into the list                                                  *Grep*
                                                                       *qfr-grep*
 
 
-QfrGrepLocs                                                        *QfrGrepLocs*
+QfrGrepLocsFunc                                                *QfrGrepLocsFunc*
 
     Type: ~
-        string[]
+        fun():string[]
 
 
-QfrGrepPartsFunc                                              *QfrGrepPartsFunc*
-
-    Fields:
-    - string pattern
-    - string |QfrInputType|
-    - QfrGrepLocs Locations to grep from
-    Returns: string[]
-
-    Type: ~
-        fun(string:any,string:any,QfrGrepLocs:any):string[]
-
-
-QfrGrepInfo                                                        *QfrGrepInfo*
+QfrGrepOpts                                                        *QfrGrepOpts*
 
     Fields: ~
-        {name}            (string) Used for cmds and public API access
-        {list_item_type}  (string|nil) Type to apply to resulting list items
-        {location_func}   (fun():string[]) For providing locations to the grep
+        {case?}       (QfrCase) "insensitive"|"sensitive"|"smartcase"|"vimcase"
+        {locations?}  (string[]|QfrGrepLocsFunc) A string list or a function
+                      returning a string list to provide locations to grep to.
+                      Pre-built location functions are available in
+                      "qf-rancher.lib.grep_locs"
+        {name?}       (string) Display name of the grep for prompting
+        {pattern}     (string|nil) Pattern to grep. If nil, either a prompt
+                      will display in normal mode or the selection will be
+                      used in visual mode
+        {regex?}      (boolean) If false, use fixed strings when grepping
 
 
                                                                      *Grep.grep*
-Grep.grep({name}, {input_opts}, {system_opts}, {output_opts})
-
-    Run a registered grep function
+Grep.grep({src_win}, {action}, {what}, {grep_opts}, {system_opts})
+    Run a grep
 
     The list title will be set to:
     "[grep name] [base grep cmd] [pattern]"
 
     Use "checkhealth qf-rancher" to verify the status of the current
     g:qfr_grepprg value
+    Note that this module will run an external grep, and thus must target
+    valid files and directories
 
     If g:qfr_reuse_title is true, output_opts.action is " ", and a list
     with the grep's title already exists, that list will be reused
+
+    If run in Visual mode, the selection will be used as the grep pattern.
+    Nvim will return to Normal mode.
 
     This command uses the |qfr-system| module to run the grep and print
     results
 
     Parameters: ~
-        {name}         (string) Will check all currently registered greps
-        {input_opts}   (QfrInputOpts) See |qfr-input-opts|
-                       If a pattern is provided, that will be used for the
-                       grep. If not, the user will be prompted for one in
-                       normal mode, or the current visual selection will be
-                       used
-        {system_opts}  (QfrSystemOpts) See |qfr-system-opts|
-                       async will be used by default
-        {output_opts}  (QfrOutputOpts) See |qfr-output-opts|
-                       Any list_item_type provided here will be overridden
-                       by the one provided in the grep config
+        {src_win}      (integer|nil) Location list window context. Nil for qflist
+        {action}       (QfrAction) See |setqflist-action|
+        {what}         (QfrWhat) See |setqflist-what|
+        {grep_opts}    (QfrGrepOpts) See |QfrGrepOpts|
+        {system_opts}  (QfrSystemOpts) See |QfrSystemOpts|
 
     Returns: ~
         (nil)
 
 
-Grep.register_grep({grep_info})                             *Grep.register_grep*
+QfrGrepInfo                                                        *QfrGrepInfo*
 
-    Register a grep function for use in comands and API calls
-
-    Parameters: ~
-        {grep_info}  (QfrGrepInfo) The grep will be registered
-                     under the name provided in this table
-
-    Returns: ~
-        (nil)
-
-
-Grep.clear_grep({name})                                        *Grep.clear_grep*
-
-    Remove a registered grep. The last grep cannot be removed
-
-    Parameters: ~
-        {name}  (string)
-
-    Returns: ~
-        (nil)
+    Fields: ~
+        {grep_opts}  (QfrGrepOpts) See |QfrGrepOpts|
+        {sys_opts}   (QfrSystemOpts) See |QfrSystemOpts|
 
 
 The callbacks to assign the Qgrep and Lgrep commands are below. They expect
@@ -1307,7 +1284,6 @@ They accept the following options:
 - "async" or "sync" to control system behavior (async by default)
 - A |setqflist-action| (default " ")
 Example: 2Qgrep help r vimcase /setqflist
-KNOWN ISSUE: Lgrep help does not open a new help win
 
 Grep.q_grep_cmd({cargs})                                       *Grep.q_grep_cmd*
 
@@ -1792,10 +1768,10 @@ QfrSortInfo                                                        *QfrSortInfo*
 
 
 Sort.sorts                                                          *Sort.sorts*
-     Sorts available to the Qsort and Lsort cmds. The string table key can be
-     fed to those cmds as an argument to use the sorts. Because this table is
-     public, sorts can be directly added or removed
-     Pre-built sorts are available in "qf-rancher.lib.sort"
+    Sorts available to the Qsort and Lsort cmds. The string table key can be
+    fed to those cmds as an argument to use the sorts. Because this table is
+    public, sorts can be directly added or removed
+    Pre-built sorts are available in "qf-rancher.lib.sort"
 
     Type: ~
         (table<string,QfrSortInfo>)
@@ -1845,16 +1821,17 @@ Send system cmd results to the list                                     *System*
                                                                     *qfr-system*
 
 
-QfrSystem                                                            *QfrSystem*
-
-
                                                               *System.system_do*
-System.system_do({system_opts}, {output_opts})
-    Run a system command and sends the results to a list
+System.system_do({cmd_parts}, {src_win}, {action}, {what}, {system_opts})
+    Run a system command and send the results to a list
 
     Parameters: ~
+        {cmd_parts}    (string[]) Command to execute
+        {src_win}      (integer|nil) Location list window nr, or nil to set to
+                       the quickfix list
+        {action}       (QfrAction) See |setqflist-action|
+        {what}         (QfrWhat) See |setqflist-what|
         {system_opts}  (QfrSystemOpts) See |qfr-system-opts|
-        {output_opts}  (QfrOutputOpts) See |qfr-output-opts|
 
     Returns: ~
         (nil)
@@ -1944,6 +1921,7 @@ QfrInputOpts                                                      *QfrInputOpts*
 
     Fields: ~
         {input_type}  (QfrInputType)
+        {prompt?}     (string) User prompt for entering pattern
         {pattern?}    (string) The search pattern for the function
 
 
@@ -1952,9 +1930,11 @@ QfrInputOpts                                                      *QfrInputOpts*
 QfrSystemOpts                                                    *QfrSystemOpts*
 
     Fields: ~
-        {sync?}       (boolean) Run the operation syncrhonously
-        {cmd_parts?}  (string[]) String parts to build the command from
-        {timeout?}    (integer) How long to wait. Default 2000 (sync and async)
+        {list_item_type?}  (string) Usually blank. "\1" for help buffers
+        {sort_func?}       (function) A function from the sort module
+        {sync?}            (boolean) Run the operation syncrhonously
+        {timeout?}         (integer) How long to wait.
+                           Default 2000 (sync and async)
 
 
                                                         *qf-rancher-output-opts*

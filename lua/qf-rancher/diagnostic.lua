@@ -31,8 +31,12 @@ local function filter_diags_top_severity(diags)
 
     local top_severity = ds.HINT ---@type vim.diagnostic.Severity
     for _, diag in ipairs(diags) do
-        if diag.severity < top_severity then top_severity = diag.severity end
-        if top_severity == ds.ERROR then break end
+        if diag.severity < top_severity then
+            top_severity = diag.severity
+        end
+        if top_severity == ds.ERROR then
+            break
+        end
     end
 
     return vim.tbl_filter(function(diag)
@@ -72,33 +76,49 @@ local function get_empty_msg(getopts)
 
     local default = "No diagnostics" ---@type string
 
-    if not (getopts and getopts.severity) then return default end
+    if not (getopts and getopts.severity) then
+        return default
+    end
 
     if type(getopts.severity) == "number" then
         local plural = ry._severity_map_plural[getopts.severity] ---@type string|nil
-        if plural then return "No " .. plural end
+        if plural then
+            return "No " .. plural
+        end
         return default
     end
 
     local min = getopts.severity.min ---@type integer|nil
     local max = getopts.severity.max ---@type integer|nil
-    if not (min or max) then return default end
+    if not (min or max) then
+        return default
+    end
 
     local min_hint = min == ds.HINT ---@type boolean
     local max_error = type(max) == "nil" or max == ds.ERROR ---@type boolean
-    if min_hint and max_error then return default end
+    if min_hint and max_error then
+        return default
+    end
 
     local min_txt = min and ry._severity_map_str[min]
     local max_txt = max and ry._severity_map_str[max]
-    if not (min_txt or max_txt) then return default end
+    if not (min_txt or max_txt) then
+        return default
+    end
 
     local parts = {}
-    if min_txt then parts[#parts + 1] = "Min: " .. min_txt end
-    if max_txt then parts[#parts + 1] = "max: " .. max_txt end
+    if min_txt then
+        parts[#parts + 1] = "Min: " .. min_txt
+    end
+    if max_txt then
+        parts[#parts + 1] = "max: " .. max_txt
+    end
     local minmax_txt = table.concat(parts, " ,")
 
     return default .. " (" .. minmax_txt .. ")"
 end
+
+-- TODO: Not closing on no diags
 
 ---@class QfrDiagOpts
 ---@field disp_func? QfrDiagDispFunc List entry conversion function
@@ -121,7 +141,9 @@ function Diag.diags_to_list(diag_opts, output_opts)
     ry._validate_output_opts(output_opts)
 
     local src_win = output_opts.src_win ---@type integer|nil
-    if src_win and not ru._valid_win_for_loclist(src_win) then return end
+    if src_win and not ru._valid_win_for_loclist(src_win) then
+        return
+    end
 
     local title = "Diagnostics" ---@type string
     local buf = src_win and api.nvim_win_get_buf(src_win) or nil ---@type integer|nil
@@ -131,21 +153,31 @@ function Diag.diags_to_list(diag_opts, output_opts)
 
         ---@return boolean
         local function should_clear()
-            if not (diag_opts.getopts and diag_opts.getopts.severity) then return true end
-            if diag_opts.getopts.severity == { min = ds.INFO } then return true end
-            if diag_opts.getopts.severity == { min = nil } then return true end
+            if not (diag_opts.getopts and diag_opts.getopts.severity) then
+                return true
+            end
+            if diag_opts.getopts.severity == { min = ds.INFO } then
+                return true
+            end
+            if diag_opts.getopts.severity == { min = nil } then
+                return true
+            end
             return false
         end
 
         if should_clear() then
             local diag_nr = rt._find_list_with_title(src_win, title) ---@type integer|nil
-            if diag_nr then ru._clear_list_and_resize(src_win, diag_nr) end
+            if diag_nr then
+                ru._clear_list_and_resize(src_win, diag_nr)
+            end
         end
 
         return
     end
 
-    if diag_opts.top then raw_diags = filter_diags_top_severity(raw_diags) end
+    if diag_opts.top then
+        raw_diags = filter_diags_top_severity(raw_diags)
+    end
     local disp_func = diag_opts.disp_func or convert_diag ---@type QfrDiagDispFunc
     local converted_diags = vim.tbl_map(disp_func, raw_diags) ---@type vim.quickfix.entry[]
     table.sort(converted_diags, rs_lib.sort_fname_asc)
@@ -193,13 +225,17 @@ local function unpack_diag_cmd(src_win, cargs)
     local top = vim.tbl_contains(fargs, "top") and true or false ---@type boolean
 
     local getopts = (function()
-        if top then return { severity = nil } end
+        if top then
+            return { severity = nil }
+        end
 
         local levels = vim.tbl_keys(level_map) ---@type string[]
         local level = ru._check_cmd_arg(fargs, levels, "hint") ---@type string
         local severity = level_map[level] ---@type vim.diagnostic.Severity
 
-        if cargs.bang then return { severity = severity } end
+        if cargs.bang then
+            return { severity = severity }
+        end
 
         severity = severity == ds.HINT and nil or severity
         return { severity = { min = severity } }

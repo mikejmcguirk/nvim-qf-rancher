@@ -164,6 +164,12 @@ local function find_win_in_tab(tabnr, dest_bt, opts)
     return nil
 end
 
+-- MID: Another broad change will be done to how we acquire windows - mini.jump2d provides us a
+-- way to guarantee that we can list winids in order. This will make it more manageable to
+-- get win configs to filter for things like focusable or not floating or whatever. Will also
+-- allow for less vim.fn use. Similarly to the location list finding, each element of scanning the
+-- wins is a separate thing, and they should build on top of each other
+
 -- -- MID: This would be an improvement
 -- ---@param tabnr integer
 -- ---@param winnrs integer[]
