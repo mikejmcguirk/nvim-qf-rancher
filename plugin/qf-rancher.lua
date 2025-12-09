@@ -205,7 +205,7 @@ qfr_set_default_keymaps = { { "boolean" }, true },
 for k, v in pairs(_QFR_G_VAR_MAP) do
     local cur_g_val = vim.g[k] ---@type any
     if not vim.tbl_contains(v[1], type(cur_g_val)) then
-        vim.api.nvim_set_var(k, v[2])
+        api.nvim_set_var(k, v[2])
     end
 end
 
@@ -213,7 +213,7 @@ end
 -- state could be reported in checkhealth
 
 if vim.g.qfr_create_loclist_autocmds then
-    local qfr_loclist_group = vim.api.nvim_create_augroup("qfr-loclist-group", { clear = true })
+    local qfr_loclist_group = api.nvim_create_augroup("qfr-loclist-group", { clear = true })
 
     api.nvim_create_autocmd("WinNew", {
         group = qfr_loclist_group,
@@ -229,26 +229,29 @@ if vim.g.qfr_create_loclist_autocmds then
             if not win then
                 return
             end
+
             if not api.nvim_win_is_valid(win) then
                 return
             end
 
-            local config = vim.api.nvim_win_get_config(win) ---@type vim.api.keyset.win_config
+            local config = api.nvim_win_get_config(win) ---@type vim.api.keyset.win_config
             if config.relative and config.relative ~= "" then
                 return
             end
+
             local qf_id = fn.getloclist(win, { id = 0 }).id ---@type integer
             if qf_id < 1 then
                 return
             end
 
-            local buf = vim.api.nvim_win_get_buf(win) ---@type integer
+            local buf = api.nvim_win_get_buf(win) ---@type integer
             if api.nvim_get_option_value("buftype", { buf = buf }) == "quickfix" then
                 return
             end
 
             vim.schedule(function()
-                rw._close_loclists_by_qf_id(qf_id, { all_tabpages = true })
+                local tabpages = api.nvim_list_tabpages() ---@type integer[]
+                rw._close_loclists({ qf_id = qf_id, tabpages = tabpages })
             end)
         end,
     })

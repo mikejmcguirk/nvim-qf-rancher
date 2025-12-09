@@ -697,8 +697,9 @@ end
 local function open_item_ll(dir, split, finish, list_win, item, new_idx, dest_bt)
     local pattern = "ll"
     api.nvim_exec_autocmds("QuickFixCmdPre", { pattern = pattern })
-    local src_win = list_win ---@type integer
-    local origin = ru._find_loclist_origin(src_win, { tabpage = 0 }) ---@type integer|nil
+    local qf_id = vim.fn.getloclist(list_win, { id = 0 }).id ---@type integer
+    local tabpage = api.nvim_win_get_tabpage(list_win) ---@type integer
+    local origin = ru._find_ll_origin(qf_id, { tabpage }) ---@type integer|nil
     local is_orphan = not origin ---@type boolean
 
     if split == "tabnew" then
@@ -710,6 +711,7 @@ local function open_item_ll(dir, split, finish, list_win, item, new_idx, dest_bt
         if dest_bt == "help" then
             return get_help_win_ll(list_win, origin, item.bufnr, split)
         end
+
         return find_norm_win_ll(list_win, origin, item.bufnr, split)
     end)()
 

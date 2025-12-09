@@ -1,4 +1,4 @@
-local ro = Qfr_Defer_Require("qf-rancher.window") ---@type QfrWins
+local rw = Qfr_Defer_Require("qf-rancher.window") ---@type QfrWins
 local ry = Qfr_Defer_Require("qf-rancher.types") ---@type QfrTypes
 local ru = Qfr_Defer_Require("qf-rancher.util") ---@type QfrUtil
 
@@ -73,6 +73,7 @@ local function get_result(src_win, nr)
     return math.min(nr, max_nr)
 end
 
+-- MID: This function weirdly sticks out
 ---@param src_win integer|nil
 ---@return integer
 local function del_all(src_win)
@@ -81,7 +82,8 @@ local function del_all(src_win)
     if not src_win then
         local result = fn.setqflist({}, "f") ---@type integer
         if result == 0 and vim.g.qfr_close_on_stack_clear then
-            ro._close_qfwins({ all_tabpages = true })
+            local tabpages = vim.api.nvim_list_tabpages() ---@type integer[]
+            rw._close_qflists(tabpages)
         end
 
         return result
@@ -90,7 +92,8 @@ local function del_all(src_win)
     local qf_id = fn.getloclist(src_win, { id = 0 }).id ---@type integer
     local result = fn.setloclist(src_win, {}, "f") ---@type integer
     if result == 0 and vim.g.qfr_close_on_stack_clear then
-        ro._close_loclists_by_qf_id(qf_id, { all_tabpages = true })
+        local tabpages = vim.api.nvim_list_tabpages() ---@type integer[]
+        rw._close_loclists({ qf_id = qf_id, tabpages = tabpages })
     end
 
     return result

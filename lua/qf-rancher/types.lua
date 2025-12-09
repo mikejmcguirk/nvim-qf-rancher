@@ -1,5 +1,3 @@
-local ru = Qfr_Defer_Require("qf-rancher.util")
-
 ---@mod Types API Types
 ---@tag qf-rancher-types
 ---@tag qfr-types
@@ -513,20 +511,10 @@ function Types._validate_input_opts(input_opts)
     vim.validate("input_opts.pattern", input_opts.pattern, "string", true)
 end
 
--- TODO: Get rid of this data construct
----@class QfrTabpageOpts
----@field tabpage? integer
+---@class qfr.util.FindLoclistWinOpts
 ---@field tabpages? integer[]
----@field all_tabpages? boolean
-
----@param opts QfrTabpageOpts
----@return nil
-function Types._validate_tabpage_opts(opts)
-    vim.validate("opts", opts, "table")
-    vim.validate("opts.tabpage", opts.tabpage, "number", true)
-    vim.validate("opts.tabpages", opts.tabpages, "table", true)
-    vim.validate("opts.all_tabpages", opts.all_tabpages, "boolean", true)
-end
+---@field src_win? integer
+---@field qf_id? integer
 
 ---@class QfrBufOpenOpts
 ---@field buftype? string
@@ -671,30 +659,6 @@ function Types._validate_finish(finish)
         return vim.tbl_contains(valid_finishes, finish)
     end, "Finish method of " .. finish .. " is invalid")
 end
-
-----------------
--- SORT TYPES --
-----------------
-
----@param sort_info QfrSortInfo
----@return nil
-function Types._validate_sort_info(sort_info)
-    vim.validate("sort_info", sort_info, "table")
-    vim.validate("sort_info.asc_func", sort_info.asc, "callable")
-    vim.validate("sort_info.desc_func", sort_info.desc, "callable")
-end
-
----@param dir QfrSortDir
----@return nil
-function Types._validate_sort_dir(dir)
-    vim.validate("dir", dir, "string")
-    vim.validate("dir", dir, function()
-        return dir == "asc" or dir == "desc"
-    end)
-end
-
----@alias QfrSortable string|integer
----@alias QfrCheckFunc fun(QfrSortable, QfrSortable):boolean
 
 ------------------
 -- SYSTEM TYPES --

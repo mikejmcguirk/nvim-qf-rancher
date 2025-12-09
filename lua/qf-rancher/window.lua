@@ -189,7 +189,7 @@ function Window.open_qflist(opts)
 
     local cur_win = api.nvim_get_current_win() ---@type integer
     local tabpage = api.nvim_win_get_tabpage(cur_win) ---@type integer
-    local list_win = ru._find_qf_win({ tabpage = tabpage }) ---@type integer|nil
+    local list_win = ru._find_qf_win({ tabpage }) ---@type integer|nil
     if list_win then
         return handle_open_list_win(list_win, opts)
     end
@@ -245,7 +245,7 @@ function Window.open_loclist(src_win, opts)
     end
 
     local tabpage_wins = api.nvim_tabpage_list_wins(tabpage) ---@type integer[]
-    local qf_win = ru._find_qf_win({ tabpage = tabpage }) ---@type integer|nil
+    local qf_win = ru._find_qf_win({ tabpage }) ---@type integer|nil
     if qf_win then
         tabpage_wins = vim.tbl_filter(function(win)
             return win ~= qf_win
@@ -272,7 +272,7 @@ function Window.close_qflist()
     local cur_win = api.nvim_get_current_win() ---@type integer
     local tabpage = api.nvim_win_get_tabpage(cur_win) ---@type integer
 
-    local qf_win = ru._find_qf_win({ tabpage = tabpage }) ---@type integer|nil
+    local qf_win = ru._find_qf_win({ tabpage }) ---@type integer|nil
     if not qf_win then
         return false
     end
@@ -511,93 +511,54 @@ function Window._resize_list_win(list_win, height)
     restore_views(views)
 end
 
--- LOW: For these operations, and anything similar in utils, the closing/saving should be done on
--- a per tabpage basis rather than a per listwin basis, so that for tabs where multiple
--- location lists are opened, the views can be saved and restored once. Low priority because the
--- most likely case of this issue occuring, opening a QfList, already works this way
+-- MID: For any bulk operation that resizes, the views should be saved per-tabpage rather than
+-- per-win for performance. On the other hand, this is really just an argument for temporarily
+-- setting splitkeep
 
----@param opts QfrTabpageOpts
+---@param tabpages? integer[]
 ---@return nil
-function Window._close_qfwins(opts)
-    ry._validate_tabpage_opts(opts)
-
-    local qfwins = ru._find_qf_wins(opts) ---@type integer[]
-    for _, list in ipairs(qfwins) do
-        Window._close_win_save_views(list)
+function Window._close_qflists(tabpages)
+    local wins = ru._find_qf_wins(tabpages)
+    for _, win in ipairs(wins) do
+        Window._close_win_save_views(win)
     end
 end
 
----@param opts QfrTabpageOpts
+---@param opts qfr.util.FindLoclistWinOpts
 ---@return nil
-function Window._resize_qfwins(opts)
-    ry._validate_tabpage_opts(opts)
-
-    local qfwins = ru._find_qf_wins(opts) ---@type integer[]
-    for _, list in ipairs(qfwins) do
-        Window._resize_list_win(list, nil)
+function Window._close_loclists(opts)
+    local wins = ru._find_ll_wins(opts)
+    for _, win in ipairs(wins) do
+        Window._close_win_save_views(win)
     end
 end
 
--- MID: This function is weird/bad/confusing. The by_win seems to indicate that we're looking by
--- src_win, but then we also have the tabpage scoping.
--- The confusion comes from which scopes are being used. One scope is, which tabs are we checking
--- for the loclist in? The other is, are we identifying the loclist by src_win, qf_id, or neither?
--- Another thing to keep in mind is that qflists can have ids above zero, so you might need to
--- check wintype as well
--- If you want to resize qflists, you need to know what tabpages to check, and then you need to
--- find any wins where the wintype is quickfix
--- If you want to resize loclists, you need to know the tabpage(s) and then the qf_id. Though there
--- are weird edge cases for orphan cleanup
--- So I think the resizing functions need to be only concerned with the info they need to be
--- concerned about, and not wrap in other info like with src_win bookkeeping. It actually hurts
--- composability because now we have multiple loclist resizers that compete for space
--- For loclist iterators, I think you always check iterator for runtime safety, but then make
--- qf_id an optional variable. This should help compsability. If I want to target a specific
--- tabpage for resize, I can do that. If I want to do an orphan cleanup, I can get the lists
--- with an interator, then work through them, get their qf ids, then check other wins for matching
--- qf_ids
--- You can also use an underlying get_loclists function as a root for this. If you want to resize,
--- you need to get first, then you can iterate over the list to resize
--- The way you do this refacor, I think, is you write the proper functions, then you replace
--- the bad ones. The proper functions should also ditch the QfrTabpageOpts construct. Can see
--- how much crud is left afterwards
----@param src_win integer
----@param opts QfrTabpageOpts
+---@param tabpages? integer[]
 ---@return nil
-function Window._resize_loclists_by_win(src_win, opts)
-    ry._validate_win(src_win, false)
-    ry._validate_tabpage_opts(opts)
+function Window._resize_qflists(tabpages)
+    local wins = ru._find_qf_wins(tabpages)
+    for _, win in ipairs(wins) do
+        Window._resize_list_win(win, nil)
+    end
+end
 
-    ---@type integer[]
-    local loclists = ru._get_loclist_wins_by_win(src_win, opts)
-    for _, list_win in ipairs(loclists) do
-        Window._resize_list_win(list_win, nil)
+---@param opts qfr.util.FindLoclistWinOpts
+---@return nil
+function Window._resize_loclists(opts)
+    local wins = ru._find_ll_wins(opts)
+    for _, win in ipairs(wins) do
+        Window._resize_list_win(win, nil)
     end
 end
 
 ---@param src_win integer|nil
----@param opts QfrTabpageOpts
+---@param tabpages integer[]
 ---@return nil
-function Window._resize_lists_by_win(src_win, opts)
-    ry._validate_win(src_win, true)
+function Window._resize_lists(src_win, tabpages)
     if src_win then
-        Window._resize_loclists_by_win(src_win, opts)
+        Window._resize_loclists({ src_win = src_win, tabpages = tabpages })
     else
-        Window._resize_qfwins(opts)
-    end
-end
-
----@param qf_id integer
----@param opts QfrTabpageOpts
----@return nil
-function Window._close_loclists_by_qf_id(qf_id, opts)
-    ry._validate_uint(qf_id)
-    ry._validate_tabpage_opts(opts)
-
-    ---@type integer[]
-    local llists = ru._get_ll_wins_by_qf_id(qf_id, opts)
-    for _, list in ipairs(llists) do
-        Window._close_win_save_views(list)
+        Window._resize_qflists(tabpages)
     end
 end
 

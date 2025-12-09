@@ -196,7 +196,7 @@ function Diag.diags_to_list(diag_opts, output_opts)
                     if vim.g.qfr_auto_list_height and result >= 0 then
                         local tabpage = src_win and api.nvim_win_get_tabpage(src_win)
                             or api.nvim_get_current_tabpage()
-                        rw._resize_lists_by_win(src_win, { tabpage = tabpage })
+                        rw._resize_lists(src_win, { tabpage })
                     end
                 end
             end
