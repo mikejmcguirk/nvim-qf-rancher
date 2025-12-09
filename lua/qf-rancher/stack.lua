@@ -51,7 +51,7 @@ local function change_history(src_win, count, wrapping)
     end
 
     local cur_list_nr = rt._get_list(src_win, { nr = 0 }).nr ---@type integer
-    local count1 = ru._count_to_count1(count) ---@type integer
+    local count1 = math.max(count, 1) ---@type integer
     local new_list_nr = wrapping(cur_list_nr, count1, 1, stack_len) ---@type integer
 
     local cmd = src_win and "lhistory" or "chistory" ---@type string

@@ -424,6 +424,9 @@ end
 -- PR: It should be possible to output vimgrep to a list so it can be used by internal scripting
 -- PR: It would be better if cmd marks produced rows and columns
 
+-- FUTURE: If it becomes possible to add metatables to g:vars, could use to put validations on
+-- g:var sets
+
 -- RESOURCES --
 -- https://github.com/romainl/vim-qf
 -- https://github.com/kevinhwang91/nvim-bqf

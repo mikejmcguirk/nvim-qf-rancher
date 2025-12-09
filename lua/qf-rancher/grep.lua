@@ -330,7 +330,7 @@ local function grep_cmd(src_win, cargs)
     local grep_info = vim.deepcopy(Grep.greps[grep_name], true) ---@type QfrGrepInfo
 
     local grep_opts = grep_info.grep_opts ---@type QfrGrepOpts
-    grep_opts.pattern = ru._find_cmd_pattern(fargs)
+    grep_opts.pattern = ru._find_pattern_in_cmd(fargs)
 
     ---@type QfrInputType
     local input_type = ru._check_cmd_arg(fargs, ry._cmd_input_types, ry._default_input_type)

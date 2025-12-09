@@ -1,7 +1,6 @@
 ---@class QfrUtil
 local M = {}
 
-local rw = Qfr_Defer_Require("qf-rancher.window") ---@type QfrWins
 local rt = Qfr_Defer_Require("qf-rancher.tools") ---@type QfrTools
 local ry = Qfr_Defer_Require("qf-rancher.types") ---@type QfrTypes
 
@@ -14,7 +13,7 @@ local fn = vim.fn
 
 ---@param fargs string[]
 ---@return string|nil
-function M._find_cmd_pattern(fargs)
+function M._find_pattern_in_cmd(fargs)
     ry._validate_list(fargs, { type = "string" })
 
     for _, arg in ipairs(fargs) do
@@ -85,13 +84,12 @@ function M._resolve_input_vimcase(input)
     return "sensitive"
 end
 
--- LOW: This should pass up the echo chunks rather than doing so here
+-- MID: This should pass up the echo chunks rather than doing so here
 -- - You could then pass up errors if there is a bad mode rather than creating an enter error
 --   with vim.validate. But extui might make that irrelevant
--- LOW: An empty selection is not an error and should not be treated as such
+-- MID: An empty selection is not an error and should not be treated as such
 -- - Issue: Leaving visual mode after a valid selection is handled here. Do we want to do that if
 --   the selection is empty?
-
 ---@param mode string
 ---@return string|nil
 local function get_visual_pattern(mode)
@@ -143,10 +141,7 @@ local function get_input(prompt)
     return nil
 end
 
--- MID: This function forces callers to build their prompts even in visual mode. What this
--- function should do is take a function reference to build the prompt that is only called if
--- we're in normal mode
-
+-- TODO: Deprecate
 ---@param prompt string
 ---@param input_pattern string|nil
 ---@param input_type QfrInputType
@@ -217,7 +212,7 @@ local function get_wrapping_idx(src_win, count, wrapping_math)
     ry._validate_uint(count)
     vim.validate("arithmetic", wrapping_math, "callable")
 
-    local count1 = M._count_to_count1(count) ---@type integer|nil
+    local count1 = math.max(count, 1) ---@type integer
     local size = rt._get_list(src_win, { nr = 0, size = 0 }).size ---@type integer
     if size < 1 then
         api.nvim_echo({ { "E42: No Errors", "" } }, false, {})
@@ -270,7 +265,8 @@ end
 -- LIST IDX GETTER FUNCS --
 ---------------------------
 
--- LOW: An obvious expansion of this concept would be to also pass in a specific list
+-- TODO: These functions are bad because they mash up the idx finding and the item getting. Need
+-- to be de-composed down
 
 ---@param src_win integer|nil
 ---@param idx integer
@@ -323,12 +319,8 @@ end
 -- DATA HYGIENE --
 ------------------
 
----@param count integer
----@return integer
-function M._count_to_count1(count)
-    ry._validate_uint(count)
-    return math.max(count, 1)
-end
+-- TODO: Deprecate this. Checkhealth can be used to determine if g:vars are valid. Could put
+-- extra validation in the initial setup, but then user entries need to be correct
 
 ---@param g_var string
 ---@param allow_nil? boolean

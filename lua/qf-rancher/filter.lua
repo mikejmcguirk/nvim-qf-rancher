@@ -385,7 +385,7 @@ local function filter_cmd(cargs, src_win)
 
     ---@type QfrInputType
     local input_type = ru._check_cmd_arg(fargs, ry._cmd_input_types, ry._default_input_type)
-    local pattern = ru._find_cmd_pattern(fargs) ---@type string|nil
+    local pattern = ru._find_pattern_in_cmd(fargs) ---@type string|nil
     local input_opts = { input_type = input_type, pattern = pattern } ---@type QfrInputOpts
 
     ---@type QfrAction

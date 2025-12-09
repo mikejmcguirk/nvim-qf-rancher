@@ -122,7 +122,7 @@ local function file_nav_wrap(src_win, count, cmd, backup_cmd)
         return nil
     end
 
-    local adj_count = ru._count_to_count1(count) ---@type integer
+    local adj_count = math.max(count, 1) ---@type integer
 
     ---@type boolean, string
     local ok, err = pcall(api.nvim_cmd, { cmd = cmd, count = adj_count }, {})
