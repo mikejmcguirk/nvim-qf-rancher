@@ -2,6 +2,7 @@ local ls = Qfr_Defer_Require("qf-rancher.lib.sort") ---@type QfrLibSort
 local ra = Qfr_Defer_Require("qf-rancher.stack") ---@type QfrStack
 local rt = Qfr_Defer_Require("qf-rancher.tools") ---@type QfrTools
 local ru = Qfr_Defer_Require("qf-rancher.util") ---@type QfrUtil
+local rw = Qfr_Defer_Require("qf-rancher.window") ---@type QfrWins
 local ry = Qfr_Defer_Require("qf-rancher.types") ---@type QfrTypes
 
 local api = vim.api
@@ -173,11 +174,8 @@ local function set_output_to_list(obj, src_win, action, what, system_opts)
     end
 
     if vim.g.qfr_auto_open_changes then
-        ra._get_history(src_win, dest_nr, {
-            open_list = true,
-            default = "cur_list",
-            silent = true,
-        })
+        ra._get_history(src_win, dest_nr, { default = "cur_list", silent = true })
+        rw._open_list(src_win, {})
     end
 
     if src_win and orig_src_win ~= src_win then
