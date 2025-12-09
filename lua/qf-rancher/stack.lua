@@ -281,6 +281,7 @@ function Stack._get_history(src_win, count, opts)
     if adj_count and cur_nr ~= adj_count then
         resize_after_stack_change(src_win)
     end
+
     if opts.open_list then
         rw._open_list(src_win, { keep_win = opts.keep_win, nop_if_open = true })
     end
@@ -297,6 +298,7 @@ function Stack._del(src_win, count)
     if result == -1 then
         return
     end
+
     local cur_list_nr = rt._get_list(src_win, { nr = 0 }).nr ---@type integer
     if result == cur_list_nr then
         resize_after_stack_change(src_win)

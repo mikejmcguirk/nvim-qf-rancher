@@ -70,9 +70,11 @@ local Types = {}
 function Types._validate_list_nr(nr, optional)
     vim.validate("optional", optional, "boolean", true)
     vim.validate("nr", nr, { "number", "string" }, optional)
+
     if type(nr) == "number" then
         Types._validate_uint(nr)
     end
+
     if type(nr) == "string" then
         vim.validate("nr", nr, function()
             return nr == "$"
@@ -151,6 +153,7 @@ function Types._validate_uint(n, optional)
     vim.validate("num", n, function()
         return n % 1 == 0
     end, optional, "Num is not an integer")
+
     vim.validate("num", n, function()
         return n >= 0
     end, optional, "Num is less than zero")

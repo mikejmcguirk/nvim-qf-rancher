@@ -163,6 +163,20 @@ end
 
 -- MID: "get_filtered_tabpage_wins" might be a useful util function
 
+-- MID: This applies to open_loclist too. We have the same issue as before where the different
+-- opts don't act mututaly exclusively, and thus do things that you would not anticipate. In this
+-- case, "nop_on_open" both silences messages and prevents auto-resizing, which is not intuitively
+-- obvious. As much as I don't like having different open_opts, they are necessary for this
+-- function to handle its various uses cases. The key is that the way they act needs to be
+-- mututually exclusive, so they don't create multiplicative complexity
+-- So you would need:
+-- - height: Same as before
+-- - resize: always(default)|only on success
+-- - focus_list: always(default)|only on success
+-- - silent: boolean
+-- And for location lists you would need to track distinctly if the list failed to open due to
+-- already being open or because no list exists
+
 ---- If any location lists are open in the same tabpage, they will be
 ---  automatically closed before the qflist is opened
 ---- If the quickfix list is already open, it will be focused
@@ -197,8 +211,9 @@ function Window.open_qflist(opts)
     return open_cleanup(views, opts.keep_win, cur_win)
 end
 
--- MID: Applies to close_loclist as well - Might want to drop src_win as a param. It muddies the
--- context between what src_win the function is called for and the user's current win
+-- MID: In reversal from previous idea - This function needs to be responsive to remote
+-- context. If called from outside the src_win context, it will not open. Unsure if a hack would
+-- then be needed to make the list focus, or what else is being disrupted under the hood though
 -- LOW: I don't love tying the no loclist msg to nop_if_open, but it seems to work
 
 ---- If no location list is present for the source window, the function will
@@ -416,6 +431,8 @@ end
 -- =================
 -- == UNSUPPORTED ==
 -- =================
+
+-- MID: The opts table should the optional
 
 ---@param src_win? integer
 ---@param opts QfrListOpenOpts

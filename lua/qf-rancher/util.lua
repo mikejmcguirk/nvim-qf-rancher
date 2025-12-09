@@ -305,6 +305,7 @@ function M._get_item_wrapping_sub(src_win)
     if not idx then
         return nil, nil
     end
+
     return get_item(src_win, idx)
 end
 
@@ -314,6 +315,7 @@ function M._get_item_wrapping_add(src_win)
     if not idx then
         return nil, nil
     end
+
     return get_item(src_win, idx)
 end
 
@@ -465,6 +467,7 @@ function M._pbuf_rm(buf, force, wipeout)
     if not wipeout then
         api.nvim_set_option_value("buflisted", false, { buf = buf })
     end
+
     local delete_opts = wipeout and { force = force } or { force = force, unload = true }
     local ok, _ = pcall(api.nvim_buf_delete, buf, delete_opts)
     return ok and 0 or -1
@@ -574,6 +577,7 @@ function M._open_item(item, win, opts)
     if not opts.skip_zzze then
         M._do_zzze(win)
     end
+
     api.nvim_win_call(win, function()
         api.nvim_cmd({ cmd = "normal", args = { "zv" }, bang = true }, {})
     end)
@@ -581,6 +585,7 @@ function M._open_item(item, win, opts)
     if opts.focus then
         api.nvim_set_current_win(win)
     end
+
     return true
 end
 
@@ -593,6 +598,7 @@ function M._do_zzze(win, always)
     if not (vim.g.qfr_auto_center or always) then
         return
     end
+
     api.nvim_win_call(win, function()
         api.nvim_cmd({ cmd = "normal", args = { "zz" }, bang = true }, {})
         api.nvim_cmd({ cmd = "normal", args = { "ze" }, bang = true }, {})
@@ -702,6 +708,7 @@ local function is_loclist_win(qf_id, win)
     if tw_qf_id ~= qf_id then
         return false
     end
+
     local wintype = fn.win_gettype(win)
     if wintype == "loclist" then
         return true

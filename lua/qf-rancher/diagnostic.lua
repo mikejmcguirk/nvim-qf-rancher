@@ -2,6 +2,7 @@ local ra = Qfr_Defer_Require("qf-rancher.stack") ---@type QfrStack
 local rs_lib = Qfr_Defer_Require("qf-rancher.lib.sort") ---@type QfrLibSort
 local rt = Qfr_Defer_Require("qf-rancher.tools") ---@type QfrTools
 local ru = Qfr_Defer_Require("qf-rancher.util") ---@type QfrUtil
+local rw = Qfr_Defer_Require("qf-rancher.window") ---@type QfrWins
 local ry = Qfr_Defer_Require("qf-rancher.types") ---@type QfrTypes
 
 local api = vim.api
@@ -119,8 +120,6 @@ local function get_empty_msg(getopts)
     return default .. " (" .. minmax_txt .. ")"
 end
 
--- TODO: Not closing on no diags
-
 ---@class QfrDiagOpts
 ---@field disp_func? QfrDiagDispFunc List entry conversion function
 ---@field top? boolean If true, only show top severity
@@ -140,6 +139,7 @@ end
 function Diag.diags_to_list(diag_opts, output_opts)
     ry._validate_diag_opts(diag_opts)
     ry._validate_output_opts(output_opts)
+    output_opts = vim.deepcopy(output_opts, true)
 
     local src_win = output_opts.src_win ---@type integer|nil
     if src_win and not ru._valid_win_for_loclist(src_win) then
@@ -147,6 +147,7 @@ function Diag.diags_to_list(diag_opts, output_opts)
     end
 
     local title = "Diagnostics" ---@type string
+    output_opts.what.title = title
     local buf = src_win and api.nvim_win_get_buf(src_win) or nil ---@type integer|nil
     local raw_diags = vim.diagnostic.get(buf, diag_opts.getopts) ---@type vim.Diagnostic[]
     if #raw_diags == 0 then
@@ -156,23 +157,26 @@ function Diag.diags_to_list(diag_opts, output_opts)
         local function should_clear()
             if not (diag_opts.getopts and diag_opts.getopts.severity) then
                 return true
-            end
-
-            if diag_opts.getopts.severity == { min = ds.INFO } then
+            elseif diag_opts.getopts.severity == { min = ds.INFO } then
                 return true
-            end
-
-            if diag_opts.getopts.severity == { min = nil } then
+            elseif diag_opts.getopts.severity == { min = nil } then
                 return true
+            else
+                return false
             end
-
-            return false
         end
 
         if should_clear() then
             local diag_nr = rt._find_list_with_title(src_win, title) ---@type integer|nil
             if diag_nr then
-                ru._clear_list_and_resize(src_win, diag_nr)
+                local max_nr = rt._get_list(src_win, { nr = "$" }).nr ---@type integer
+                if max_nr == 1 then
+                    rt._set_list(src_win, "f", {})
+                else
+                    -- MID: Should also go to an active list, but would need to write a func for
+                    -- that
+                    ru._clear_list_and_resize(src_win, diag_nr)
+                end
             end
         end
 
@@ -187,6 +191,7 @@ function Diag.diags_to_list(diag_opts, output_opts)
     local converted_diags = vim.tbl_map(disp_func, raw_diags) ---@type vim.quickfix.entry[]
     table.sort(converted_diags, rs_lib.sort_fname_asc)
 
+    -- MID: Get out of this + output opts
     local adj_output_opts = rt.handle_new_same_title(output_opts) ---@type QfrOutputOpts
     local what_set = vim.tbl_deep_extend("force", adj_output_opts.what, {
         items = converted_diags,
@@ -194,12 +199,9 @@ function Diag.diags_to_list(diag_opts, output_opts)
     }) ---@type QfrWhat
 
     local dest_nr = rt._set_list(src_win, adj_output_opts.action, what_set) ---@type integer
-    if ru._get_g_var("qfr_auto_open_changes") and dest_nr > 0 then
-        ra._get_history(src_win, dest_nr, {
-            open_list = true,
-            default = "cur_list",
-            silent = true,
-        })
+    if vim.g.qfr_auto_open_changes then
+        ra._get_history(src_win, dest_nr, { default = "cur_list", silent = true })
+        rw._open_list(src_win, {})
     end
 end
 
