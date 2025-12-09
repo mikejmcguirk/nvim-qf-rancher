@@ -55,12 +55,19 @@ if vim.g.qfr_ftplugin_demap then
     -- MID: This currently does not work because it destroys unsimplified mappings. Would be good
     -- to figure out how to avoid this. Perhaps you re-maparg to whatever was on tab
     -- See :h <tab> and https://github.com/neovim/neovim/pull/17932
+    -- Something to try:
+    -- - maparg first for a buffer local <tab> mapping, if found we're good
+    -- - maparg for a global <tab> mapping, map it in the buffer
+    -- I'm wondering if you have to map both in a buffer scope for unsimplification to happen
     -- bufmap(0, "n", "<C-i>", "<nop>", { noremap = true, nowait = true })
     -- bufmap(0, "n", "<C-o>", "<nop>", { noremap = true, nowait = true })
 end
 
 -- MID: Doc wise, it would be less awkward if the "<" and ">" maps were included in the ftplugin
 -- maps table. But I'm not sure how you pass the list context through a plug map
+-- MID: Qfr the changes that have been made, and likely will be made, I'm not sure we're in
+-- emulation territory anymore for window finding. But unsure where/if a dissertation should be
+-- written on that logic
 
 ---@brief [[
 ---The |qf-rancher-ftplugin-keymaps| will be set if g:qfr_ftplugin_keymap

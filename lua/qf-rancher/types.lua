@@ -30,14 +30,20 @@ local Types = {}
 ---@tag qfr-input-opts
 ---@class QfrInputOpts
 ---@field input_type QfrInputType
+---@field prompt? string User prompt for entering pattern
 ---@field pattern? string The search pattern for the function
 
 ---@tag qf-rancher-system-opts
 ---@tag qfr-system-opts
 ---@class QfrSystemOpts
+---@field list_item_type? string Usually blank. "\1" for help buffers
+---@field sort_func? function A function from the sort module
 ---@field sync? boolean Run the operation syncrhonously
----@field cmd_parts? string[] String parts to build the command from
----@field timeout? integer How long to wait. Default 2000 (sync and async)
+---How long to wait.
+---Default 2000 (sync and async)
+---@field timeout? integer
+
+-- MID: This should eventually be removed
 
 ---@tag qf-rancher-output-opts
 ---@tag qfr-output-opts
@@ -64,7 +70,9 @@ local Types = {}
 function Types._validate_list_nr(nr, optional)
     vim.validate("optional", optional, "boolean", true)
     vim.validate("nr", nr, { "number", "string" }, optional)
-    if type(nr) == "number" then Types._validate_uint(nr) end
+    if type(nr) == "number" then
+        Types._validate_uint(nr)
+    end
     if type(nr) == "string" then
         vim.validate("nr", nr, function()
             return nr == "$"
@@ -100,8 +108,11 @@ function Types._validate_what(what)
     Types._validate_list(what.lines, { optional = true, type = "string" })
 
     vim.validate("what.nr", what.nr, { "number", "string" }, true)
-    ---@diagnostic disable-next-line: param-type-mismatch
-    if type(what.nr) == "number" then Types._validate_uint(what.nr) end
+    if type(what.nr) == "number" then
+        ---@diagnostic disable-next-line: param-type-mismatch
+        Types._validate_uint(what.nr)
+    end
+
     if type(what.nr) == "string" then
         vim.validate("what.nr", what.nr, function()
             return what.nr == "$"
@@ -148,9 +159,13 @@ end
 ---@param n integer
 ---@return boolean
 function Types._is_uint(n)
-    if type(n) ~= "number" then return false end
+    if type(n) ~= "number" then
+        return false
+    end
 
-    if n < 0 then return false end
+    if n < 0 then
+        return false
+    end
 
     return n % 1 == 0
 end
@@ -176,7 +191,9 @@ end
 ---@param optional? boolean
 ---@return nil
 function Types._validate_win(win, optional)
-    if optional and type(win) == "nil" then return end
+    if optional and type(win) == "nil" then
+        return
+    end
 
     Types._validate_uint(win)
     if type(win) == "number" then
@@ -193,7 +210,9 @@ end
 ---@return nil
 function Types._validate_buf(buf, optional)
     Types._validate_uint(buf, optional)
-    if optional and type(buf) == "nil" then return end
+    if optional and type(buf) == "nil" then
+        return
+    end
 
     if type(buf) == "number" then
         vim.validate("buf", buf, function()
@@ -233,7 +252,9 @@ end
 ---@return nil
 function Types._validate_list(list, opts)
     validate_validate_list_opts(opts)
-    if (not list) and opts.optional then return end
+    if (not list) and opts.optional then
+        return
+    end
 
     vim.validate("list", list, vim.islist, "Must be a valid list")
 
@@ -246,7 +267,9 @@ function Types._validate_list(list, opts)
     if opts.type and ru._get_g_var("qfr_debug_assertions") then
         vim.validate("list", list, function()
             for _, value in ipairs(list) do
-                if type(value) ~= opts.type then return false end
+                if type(value) ~= opts.type then
+                    return false
+                end
             end
 
             return true
@@ -275,7 +298,9 @@ end
 ---@param optional? boolean
 ---@return nil
 function Types._validate_list_win(list_win, optional)
-    if optional and type(list_win) == "nil" then return end
+    if optional and type(list_win) == "nil" then
+        return
+    end
 
     Types._validate_win(list_win)
     ---@diagnostic disable-next-line: param-type-mismatch
@@ -292,7 +317,9 @@ end
 ---@return nil
 function Types._validate_list_item_type(item_type, optional)
     vim.validate("optional", optional, "boolean", true)
-    if optional and type(item_type) == "nil" then return end
+    if optional and type(item_type) == "nil" then
+        return
+    end
 
     vim.validate("item_type", item_type, "string", true)
     if type(item_type) == "string" then
@@ -435,6 +462,8 @@ function Types._validate_output_opts(output_opts)
     Types._validate_what(output_opts.what)
 end
 
+-- MID: Deprecate this
+
 ---@type string[]
 local input_types = { "insensitive", "regex", "sensitive", "smartcase", "vimcase" }
 Types._default_input_type = "vimcase"
@@ -451,6 +480,27 @@ function Types._validate_input_type(input)
     end, "Input type " .. input .. " is not valid")
 end
 
+---@alias QfrCase "insensitive"|"sensitive"|"smartcase"|"vimcase"
+
+local cases = { "insensitive", "sensitive", "smartcase", "vimcase" }
+
+---@param case QfrCase|nil
+---@param optional boolean?
+---@return nil
+function Types._validate_case(case, optional)
+    if optional and type(case) == "nil" then
+        return
+    end
+
+    vim.validate("case", case, function()
+        return vim.tbl_contains(cases, case)
+    end)
+end
+
+-- MID: Deprecate this. There are specific combinatorial problems for certain modules that
+-- require tables to answers, but adding in a generalized input table only adds another
+-- combinatorial layer
+
 ---@param input_opts QfrInputOpts
 ---@return nil
 function Types._validate_input_opts(input_opts)
@@ -459,6 +509,10 @@ function Types._validate_input_opts(input_opts)
     vim.validate("input_opts.pattern", input_opts.pattern, "string", true)
 end
 
+-- MID: all_tabpages is not necessary, because you can just set tabpages to nvim_list_tabpages
+-- Really, I'm not sure why this is an opts table at all, and you wouldn't just feed a list of
+-- tabpages, and if you only wanted to do one tabpage, you would just send a table with one
+-- tabpage
 ---@class QfrTabpageOpts
 ---@field tabpage? integer
 ---@field tabpages? integer[]
@@ -513,7 +567,9 @@ end
 ---@return nil
 function Types._validate_diag_severity(severity, optional)
     vim.validate("optional", optional, "boolean", true)
-    if optional and type(severity) == "nil" then return end
+    if optional and type(severity) == "nil" then
+        return
+    end
 
     Types._validate_uint(severity)
     vim.validate("severity", severity, function()
@@ -526,7 +582,9 @@ end
 ---@return nil
 function Types._validate_diag_getopts(diag_getopts, optional)
     vim.validate("optional", optional, "boolean", true)
-    if optional and type(diag_getopts) == "nil" then return end
+    if optional and type(diag_getopts) == "nil" then
+        return
+    end
 
     vim.validate("diag_getopts", diag_getopts, "table")
     assert(type(diag_getopts) == "table")
@@ -534,9 +592,13 @@ function Types._validate_diag_getopts(diag_getopts, optional)
     local ns = diag_getopts.namespace
     vim.validate("ns", ns, { "number", "table" }, true)
     ---@diagnostic disable-next-line: param-type-mismatch
-    if type(ns) == "number" then Types._validate_uint(ns) end
+    if type(ns) == "number" then
+        Types._validate_uint(ns)
+    end
     ---@diagnostic disable-next-line: param-type-mismatch
-    if type(ns) == "table" then Types._validate_list(ns, { type = "number" }) end
+    if type(ns) == "table" then
+        Types._validate_list(ns, { type = "number" })
+    end
 
     Types._validate_uint(diag_getopts.lnum, true)
 
@@ -567,19 +629,6 @@ function Types._validate_filter_info(filter_info)
     vim.validate("filter_info.insensitive_func", filter_info.insensitive_func, "callable")
     vim.validate("filter_info.regex_func", filter_info.regex_func, "callable")
     vim.validate("filter_info.sensitive_func", filter_info.sensitive_func, "callable")
-end
-
--- ==========================
--- == CUSTOM TYPES -- GREP ==
--- ==========================
-
----@param grep_info QfrGrepInfo
----@return nil
-function Types._validate_grep_info(grep_info)
-    vim.validate("grep_info", grep_info, "table")
-    vim.validate("grep_info.name", grep_info.name, "string")
-    vim.validate("grep_info.list_item_type", grep_info.list_item_type, "string", true)
-    vim.validate("location_func", grep_info.location_func, "callable")
 end
 
 -- ================
@@ -655,11 +704,9 @@ end
 function Types._validate_system_opts(system_opts)
     vim.validate("system_opts", system_opts, "table")
 
-    vim.validate("system_opts.cmd_parts", system_opts.cmd_parts, "table", true)
-    if type(system_opts.cmd_parts) == "table" then
-        Types._validate_list(system_opts.cmd_parts, { type = "string" })
-    end
-
+    Types._validate_list_item_type(system_opts.list_item_type, true)
+    -- MID: Should this be a function? Are there other callables that should be a function?
+    vim.validate("sort_func", system_opts.sort_func, "callable", true)
     vim.validate("system_opts.sync", system_opts.sync, "boolean", true)
     vim.validate("system_opts.timeout", system_opts.timeout, "number", true)
 end

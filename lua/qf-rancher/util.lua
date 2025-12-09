@@ -3,7 +3,6 @@ local M = {}
 
 local ro = Qfr_Defer_Require("qf-rancher.window") ---@type QfrWins
 local rt = Qfr_Defer_Require("qf-rancher.tools") ---@type QfrTools
-local ru = Qfr_Defer_Require("qf-rancher.util") ---@type QfrUtil
 local ry = Qfr_Defer_Require("qf-rancher.types") ---@type QfrTypes
 
 local api = vim.api
@@ -19,7 +18,9 @@ function M._find_cmd_pattern(fargs)
     ry._validate_list(fargs, { type = "string" })
 
     for _, arg in ipairs(fargs) do
-        if vim.startswith(arg, "/") then return string.sub(arg, 2) or "" end
+        if vim.startswith(arg, "/") then
+            return string.sub(arg, 2) or ""
+        end
     end
 
     return nil
@@ -34,7 +35,9 @@ function M._check_cmd_arg(fargs, valid_args, default)
     vim.validate("default", default, "string")
 
     for _, arg in ipairs(fargs) do
-        if vim.tbl_contains(valid_args, arg) then return arg end
+        if vim.tbl_contains(valid_args, arg) then
+            return arg
+        end
     end
 
     return default
@@ -64,13 +67,19 @@ end
 function M._resolve_input_vimcase(input)
     ry._validate_input_type(input)
 
-    if input ~= "vimcase" then return input end
+    if input ~= "vimcase" then
+        return input
+    end
 
     local ignorecase = api.nvim_get_option_value("ignorecase", { scope = "global" })
     local smartcase = api.nvim_get_option_value("smartcase", { scope = "global" })
 
-    if ignorecase and smartcase then return "smartcase" end
-    if ignorecase then return "insensitive" end
+    if ignorecase and smartcase then
+        return "smartcase"
+    end
+    if ignorecase then
+        return "insensitive"
+    end
     return "sensitive"
 end
 
@@ -111,6 +120,7 @@ local function get_visual_pattern(mode)
     return nil
 end
 
+-- MID: Should be ok, err pattern
 ---@param prompt string
 ---@return string|nil
 local function get_input(prompt)
@@ -118,9 +128,13 @@ local function get_input(prompt)
 
     ---@type boolean, string
     local ok, pattern = pcall(fn.input, { prompt = prompt, cancelreturn = "" })
-    if ok then return pattern end
+    if ok then
+        return pattern
+    end
 
-    if pattern == "Keyboard interrupt" then return nil end
+    if pattern == "Keyboard interrupt" then
+        return nil
+    end
 
     local chunk = { (pattern or "Unknown error getting input"), "ErrorMsg" } ---@type string[]
     api.nvim_echo({ chunk }, true, { err = true })
@@ -140,14 +154,52 @@ function M._resolve_pattern(prompt, input_pattern, input_type)
     vim.validate("input_pattern", input_pattern, "string", true)
     ry._validate_input_type(input_type)
 
-    if input_pattern then return input_pattern end
+    if input_pattern then
+        return input_pattern
+    end
 
     local mode = string.sub(api.nvim_get_mode().mode, 1, 1) ---@type string
     local is_visual = mode == "v" or mode == "V" or mode == "\22" ---@type boolean
-    if is_visual then return get_visual_pattern(mode) end
+    if is_visual then
+        return get_visual_pattern(mode)
+    end
 
     local pattern = get_input(prompt) ---@type string|nil
     return (pattern and input_type == "insensitive") and string.lower(pattern) or pattern
+end
+
+---@param short_mode string
+---@return string|nil
+function M._get_visual_pattern(short_mode)
+    return get_visual_pattern(short_mode)
+end
+
+---@param prompt string
+---@param case QfrCase
+---@param regex boolean
+---@return string|nil
+function M._get_input(prompt, case, regex)
+    if vim.g.qfr_debug_assertions then
+        vim.validate("prompt", prompt, "string")
+        vim.validate("case", case, "string")
+        vim.validate("regex", regex, "boolean")
+    end
+
+    local pattern = get_input(prompt) ---@type string|nil
+    if not pattern then
+        return nil
+    end
+
+    if case == "sensitive" then
+        return pattern
+    end
+
+    local lower_pattern = string.lower(pattern) ---@type string
+    if case == "smartcase" and pattern ~= lower_pattern then
+        return pattern
+    end
+
+    return lower_pattern
 end
 
 ------------------------
@@ -171,7 +223,9 @@ local function get_wrapping_idx(src_win, count, wrapping_math)
     end
 
     local cur_idx = rt._get_list(src_win, { nr = 0, idx = 0 }).idx ---@type integer
-    if cur_idx < 1 then return nil end
+    if cur_idx < 1 then
+        return nil
+    end
 
     return wrapping_math(cur_idx, count1, 1, size)
 end
@@ -225,10 +279,14 @@ local function get_item(src_win, idx)
 
     ---@type vim.quickfix.entry[]
     local items = rt._get_list(src_win, { nr = 0, idx = idx, items = true }).items
-    if #items < 1 then return nil, nil end
+    if #items < 1 then
+        return nil, nil
+    end
 
     local item = items[1] ---@type vim.quickfix.entry
-    if item.bufnr and api.nvim_buf_is_valid(item.bufnr) then return item, idx end
+    if item.bufnr and api.nvim_buf_is_valid(item.bufnr) then
+        return item, idx
+    end
 
     api.nvim_echo({ { "List item bufnr is invalid", "ErrorMsg" } }, true, { err = true })
     return nil, nil
@@ -242,14 +300,18 @@ end
 ---@type QfrGetItemFunc
 function M._get_item_wrapping_sub(src_win)
     local idx = M._get_idx_wrapping_sub(src_win, vim.v.count)
-    if not idx then return nil, nil end
+    if not idx then
+        return nil, nil
+    end
     return get_item(src_win, idx)
 end
 
 ---@type QfrGetItemFunc
 function M._get_item_wrapping_add(src_win)
     local idx = M._get_idx_wrapping_add(src_win, vim.v.count)
-    if not idx then return nil, nil end
+    if not idx then
+        return nil, nil
+    end
     return get_item(src_win, idx)
 end
 
@@ -279,7 +341,9 @@ function M._get_g_var(g_var, allow_nil)
 
     vim.validate("g_var_data[1]", g_var_data[1], function()
         for _, value in pairs(g_var_data[1]) do
-            if type(value) ~= "string" then return false end
+            if type(value) ~= "string" then
+                return false
+            end
         end
 
         return true
@@ -290,7 +354,9 @@ function M._get_g_var(g_var, allow_nil)
     end, "G var defaults canot be nil")
 
     local cur_g_val = vim.g[g_var] ---@type any
-    if allow_nil and type(cur_g_val) == "nil" then return nil end
+    if allow_nil and type(cur_g_val) == "nil" then
+        return nil
+    end
 
     if vim.tbl_contains(g_var_data[1], type(cur_g_val)) then
         return cur_g_val
@@ -306,7 +372,9 @@ function M._clear_list_and_resize(src_win, list_nr)
     ry._validate_win(src_win, true)
 
     local result = rt._clear_list(src_win, list_nr)
-    if result == -1 or not vim.g.qfr_auto_list_height then return result end
+    if result == -1 or not vim.g.qfr_auto_list_height then
+        return result
+    end
 
     -- MID: Shouldn't result always be the win that was changed?
     if result == 0 or result == rt._get_list(src_win, { nr = 0 }).nr then
@@ -350,19 +418,23 @@ function M._pwin_close(win, force)
     ry._validate_uint(win)
     vim.validate("force", force, "boolean")
 
-    if not api.nvim_win_is_valid(win) then return -1 end
+    if not api.nvim_win_is_valid(win) then
+        return -1
+    end
 
     local tabpages = api.nvim_list_tabpages() ---@type integer[]
     local win_tabpage = api.nvim_win_get_tabpage(win) ---@type integer
     local win_tabpage_wins = api.nvim_tabpage_list_wins(win_tabpage) ---@type integer[]
     local buf = api.nvim_win_get_buf(win) ---@type integer
-    if #tabpages == 1 and #win_tabpage_wins == 1 then return buf end
+    if #tabpages == 1 and #win_tabpage_wins == 1 then
+        return buf
+    end
 
     local ok, _ = pcall(api.nvim_win_close, win, force) ---@type boolean, nil
     return ok and buf or -1
 end
 
--- TODO: https://github.com/neovim/neovim/pull/33402
+-- FUTURE: https://github.com/neovim/neovim/pull/33402
 -- Redo this once this issue is resolved. Be sure to use has() for compatibility
 
 -- Return an integer to stay consistent with pwin_close
@@ -376,7 +448,9 @@ function M._pbuf_rm(buf, force, wipeout)
     vim.validate("force", force, "boolean")
     vim.validate("wipeout", wipeout, "boolean")
 
-    if not api.nvim_buf_is_valid(buf) then return -1 end
+    if not api.nvim_buf_is_valid(buf) then
+        return -1
+    end
 
     local modifiable = api.nvim_get_option_value("modifiable", { buf = buf }) ---@type boolean
     if modifiable then
@@ -386,7 +460,9 @@ function M._pbuf_rm(buf, force, wipeout)
         end)
     end
 
-    if not wipeout then api.nvim_set_option_value("buflisted", false, { buf = buf }) end
+    if not wipeout then
+        api.nvim_set_option_value("buflisted", false, { buf = buf })
+    end
     local delete_opts = wipeout and { force = force } or { force = force, unload = true }
     local ok, _ = pcall(api.nvim_buf_delete, buf, delete_opts)
     return ok and 0 or -1
@@ -405,7 +481,9 @@ function M._pclose_and_rm(win, force, wipeout)
     if buf > 0 then
         -- MAYBE: Do when idle
         vim.schedule(function()
-            if #fn.win_findbuf(buf) == 0 then M._pbuf_rm(buf, force, wipeout) end
+            if #fn.win_findbuf(buf) == 0 then
+                M._pbuf_rm(buf, force, wipeout)
+            end
         end)
     end
 
@@ -458,7 +536,9 @@ function M._open_item(item, win, opts)
     end
 
     local buf = item.bufnr ---@type integer|nil
-    if not (buf and api.nvim_buf_is_valid(buf)) then return false end
+    if not (buf and api.nvim_buf_is_valid(buf)) then
+        return false
+    end
 
     local already_open = api.nvim_win_get_buf(win) == buf ---@type boolean
     if not already_open then
@@ -473,7 +553,9 @@ function M._open_item(item, win, opts)
             -- Have seen in FzfLua's docs that they've had problems with nvim_win_set_buf causing
             -- focus to change. win_call set_current_buf instead
             api.nvim_set_current_buf(buf)
-            if opts.clearjumps then api.nvim_cmd({ cmd = "clearjumps" }, {}) end
+            if opts.clearjumps then
+                api.nvim_cmd({ cmd = "clearjumps" }, {})
+            end
         end)
     end
 
@@ -487,12 +569,16 @@ function M._open_item(item, win, opts)
         M._protected_set_cursor(win, M._qf_pos_to_cur_pos(item.lnum, item.col))
     end
 
-    if not opts.skip_zzze then M._do_zzze(win) end
+    if not opts.skip_zzze then
+        M._do_zzze(win)
+    end
     api.nvim_win_call(win, function()
         api.nvim_cmd({ cmd = "normal", args = { "zv" }, bang = true }, {})
     end)
 
-    if opts.focus then api.nvim_set_current_win(win) end
+    if opts.focus then
+        api.nvim_set_current_win(win)
+    end
     return true
 end
 
@@ -502,7 +588,9 @@ end
 function M._do_zzze(win, always)
     ry._validate_win(win)
 
-    if not (vim.g.qfr_auto_center or always) then return end
+    if not (vim.g.qfr_auto_center or always) then
+        return
+    end
     api.nvim_win_call(win, function()
         api.nvim_cmd({ cmd = "normal", args = { "zz" }, bang = true }, {})
         api.nvim_cmd({ cmd = "normal", args = { "ze" }, bang = true }, {})
@@ -523,22 +611,30 @@ function M._vcol_to_byte_bounds(vcol, line)
     ry._validate_uint(vcol)
     vim.validate("line", line, "string")
 
-    if vcol == 0 or #line <= 1 then return true, 0, 0 end
+    if vcol == 0 or #line <= 1 then
+        return true, 0, 0
+    end
 
     local max_vcol = fn.strdisplaywidth(line) ---@type integer
-    if vcol > max_vcol then return false, 0, 0 end
+    if vcol > max_vcol then
+        return false, 0, 0
+    end
 
     local charlen = fn.strcharlen(line) ---@type integer
     for char_idx = 0, charlen - 1 do
         local start_byte = fn.byteidx(line, char_idx) ---@type integer
-        if start_byte == -1 then return false, 0, 0 end
+        if start_byte == -1 then
+            return false, 0, 0
+        end
 
         local char = fn.strcharpart(line, char_idx, 1, true) ---@type string
         local fin_byte = start_byte + #char - 1 ---@type integer
 
         local test_str = line:sub(1, fin_byte + 1) ---@type string
         local test_vcol = fn.strdisplaywidth(test_str) ---@type integer
-        if test_vcol >= vcol then return true, start_byte, fin_byte end
+        if test_vcol >= vcol then
+            return true, start_byte, fin_byte
+        end
     end
 
     return false, 0, 0
@@ -601,7 +697,9 @@ end
 ---@return boolean
 local function is_loclist_win(qf_id, win)
     local tw_qf_id = fn.getloclist(win, { id = 0 }).id ---@type integer
-    if tw_qf_id ~= qf_id then return false end
+    if tw_qf_id ~= qf_id then
+        return false
+    end
     local wintype = fn.win_gettype(win)
     if wintype == "loclist" then
         return true
@@ -623,7 +721,9 @@ function M._get_loclist_win_by_qf_id(qf_id, opts)
     for _, tabpage in ipairs(tabpages) do
         local tabpage_wins = api.nvim_tabpage_list_wins(tabpage) ---@type integer[]
         for _, t_win in ipairs(tabpage_wins) do
-            if is_loclist_win(qf_id, t_win) then return t_win end
+            if is_loclist_win(qf_id, t_win) then
+                return t_win
+            end
         end
     end
 
@@ -637,7 +737,9 @@ function M._get_loclist_wins_by_win(win, opts)
     ry._validate_win(win, false)
 
     local qf_id = fn.getloclist(win, { id = 0 }).id ---@type integer
-    if qf_id == 0 then return {} end
+    if qf_id == 0 then
+        return {}
+    end
 
     return M._get_ll_wins_by_qf_id(qf_id, opts)
 end
@@ -654,7 +756,9 @@ function M._get_ll_wins_by_qf_id(qf_id, opts)
     for _, tabpage in ipairs(tabpages) do
         local tabpage_wins = api.nvim_tabpage_list_wins(tabpage) ---@type integer[]
         for _, t_win in ipairs(tabpage_wins) do
-            if is_loclist_win(qf_id, t_win) then table.insert(wins, t_win) end
+            if is_loclist_win(qf_id, t_win) then
+                table.insert(wins, t_win)
+            end
         end
     end
 
@@ -671,7 +775,9 @@ function M._get_all_loclist_wins(opts)
         local tabpage_wins = api.nvim_tabpage_list_wins(tabpage) ---@type integer[]
         for _, win in ipairs(tabpage_wins) do
             local wintype = fn.win_gettype(win)
-            if wintype == "loclist" then table.insert(ll_wins, win) end
+            if wintype == "loclist" then
+                table.insert(ll_wins, win)
+            end
         end
     end
 
@@ -688,7 +794,9 @@ function M._get_qf_wins(opts)
         local tabpage_wins = api.nvim_tabpage_list_wins(tabpage) ---@type integer[]
         for _, t_win in ipairs(tabpage_wins) do
             local wintype = fn.win_gettype(t_win)
-            if wintype == "quickfix" then table.insert(wins, t_win) end
+            if wintype == "quickfix" then
+                table.insert(wins, t_win)
+            end
         end
     end
 
@@ -704,7 +812,9 @@ function M._get_qf_win(opts)
         local tabpage_wins = api.nvim_tabpage_list_wins(tabpage) ---@type integer[]
         for _, t_win in ipairs(tabpage_wins) do
             local wintype = fn.win_gettype(t_win)
-            if wintype == "quickfix" then return t_win end
+            if wintype == "quickfix" then
+                return t_win
+            end
         end
     end
 
@@ -718,7 +828,9 @@ function M._find_loclist_origin(list_win, opts)
     ry._validate_list_win(list_win)
 
     local qf_id = fn.getloclist(list_win, { id = 0 }).id ---@type integer
-    if qf_id == 0 then return nil end
+    if qf_id == 0 then
+        return nil
+    end
 
     local tabpages = M._resolve_tabpages(opts) ---@type integer[]
     for _, tabpage in ipairs(tabpages) do
@@ -726,13 +838,16 @@ function M._find_loclist_origin(list_win, opts)
         for _, win in ipairs(tabpage_wins) do
             local win_qf_id = fn.getloclist(win, { id = 0 }).id ---@type integer
             local win_wintype = fn.win_gettype(win)
-            if win_qf_id == qf_id and win_wintype == "" then return win end
+            if win_qf_id == qf_id and win_wintype == "" then
+                return win
+            end
         end
     end
 
     return nil
 end
 
+-- MID: Bad function naming
 ---@param win integer
 ---@param todo function
 ---@return any
@@ -748,14 +863,21 @@ function M._locwin_check(win, todo)
     return todo()
 end
 
+-- MID: Error should not be printed here
+-- MID: Why would this function be able to accept a nil win at all? Feels like something the
+-- caller should handle
 ---@param win integer
 ---@return boolean
 function M._valid_win_for_loclist(win)
     ry._validate_win(win, true)
-    if not win then return false end
+    if not win then
+        return false
+    end
 
     local wintype = fn.win_gettype(win)
-    if wintype == "" or wintype == "loclist" then return true end
+    if wintype == "" or wintype == "loclist" then
+        return true
+    end
 
     ---@type string
     local text = "Window " .. win .. " with type " .. wintype .. " cannot contain a location list"

@@ -14,10 +14,15 @@ local ry = Qfr_Defer_Require("qf-rancher.types") ---@type QfrTypes
 --- @class QfrStack
 local Stack = {}
 
+-- MID: This should be "resize_after_stack_change", but still somewhat confusing because it doesn't
+-- imply that it's gated by the g:var. Holding because I want to re-approach some of these
+-- functions and I'm not precisely sure what the fate of this will be
 ---@param src_win integer|nil
 ---@return nil
 local function resize_after_stack_change(src_win)
-    if not vim.g.qfr_auto_list_height then return end
+    if not vim.g.qfr_auto_list_height then
+        return
+    end
     if src_win then
         rw._resize_loclists_by_win(src_win, { tabpage = api.nvim_win_get_tabpage(src_win) })
     else
@@ -49,7 +54,9 @@ local function change_history(src_win, count, wrapping)
 
     local cmd = src_win and "lhistory" or "chistory" ---@type string
     api.nvim_cmd({ cmd = cmd, count = new_list_nr }, {})
-    if cur_list_nr ~= new_list_nr then resize_after_stack_change(src_win) end
+    if cur_list_nr ~= new_list_nr then
+        resize_after_stack_change(src_win)
+    end
 end
 
 ---@param count integer
@@ -233,6 +240,18 @@ end
 -- == UNSUPPORTED ==
 -- =================
 
+-- MID: The open list here is bad for function composability. If you want to switch stack nr and
+-- open the list, that's two functions. That functionality should be removed from here and any
+-- usage of it should be replaced with an open_list
+-- MID: This function naming isn't that great, though admittedly part of the problem is that
+-- chistory/lhistory is a confusing command. Somewhat goofy, but could break the history cmd into
+-- the composable pieces of what it actually does, then put them together under Qhistory/Lhistory,
+-- using the pieces as needed for rancher's actual functions
+-- MID: I would also like to break out the show all history and show current list cases. Would
+-- create a lot of redundancy, but then I could figure out what the composable pieces are.
+-- Resolving the default is awkward because you have to take a detour to resolve a default that
+-- might not be used
+
 ---@param src_win integer|nil
 ---@param count integer
 ---@param opts QfrHistoryOpts
@@ -244,7 +263,9 @@ function Stack._get_history(src_win, count, opts)
 
     local max_nr = rt._get_list(src_win, { nr = "$" }).nr ---@type integer
     if max_nr < 1 then
-        if not opts.silent then api.nvim_echo({ { "No entries" } }, false, {}) end
+        if not opts.silent then
+            api.nvim_echo({ { "No entries" } }, false, {})
+        end
         return
     end
 
@@ -255,7 +276,9 @@ function Stack._get_history(src_win, count, opts)
 
     ---@diagnostic disable-next-line: missing-fields
     api.nvim_cmd({ cmd = cmd, count = adj_count, mods = { silent = opts.silent } }, {})
-    if adj_count and cur_nr ~= adj_count then resize_after_stack_change(src_win) end
+    if adj_count and cur_nr ~= adj_count then
+        resize_after_stack_change(src_win)
+    end
     if opts.open_list then
         rw._open_list(src_win, { keep_win = opts.keep_win, nop_if_open = true })
     end
@@ -269,9 +292,13 @@ function Stack._del(src_win, count)
     ry._validate_uint(count)
 
     local result = rt._clear_list(src_win, count)
-    if result == -1 then return end
+    if result == -1 then
+        return
+    end
     local cur_list_nr = rt._get_list(src_win, { nr = 0 }).nr ---@type integer
-    if result == cur_list_nr then resize_after_stack_change(src_win) end
+    if result == cur_list_nr then
+        resize_after_stack_change(src_win)
+    end
 end
 
 return Stack

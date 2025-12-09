@@ -16,6 +16,9 @@ local api = vim.api
 --- @class QfRancherSort
 local Sort = {}
 
+-- MID: nr should be a what table entry again, because the user can use it to inject whatever
+-- elements they want into it. More useful interface
+
 ---@tag qf-rancher-sort-predicate
 ---@tag qfr-sort-predicate
 ---Parameters:
@@ -35,7 +38,10 @@ function Sort.sort(pred, src_win, action, nr)
     ry._validate_action(action)
     ry._validate_list_nr(nr)
 
-    if src_win and not ru._valid_win_for_loclist(src_win) then return end
+    if src_win and not ru._valid_win_for_loclist(src_win) then
+        return
+    end
+
     local what_ret = rt._get_list(src_win, { nr = nr, all = true }) ---@type table
     if what_ret.size <= 1 then
         api.nvim_echo({ { "Not enough entries to sort", "" } }, false, {})
@@ -62,10 +68,10 @@ end
 ---@field asc QfrSortPredicate Predicate for asc Sort.sorts
 ---@field desc QfrSortPredicate Predicate for desc Sort.sorts
 
---- Sorts available to the Qsort and Lsort cmds. The string table key can be
---- fed to those cmds as an argument to use the sorts. Because this table is
---- public, sorts can be directly added or removed
---- Pre-built sorts are available in "qf-rancher.lib.sort"
+---Sorts available to the Qsort and Lsort cmds. The string table key can be
+---fed to those cmds as an argument to use the sorts. Because this table is
+---public, sorts can be directly added or removed
+---Pre-built sorts are available in "qf-rancher.lib.sort"
 ---@type table<string, QfrSortInfo>
 Sort.sorts = {
     fname = { asc = lib.sort_fname_asc, desc = lib.sort_fname_desc },

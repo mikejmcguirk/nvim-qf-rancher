@@ -316,6 +316,7 @@ if vim.g.qfr_set_default_cmds then
     end
 end
 
+-- TODO: Run a reformat without simple statements
 -- TODO: Add tag. I think v0.1
 
 -- DOCUMENT: For cmd mappings, document what cmd opts they expect to be available. Can do this

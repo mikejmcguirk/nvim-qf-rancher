@@ -19,7 +19,9 @@ function M._find_list_with_title(src_win, title)
 
     local max_nr = M._get_list(src_win, { nr = "$" }).nr ---@type integer
     for i = 1, max_nr do
-        if M._get_list(src_win, { nr = i, title = 0 }).title == title then return i end
+        if M._get_list(src_win, { nr = i, title = 0 }).title == title then
+            return i
+        end
     end
 
     return nil
@@ -32,8 +34,12 @@ local function resolve_list_nr(src_win, nr)
     ry._validate_win(src_win, true)
     ry._validate_list_nr(nr, true)
 
-    if not nr then return 0 end
-    if nr == 0 or type(nr) == "string" then return nr end
+    if not nr then
+        return 0
+    end
+    if nr == 0 or type(nr) == "string" then
+        return nr
+    end
 
     local max_nr = M._get_list(src_win, { nr = "$" }).nr ---@type integer
     ---@diagnostic disable-next-line: param-type-mismatch, return-type-mismatch
@@ -51,11 +57,15 @@ local function get_result(src_win, nr)
 
     -- The output return of set_list might be used by history and navigation functions that
     -- do not treat 0 counts as the current list. Convert here
-    if nr == 0 then return M._get_list(src_win, { nr = 0 }).nr end
+    if nr == 0 then
+        return M._get_list(src_win, { nr = 0 }).nr
+    end
 
     local max_nr = M._get_list(src_win, { nr = "$" }).nr
 
-    if nr == "$" then return max_nr end
+    if nr == "$" then
+        return max_nr
+    end
 
     assert(type(nr) == "number")
     return math.min(nr, max_nr)
@@ -93,7 +103,9 @@ function M._set_list(src_win, action, what)
     ry._validate_action(action)
     ry._validate_what(what)
 
-    if action == "f" then return del_all(src_win) end
+    if action == "f" then
+        return del_all(src_win)
+    end
 
     local what_set = vim.deepcopy(what, true) ---@type QfrWhat
     what_set.nr = resolve_list_nr(src_win, what_set.nr)
@@ -135,11 +147,17 @@ end
 function M.handle_new_same_title(output_opts)
     ry._validate_output_opts(output_opts)
 
-    if not ru._get_g_var("qfr_reuse_title") then return output_opts end
+    if not ru._get_g_var("qfr_reuse_title") then
+        return output_opts
+    end
 
-    if output_opts.action ~= " " then return output_opts end
+    if output_opts.action ~= " " then
+        return output_opts
+    end
     local what = output_opts.what
-    if not (what.title and #what.title > 0) then return output_opts end
+    if not (what.title and #what.title > 0) then
+        return output_opts
+    end
 
     local src_win = output_opts.src_win
     local max_nr = M._get_list(src_win, { nr = "$" }).nr ---@type integer
@@ -151,7 +169,9 @@ function M.handle_new_same_title(output_opts)
         end
     end
 
-    if not title_nr then return output_opts end
+    if not title_nr then
+        return output_opts
+    end
 
     local adj_output_opts = vim.deepcopy(output_opts, true)
     adj_output_opts.what.nr = title_nr
@@ -180,7 +200,9 @@ function M._set_stack(src_win, stack)
     ry._validate_win(src_win, true)
     vim.validate("stack", stack, "table")
 
-    if src_win and not ru._valid_win_for_loclist(src_win) then return end
+    if src_win and not ru._valid_win_for_loclist(src_win) then
+        return
+    end
 
     M._set_list(src_win, "f", {})
 
@@ -206,7 +228,9 @@ function M._what_ret_to_set(what_ret)
     local qftf = what_ret.quickfixtextfunc
     local is_qftf_func = type(qftf) == "function"
     local is_qftf_str = type(qftf) == "string" and #qftf > 0
-    if is_qftf_func or is_qftf_str then what_set.quickfixtextfunc = qftf end
+    if is_qftf_func or is_qftf_str then
+        what_set.quickfixtextfunc = qftf
+    end
 
     local title = what_ret.title
     local is_title_str = type(what_ret.title) == "string" and #title > 0
@@ -223,7 +247,9 @@ function M._get_stack(src_win)
     local stack = {} ---@type table
 
     local max_nr = M._get_list(src_win, { nr = "$" }).nr ---@type integer
-    if max_nr < 1 then return stack end
+    if max_nr < 1 then
+        return stack
+    end
 
     for i = 1, max_nr do
         local what_ret = M._get_list(src_win, { nr = i, all = true }) ---@type table
@@ -233,7 +259,9 @@ function M._get_stack(src_win)
         stack[#stack + 1] = what_set
     end
 
-    if ru._get_g_var("qfr_debug_assertions") then assert(#stack == max_nr) end
+    if ru._get_g_var("qfr_debug_assertions") then
+        assert(#stack == max_nr)
+    end
 
     return stack
 end
