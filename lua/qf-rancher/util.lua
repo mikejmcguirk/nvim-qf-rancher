@@ -328,16 +328,17 @@ function M._protected_set_cursor(win, cur_pos)
         ry._validate_cur_pos(cur_pos)
     end
 
-    local adj_cur_pos = vim.deepcopy(cur_pos, true) ---@type {[1]: integer, [2]: integer}
-    local win_buf = api.nvim_win_get_buf(win) ---@type integer
+    local buf = api.nvim_win_get_buf(win) ---@type integer
 
-    adj_cur_pos[1] = math.min(adj_cur_pos[1], api.nvim_buf_line_count(win_buf))
-    local row = adj_cur_pos[1] ---@type integer
-    local set_line = api.nvim_buf_get_lines(win_buf, row - 1, row, false)[1] ---@type string
-    adj_cur_pos[2] = math.min(adj_cur_pos[2], #set_line - 1)
-    adj_cur_pos[2] = math.max(adj_cur_pos[2], 0)
+    local cursor_row = math.max(cur_pos[1], 1) ---@type integer
+    local line_count = api.nvim_buf_line_count(buf) ---@type integer
+    local row = math.min(cursor_row, line_count) ---@type integer
 
-    api.nvim_win_set_cursor(win, adj_cur_pos)
+    local set_line = api.nvim_buf_get_lines(buf, row - 1, row, false)[1] ---@type string
+    local set_line_len_0 = math.max(#set_line - 1, 0) ---@type integer
+    local col = math.min(cur_pos[2], set_line_len_0) ---@type integer
+
+    api.nvim_win_set_cursor(win, { row, col })
 end
 
 ---@param win integer
