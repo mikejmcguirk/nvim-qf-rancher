@@ -1,7 +1,7 @@
 ---@class QfrUtil
 local M = {}
 
-local ro = Qfr_Defer_Require("qf-rancher.window") ---@type QfrWins
+local rw = Qfr_Defer_Require("qf-rancher.window") ---@type QfrWins
 local rt = Qfr_Defer_Require("qf-rancher.tools") ---@type QfrTools
 local ry = Qfr_Defer_Require("qf-rancher.types") ---@type QfrTypes
 
@@ -367,27 +367,6 @@ function M._get_g_var(g_var, allow_nil)
     else
         return g_var_data[2]
     end
-end
-
----@param src_win integer|nil
----@param list_nr integer|"$"
----@return integer
-function M._clear_list_and_resize(src_win, list_nr)
-    ry._validate_win(src_win, true)
-
-    local result = rt._clear_list(src_win, list_nr)
-    if result == -1 or not vim.g.qfr_auto_list_height then
-        return result
-    end
-
-    -- MID: Shouldn't result always be the win that was changed?
-    if result == 0 or result == rt._get_list(src_win, { nr = 0 }).nr then
-        local tabpage = src_win and api.nvim_win_get_tabpage(src_win)
-            or api.nvim_get_current_tabpage()
-        ro._resize_lists_by_win(src_win, { tabpage = tabpage })
-    end
-
-    return result
 end
 
 -------------------------
@@ -877,7 +856,7 @@ end
 -- caller should handle
 ---@param win integer
 ---@return boolean
-function M._valid_win_for_loclist(win)
+function M._is_valid_loclist_win(win)
     ry._validate_win(win, true)
     if not win then
         return false

@@ -241,7 +241,7 @@ function Grep.grep(src_win, action, what, grep_opts, system_opts)
     validate_grep_opts(grep_opts)
     ry._validate_system_opts(system_opts)
 
-    if src_win and not ru._valid_win_for_loclist(src_win) then
+    if src_win and not ru._is_valid_loclist_win(src_win) then
         return
     end
 

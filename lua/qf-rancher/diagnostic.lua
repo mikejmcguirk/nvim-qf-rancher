@@ -35,6 +35,7 @@ local function filter_diags_top_severity(diags)
         if diag.severity < top_severity then
             top_severity = diag.severity
         end
+
         if top_severity == ds.ERROR then
             break
         end
@@ -48,7 +49,6 @@ end
 -- LOW: Does this actually help/matter?
 local severity_map = ry._severity_map ---@type table<integer, string>
 
--- LOW: Come up with a way to specify a custom conversion function
 -- MID: The runtime's add function in get_diagnostics clamps the lnum values to buf_line_count
 -- Awkward to add here because the conversion is outlined, and maybe not necessary, but does
 -- help with safety for stale diags
@@ -142,6 +142,9 @@ end
 ---@field getopts? vim.diagnostic.GetOpts See |vim.diagnostic.Getopts|
 
 -- TODO: Remove output_opts. Re-evaluate diag_opts
+-- TODO: When re-doing params, allow a custom sort function to be added in
+-- TODO: Worth considering the lessons learned when redoing grep - A table allows for handling the
+-- various combinatorial possibilities
 
 ---Convert diagnostics into list entries
 ---In line with Neovim's default, the list title will be "Diagnostics"
@@ -161,7 +164,7 @@ function Diag.diags_to_list(diag_opts, output_opts)
     output_opts = vim.deepcopy(output_opts, true)
 
     local src_win = output_opts.src_win ---@type integer|nil
-    if src_win and not ru._valid_win_for_loclist(src_win) then
+    if src_win and not ru._is_valid_loclist_win(src_win) then
         return
     end
 
@@ -189,7 +192,12 @@ function Diag.diags_to_list(diag_opts, output_opts)
                 else
                     -- MID: Should also go to an active list, but would need to write a func for
                     -- that
-                    ru._clear_list_and_resize(src_win, cur_diag_nr)
+                    local result = rt._clear_list(src_win, cur_diag_nr)
+                    if vim.g.qfr_auto_list_height and result >= 0 then
+                        local tabpage = src_win and api.nvim_win_get_tabpage(src_win)
+                            or api.nvim_get_current_tabpage()
+                        rw._resize_lists_by_win(src_win, { tabpage = tabpage })
+                    end
                 end
             end
         end

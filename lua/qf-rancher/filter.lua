@@ -16,6 +16,11 @@ local fn = vim.fn
 --- @class QfrFilter
 local Filter = {}
 
+-- TODO: This is a bad one because, in addition to converting over the params, I have to move over
+-- the input types to the new case/regex separation system
+-- TODO: Similar thing to grep where filter_opts should just be a flat table
+-- TODO: Like the others, outline the filter helpers and publicize the cmd table
+
 ---@param filter_info QfrFilterInfo
 ---@param keep boolean
 ---@param input_opts QfrInputOpts
@@ -28,7 +33,7 @@ local function filter_wrapper(filter_info, keep, input_opts, output_opts)
     ry._validate_output_opts(output_opts)
 
     local src_win = output_opts.src_win ---@type integer|nil
-    if src_win and not ru._valid_win_for_loclist(src_win) then
+    if src_win and not ru._is_valid_loclist_win(src_win) then
         return
     end
 
@@ -75,7 +80,7 @@ local function filter_wrapper(filter_info, keep, input_opts, output_opts)
     local what_set = rt._what_ret_to_set(what_ret) ---@type QfrWhat
     what_set.nr = output_opts.what.nr
     local dest_nr = rt._set_list(src_win, output_opts.action, what_set) ---@type integer
-    if dest_nr >= 0 and ru._get_g_var("qfr_auto_open_changes") then
+    if dest_nr >= 0 and vim.g.qfr_auto_open_changes then
         ra._get_history(src_win, dest_nr, {
             open_list = true,
             default = "cur_list",
@@ -93,9 +98,7 @@ end
 -- what a less contrived way is to handle the possibilty of either pattern or regex being sent
 -- to the predicate function
 
--- =======================
--- == BOILERPLATE LOGIC ==
--- =======================
+-- BOILERPLATE LOGIC --
 
 ---@param regex vim.regex
 ---@param comparison string
@@ -134,9 +137,7 @@ local function sensitive_filter(pattern, comparison, keep)
     return not keep
 end
 
--- =======================
--- == CFILTER EMULATION ==
--- =======================
+-- CFILTER EMULATION --
 
 ---@type QfrFilterPredicate
 local function cfilter_regex(item, keep, opts)
@@ -177,9 +178,7 @@ local function cfilter_sensitive(item, keep, opts)
     return sensitive_filter(opts.pattern, fn.bufname(item.bufnr), keep)
 end
 
--- ==============
--- == FILENAME ==
--- ==============
+-- FILENAME --
 
 ---@type QfrFilterPredicate
 local function fname_regex(item, keep, opts)
@@ -208,9 +207,7 @@ local function fname_sensitive(item, keep, opts)
     return sensitive_filter(opts.pattern, fn.bufname(item.bufnr), keep)
 end
 
--- ==========
--- == TEXT ==
--- ==========
+-- TEXT --
 
 ---@type QfrFilterPredicate
 local function text_regex(item, keep, opts)
@@ -227,9 +224,7 @@ local function text_sensitive(item, keep, opts)
     return sensitive_filter(opts.pattern, item.text, keep)
 end
 
--- ==========
--- == TYPE ==
--- ==========
+-- TYPE --
 
 ---@type QfrFilterPredicate
 local function type_regex(item, keep, opts)
@@ -246,9 +241,7 @@ local function type_sensitive(item, keep, opts)
     return sensitive_filter(opts.pattern, item.type, keep)
 end
 
--- =================
--- == LINE NUMBER ==
--- =================
+-- LINE NUMBER --
 
 ---@type QfrFilterPredicate
 local function lnum_regex(item, keep, opts)
@@ -268,10 +261,6 @@ local function lnum_sensitive(item, keep, opts)
 
     return not keep
 end
-
--- =========
--- == API ==
--- =========
 
 ---@tag qf-rancher-predicate-opts
 ---@tag qfr-predicate-opts
@@ -381,10 +370,6 @@ function Filter.clear_filter(name)
         api.nvim_echo({ { name .. " is not a registered filter", "" } }, true, {})
     end
 end
-
--- ===============
--- == CMD FUNCS ==
--- ===============
 
 ---@param cargs vim.api.keyset.create_user_command.command_args
 ---@param src_win? integer

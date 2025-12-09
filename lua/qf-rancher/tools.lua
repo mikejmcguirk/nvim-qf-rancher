@@ -27,6 +27,8 @@ function M._find_list_with_title(src_win, title)
     return nil
 end
 
+-- MID: Why are nil list nrs allowed?
+
 ---@param src_win integer|nil
 ---@param nr integer|"$"|nil
 ---@return integer|"$"
@@ -162,7 +164,7 @@ function M._set_stack(src_win, stack)
     ry._validate_win(src_win, true)
     vim.validate("stack", stack, "table")
 
-    if src_win and not ru._valid_win_for_loclist(src_win) then
+    if src_win and not ru._is_valid_loclist_win(src_win) then
         return
     end
 

@@ -38,7 +38,7 @@ function Sort.sort(pred, src_win, action, nr)
     ry._validate_action(action)
     ry._validate_list_nr(nr)
 
-    if src_win and not ru._valid_win_for_loclist(src_win) then
+    if src_win and not ru._is_valid_loclist_win(src_win) then
         return
     end
 

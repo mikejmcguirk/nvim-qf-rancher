@@ -118,7 +118,7 @@ local function set_output_to_list(obj, src_win, action, what, system_opts)
         return
     end
 
-    if src_win and not ru._valid_win_for_loclist(src_win) then
+    if src_win and not ru._is_valid_loclist_win(src_win) then
         return
     end
 
