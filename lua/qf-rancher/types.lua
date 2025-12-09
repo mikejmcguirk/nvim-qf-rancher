@@ -101,7 +101,7 @@ function Types._validate_what(what)
     Types._validate_uint(what.id, true)
     Types._validate_uint(what.idx, true)
     vim.validate("what.items", what.items, "table", true)
-    if ru._get_g_var("qfr_debug_assertions") and type(what.items) == "table" then
+    if vim.g.qfr_debug_assertions and type(what.items) == "table" then
         for _, item in ipairs(what.items) do
             Types._validate_list_item(item)
         end
@@ -268,7 +268,7 @@ function Types._validate_list(list, opts)
         end, "List length must be " .. opts.len)
     end
 
-    if opts.type and ru._get_g_var("qfr_debug_assertions") then
+    if opts.type and vim.g.qfr_debug_assertions then
         vim.validate("list", list, function()
             for _, value in ipairs(list) do
                 if type(value) ~= opts.type then

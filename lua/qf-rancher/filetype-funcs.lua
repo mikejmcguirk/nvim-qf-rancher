@@ -205,7 +205,7 @@ end
 -- ---@param but integer?
 -- ---@return integer|nil
 -- local function find_win_in_tab(tabnr, winnrs, dest_bt, buf)
---     if ru._get_g_var("qfr_debug_assertions") then
+--     if vim.g.qfr_debug_assertions then
 --         ry._validate_uint(tabnr)
 --         ry._validate_list(winnrs, { type = "number" })
 --         vim.validate("dest_buftype", dest_bt, "string")
