@@ -189,12 +189,12 @@ function Window.open_qflist(opts)
 
     local cur_win = api.nvim_get_current_win() ---@type integer
     local tabpage = api.nvim_win_get_tabpage(cur_win) ---@type integer
-    local list_win = ru._get_qf_win({ tabpage = tabpage }) ---@type integer|nil
+    local list_win = ru._find_qf_win({ tabpage = tabpage }) ---@type integer|nil
     if list_win then
         return handle_open_list_win(list_win, opts)
     end
 
-    local ll_wins = ru._get_all_loclist_wins({ tabpage = tabpage }) ---@type integer[]
+    local ll_wins = ru._find_ll_wins({ tabpages = { tabpage } }) ---@type integer[]
     local tabpage_wins = api.nvim_tabpage_list_wins(tabpage) ---@type integer[]
     tabpage_wins = vim.tbl_filter(function(win)
         return not vim.tbl_contains(ll_wins, win)
@@ -239,13 +239,13 @@ function Window.open_loclist(src_win, opts)
     end
 
     local tabpage = api.nvim_win_get_tabpage(src_win) ---@type integer
-    local ll_win = ru._get_loclist_win_by_qf_id(qf_id, { tabpage = tabpage }) ---@type integer|nil
+    local ll_win = ru._find_ll_win({ qf_id = qf_id, tabpages = { tabpage } }) ---@type integer|nil
     if ll_win then
         return handle_open_list_win(ll_win, opts)
     end
 
     local tabpage_wins = api.nvim_tabpage_list_wins(tabpage) ---@type integer[]
-    local qf_win = ru._get_qf_win({ tabpage = tabpage }) ---@type integer|nil
+    local qf_win = ru._find_qf_win({ tabpage = tabpage }) ---@type integer|nil
     if qf_win then
         tabpage_wins = vim.tbl_filter(function(win)
             return win ~= qf_win
@@ -272,7 +272,7 @@ function Window.close_qflist()
     local cur_win = api.nvim_get_current_win() ---@type integer
     local tabpage = api.nvim_win_get_tabpage(cur_win) ---@type integer
 
-    local qf_win = ru._get_qf_win({ tabpage = tabpage }) ---@type integer|nil
+    local qf_win = ru._find_qf_win({ tabpage = tabpage }) ---@type integer|nil
     if not qf_win then
         return false
     end
@@ -319,7 +319,7 @@ function Window.close_loclist(src_win)
     end
 
     local tabpage = api.nvim_win_get_tabpage(src_win) ---@type integer
-    local ll_wins = ru._get_ll_wins_by_qf_id(qf_id, { tabpage = tabpage }) ---@type integer[]
+    local ll_wins = ru._find_ll_wins({ qf_id = qf_id, tabpages = { tabpage } }) ---@type integer[]
     if #ll_wins < 1 then
         return false
     end
@@ -521,7 +521,7 @@ end
 function Window._close_qfwins(opts)
     ry._validate_tabpage_opts(opts)
 
-    local qfwins = ru._get_qf_wins(opts) ---@type integer[]
+    local qfwins = ru._find_qf_wins(opts) ---@type integer[]
     for _, list in ipairs(qfwins) do
         Window._close_win_save_views(list)
     end
@@ -532,7 +532,7 @@ end
 function Window._resize_qfwins(opts)
     ry._validate_tabpage_opts(opts)
 
-    local qfwins = ru._get_qf_wins(opts) ---@type integer[]
+    local qfwins = ru._find_qf_wins(opts) ---@type integer[]
     for _, list in ipairs(qfwins) do
         Window._resize_list_win(list, nil)
     end

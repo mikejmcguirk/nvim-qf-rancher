@@ -132,8 +132,9 @@ end
 
 ---@return boolean
 local function has_no_list_wins()
-    local qf_wins = ru._get_qf_wins({ all_tabpages = true }) ---@type integer[]
-    local ll_wins = ru._get_all_loclist_wins({ all_tabpages = true }) ---@type integer[]
+    local qf_wins = ru._find_qf_wins({ all_tabpages = true }) ---@type integer[]
+    local tabpages = api.nvim_list_tabpages() ---@type integer[]
+    local ll_wins = ru._find_ll_wins({ tabpages = tabpages })
 
     return #qf_wins == 0 and #ll_wins == 0
 end

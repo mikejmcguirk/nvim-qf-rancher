@@ -248,6 +248,7 @@ function Types._validate_tabnr(tabnr)
     end)
 end
 
+-- MID: Type conflicts with the built-in type function
 -- LOW: This should be able to take a function as a validator
 
 ---@param list table
@@ -512,10 +513,7 @@ function Types._validate_input_opts(input_opts)
     vim.validate("input_opts.pattern", input_opts.pattern, "string", true)
 end
 
--- MID: all_tabpages is not necessary, because you can just set tabpages to nvim_list_tabpages
--- Really, I'm not sure why this is an opts table at all, and you wouldn't just feed a list of
--- tabpages, and if you only wanted to do one tabpage, you would just send a table with one
--- tabpage
+-- TODO: Get rid of this data construct
 ---@class QfrTabpageOpts
 ---@field tabpage? integer
 ---@field tabpages? integer[]

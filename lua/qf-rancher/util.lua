@@ -1,3 +1,6 @@
+-- TODO: Rename all the datatypes with namespaces the way Neovim does. Would need to address
+-- in my personal config as well
+
 ---@class QfrUtil
 local M = {}
 
@@ -606,8 +609,10 @@ end
 -- == WINDOW FINDING ==
 -- ====================
 
--- TODO: This data construct is bad. Everywhere it's used can just be a list of tabpages
+-- NOTE: If searching for wins by qf_id, passing a zero id is allowed so
+-- that orphans can be checked
 
+-- TODO: Deprecate this along with the datatype
 ---@param opts QfrTabpageOpts
 ---@return integer[]
 function M._resolve_tabpages(opts)
@@ -624,26 +629,58 @@ function M._resolve_tabpages(opts)
     end
 end
 
--- NOTE: If searching for wins by qf_id, passing a zero id is allowed so
--- that orphans can be checked
+---@class qfr.util.FindLoclistWinOpts
+---@field tabpages? integer[]
+---@field src_win? integer
+---@field qf_id? integer
 
----@param qf_id integer
----@param opts QfrTabpageOpts
+---@param win integer
+---@param opts qfr.util.FindLoclistWinOpts
+local function check_win(win, opts)
+    if opts.qf_id then
+        local win_qf_id = fn.getloclist(win, { id = 0 }).id ---@type integer
+        if win_qf_id ~= opts.qf_id then
+            return false
+        end
+    end
+
+    local wintype = fn.win_gettype(win)
+    return wintype == "loclist"
+end
+
+-- MAYBE: Some merit in, if tabpages is omitted but src_win is present, to getting the src_win's
+-- tabpage, but that feels too cute
+---@param opts qfr.util.FindLoclistWinOpts?
+---@return qfr.util.FindLoclistWinOpts
+local function resolve_findllwin_opts(opts)
+    opts = opts and vim.deepcopy(opts, true) or {}
+    vim.validate("opts", opts, "table")
+
+    opts.tabpages = opts.tabpages or { api.nvim_get_current_tabpage() }
+    ry._validate_list(opts.tabpages, { type = "number" })
+    ry._validate_win(opts.src_win, true)
+    ry._validate_uint(opts.qf_id, true)
+
+    if opts.src_win then
+        local qf_id = fn.getloclist(opts.src_win, { id = 0 }).id ---@type integer
+        opts.qf_id = qf_id
+    end
+
+    return opts
+end
+
+---If opts.src_win is provided, opts.qf_id will be overridden
+---If opts.tabpages is omitted, current tabpage will be used
+---@param opts? qfr.util.FindLoclistWinOpts
 ---@return integer|nil
-function M._get_loclist_win_by_qf_id(qf_id, opts)
-    ry._validate_uint(qf_id)
-    ry._validate_tabpage_opts(opts)
+function M._find_ll_win(opts)
+    opts = resolve_findllwin_opts(opts)
 
-    local tabpages = M._resolve_tabpages(opts) ---@type integer[]
-    for _, tabpage in ipairs(tabpages) do
-        local tabpage_wins = api.nvim_tabpage_list_wins(tabpage) ---@type integer[]
-        for _, t_win in ipairs(tabpage_wins) do
-            local t_win_qf_id = fn.getloclist(t_win, { id = 0 }).id ---@type integer
-            if t_win_qf_id == qf_id then
-                local wintype = fn.win_gettype(t_win)
-                if wintype == "loclist" then
-                    return t_win
-                end
+    for _, tabpage in ipairs(opts.tabpages) do
+        local wins = api.nvim_tabpage_list_wins(tabpage) ---@type integer[]
+        for _, win in ipairs(wins) do
+            if check_win(win, opts) then
+                return win
             end
         end
     end
@@ -651,6 +688,27 @@ function M._get_loclist_win_by_qf_id(qf_id, opts)
     return nil
 end
 
+---If opts.src_win is provided, opts.qf_id will be overridden
+---If opts.tabpages is omitted, current tabpage will be used
+---@param opts? qfr.util.FindLoclistWinOpts
+---@return integer[]
+function M._find_ll_wins(opts)
+    opts = resolve_findllwin_opts(opts)
+    local ll_wins = {} ---@type integer[]
+
+    for _, tabpage in ipairs(opts.tabpages) do
+        local wins = api.nvim_tabpage_list_wins(tabpage) ---@type integer[]
+        for _, win in ipairs(wins) do
+            if check_win(win, opts) then
+                ll_wins[#ll_wins + 1] = win
+            end
+        end
+    end
+
+    return ll_wins
+end
+
+-- TODO: Deprecate
 ---@param win integer
 ---@param opts QfrTabpageOpts
 ---@return integer[]
@@ -665,6 +723,7 @@ function M._get_loclist_wins_by_win(win, opts)
     return M._get_ll_wins_by_qf_id(qf_id, opts)
 end
 
+-- TODO: Deprecate
 ---@param qf_id integer
 ---@param opts QfrTabpageOpts
 ---@return integer[]
@@ -690,60 +749,43 @@ function M._get_ll_wins_by_qf_id(qf_id, opts)
     return wins
 end
 
----@param opts QfrTabpageOpts
----@return integer[]
-function M._get_all_loclist_wins(opts)
-    local ll_wins = {} ---@type integer[]
-    local tabpages = M._resolve_tabpages(opts) ---@type integer[]
-
-    for _, tabpage in ipairs(tabpages) do
-        local tabpage_wins = api.nvim_tabpage_list_wins(tabpage) ---@type integer[]
-        for _, win in ipairs(tabpage_wins) do
-            local wintype = fn.win_gettype(win)
-            if wintype == "loclist" then
-                table.insert(ll_wins, win)
-            end
-        end
-    end
-
-    return ll_wins
-end
-
----@param opts QfrTabpageOpts
----@return integer[]
-function M._get_qf_wins(opts)
-    local wins = {} ---@type integer[]
-    local tabpages = M._resolve_tabpages(opts) ---@type integer[]
-
-    for _, tabpage in ipairs(tabpages) do
-        local tabpage_wins = api.nvim_tabpage_list_wins(tabpage) ---@type integer[]
-        for _, t_win in ipairs(tabpage_wins) do
-            local wintype = fn.win_gettype(t_win)
-            if wintype == "quickfix" then
-                table.insert(wins, t_win)
-            end
-        end
-    end
-
-    return wins
-end
-
+-- TODO: Just take a list of tabpages
 ---@param opts QfrTabpageOpts
 ---@return integer|nil
-function M._get_qf_win(opts)
+function M._find_qf_win(opts)
     local tabpages = M._resolve_tabpages(opts) ---@type integer[]
 
     for _, tabpage in ipairs(tabpages) do
-        local tabpage_wins = api.nvim_tabpage_list_wins(tabpage) ---@type integer[]
-        for _, t_win in ipairs(tabpage_wins) do
-            local wintype = fn.win_gettype(t_win)
+        local wins = api.nvim_tabpage_list_wins(tabpage) ---@type integer[]
+        for _, win in ipairs(wins) do
+            local wintype = fn.win_gettype(win)
             if wintype == "quickfix" then
-                return t_win
+                return win
             end
         end
     end
 
     return nil
+end
+
+-- TODO: Just take a list of tabpages
+---@param opts QfrTabpageOpts
+---@return integer[]
+function M._find_qf_wins(opts)
+    local qf_wins = {} ---@type integer[]
+    local tabpages = M._resolve_tabpages(opts) ---@type integer[]
+
+    for _, tabpage in ipairs(tabpages) do
+        local wins = api.nvim_tabpage_list_wins(tabpage) ---@type integer[]
+        for _, win in ipairs(wins) do
+            local wintype = fn.win_gettype(win)
+            if wintype == "quickfix" then
+                qf_wins[#qf_wins + 1] = win
+            end
+        end
+    end
+
+    return qf_wins
 end
 
 ---@param list_win integer
