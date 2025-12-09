@@ -164,7 +164,7 @@ end
 ---@param opts QfrFindWinInTabOpts
 ---@return integer|nil
 local function find_win_in_tab(tabnr, dest_bt, opts)
-    if ru._get_g_var("qfr_debug_assertions") then
+    if vim.g.qfr_debug_assertions then
         ry._validate_uint(tabnr)
         vim.validate("dest_buftype", dest_bt, "string")
         ry._validate_find_win_in_tab_opts(opts)
@@ -250,7 +250,7 @@ end
 ---@param buf integer|nil
 ---@return integer|nil
 local function find_win_in_tabs(list_tabnr, dest_buftype, buf)
-    if ru._get_g_var("qfr_debug_assertions") then
+    if vim.g.qfr_debug_assertions then
         ry._validate_uint(list_tabnr)
         vim.validate("dest_buftype", dest_buftype, "string")
         ry._validate_uint(buf, true)
@@ -285,7 +285,7 @@ end
 ---@param opts QfrFindWinInTabOpts
 ---@return integer|nil
 local function find_win_in_tab_reverse(tabnr, dest_buftype, opts)
-    if ru._get_g_var("qfr_debug_assertions") then
+    if vim.g.qfr_debug_assertions then
         ry._validate_uint(tabnr)
         vim.validate("dest_buftype", dest_buftype, "string")
         ry._validate_find_win_in_tab_opts(opts)

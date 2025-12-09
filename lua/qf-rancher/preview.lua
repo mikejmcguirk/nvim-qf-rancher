@@ -245,7 +245,7 @@ local function get_title_cfg(item_buf)
     -- Do not assert item_buf is not nil because nils are valid in qf entries
     -- Do not assert that item_buf is valid since a buf can be wiped after the list is created
     ry._validate_uint(item_buf, true)
-    if not ru._get_g_var("qfr_preview_show_title") then
+    if not vim.g.qfr_preview_show_title then
         return { title = nil }
     end
 
@@ -263,7 +263,7 @@ end
 ---@return QfrBorder
 local function get_winborder()
     ---@type QfrBorder|nil
-    local border = ru._get_g_var("qfr_preview_border", true)
+    local border = vim.g.qfr_preview_border
     if border then
         ry._validate_border(border)
         return border
@@ -494,7 +494,7 @@ local function create_preview_win(win_cfg, preview_buf)
     set_opt("spell", false, { win = preview_win })
 
     ---@type integer
-    set_opt("winblend", ru._get_g_var("qfr_preview_winblend"), { win = preview_win })
+    set_opt("winblend", vim.g.qfr_preview_winblend, { win = preview_win })
 
     set_opt("so", SCROLLOFF, { win = preview_win })
     set_opt("siso", SCROLLOFF, { win = preview_win })
@@ -765,7 +765,7 @@ end
 local function start_timer()
     timer = timer or vim.uv.new_timer()
     if timer then
-        timer:start(ru._get_g_var("qfr_preview_debounce"), 0, at_timer_end)
+        timer:start(vim.g.qfr_preview_debounce, 0, at_timer_end)
     end
 end
 

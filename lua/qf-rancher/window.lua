@@ -35,7 +35,7 @@ end
 ---@return vim.fn.winsaveview.ret[]
 local function get_views(wins)
     local views = {} ---@type vim.fn.winsaveview.ret[]
-    if not ru._get_g_var("qfr_save_views") then
+    if not vim.g.qfr_save_views then
         return views
     end
 
@@ -100,7 +100,7 @@ local function handle_open_list_win(list_win, opts)
         return false
     end
 
-    if opts.height or ru._get_g_var("qfr_auto_list_height") then
+    if opts.height or vim.g.qfr_auto_list_height then
         Window._resize_list_win(list_win, opts.height)
     end
 
@@ -157,7 +157,7 @@ end
 -- data type
 local valid_splits = { "aboveleft", "belowright", "topleft", "botright" } ---@type string[]
 local function get_qfsplit()
-    local g_split = ru._get_g_var("qfr_qfsplit")
+    local g_split = vim.g.qfr_qfsplit
     return vim.tbl_contains(valid_splits, g_split) and g_split or "botright"
 end
 

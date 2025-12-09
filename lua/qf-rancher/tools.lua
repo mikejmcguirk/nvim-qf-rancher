@@ -80,7 +80,7 @@ local function del_all(src_win)
 
     if not src_win then
         local result = fn.setqflist({}, "f") ---@type integer
-        if result == 0 and ru._get_g_var("qfr_close_on_stack_clear") then
+        if result == 0 and vim.g.qfr_close_on_stack_clear then
             ro._close_qfwins({ all_tabpages = true })
         end
 
@@ -89,7 +89,7 @@ local function del_all(src_win)
 
     local qf_id = fn.getloclist(src_win, { id = 0 }).id ---@type integer
     local result = fn.setloclist(src_win, {}, "f") ---@type integer
-    if result == 0 and ru._get_g_var("qfr_close_on_stack_clear") then
+    if result == 0 and vim.g.qfr_close_on_stack_clear then
         ro._close_loclists_by_qf_id(qf_id, { all_tabpages = true })
     end
 

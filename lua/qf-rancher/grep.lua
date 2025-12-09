@@ -245,7 +245,7 @@ function Grep.grep(src_win, action, what, grep_opts, system_opts)
         return
     end
 
-    local grepprg = ru._get_g_var("qfr_grepprg") ---@type string
+    local grepprg = vim.g.qfr_grepprg ---@type string
     if fn.executable(grepprg) ~= 1 then
         api.nvim_echo({ { grepprg .. " is not executable", "ErrorMsg" } }, true, {})
         return
