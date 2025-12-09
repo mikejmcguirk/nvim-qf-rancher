@@ -55,7 +55,6 @@ local severity_map = ry._severity_map ---@type table<integer, string>
 ---@type QfrDiagDispFunc
 local function convert_diag(d)
     local source = d.source and d.source .. ": " or "" ---@type string
-
     return {
         bufnr = d.bufnr,
         col = d.col and (d.col + 1) or nil,
@@ -85,6 +84,7 @@ local function get_empty_msg(getopts)
         if plural then
             return "No " .. plural
         end
+
         return default
     end
 
@@ -110,11 +110,12 @@ local function get_empty_msg(getopts)
     if min_txt then
         parts[#parts + 1] = "Min: " .. min_txt
     end
+
     if max_txt then
         parts[#parts + 1] = "max: " .. max_txt
     end
-    local minmax_txt = table.concat(parts, " ,")
 
+    local minmax_txt = table.concat(parts, " ,")
     return default .. " (" .. minmax_txt .. ")"
 end
 
@@ -156,12 +157,15 @@ function Diag.diags_to_list(diag_opts, output_opts)
             if not (diag_opts.getopts and diag_opts.getopts.severity) then
                 return true
             end
+
             if diag_opts.getopts.severity == { min = ds.INFO } then
                 return true
             end
+
             if diag_opts.getopts.severity == { min = nil } then
                 return true
             end
+
             return false
         end
 
@@ -178,6 +182,7 @@ function Diag.diags_to_list(diag_opts, output_opts)
     if diag_opts.top then
         raw_diags = filter_diags_top_severity(raw_diags)
     end
+
     local disp_func = diag_opts.disp_func or convert_diag ---@type QfrDiagDispFunc
     local converted_diags = vim.tbl_map(disp_func, raw_diags) ---@type vim.quickfix.entry[]
     table.sort(converted_diags, rs_lib.sort_fname_asc)
@@ -207,12 +212,8 @@ end
 -- cmd syntax that allows for arriving at the various combinations of getopts
 -- - NOTE: This would require adding validation for the registered diag filters
 
-local level_map = {
-    hint = ds.HINT,
-    info = ds.INFO,
-    warn = ds.WARN,
-    error = ds.ERROR,
-} ---@type table <string, vim.diagnostic.Severity>
+---@type table <string, vim.diagnostic.Severity>
+local level_map = { hint = ds.HINT, info = ds.INFO, warn = ds.WARN, error = ds.ERROR }
 
 ---@param src_win integer|nil
 ---@param cargs vim.api.keyset.create_user_command.command_args

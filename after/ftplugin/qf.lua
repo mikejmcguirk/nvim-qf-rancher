@@ -26,7 +26,7 @@ end
 ---- spell = false
 ---@brief ]]
 if vim.g.qfr_ftplugin_set_opts then
-    api.nvim_set_option_value("buflisted", false, { buf = 0 })
+    api.nvim_set_option_value("bl", false, { buf = 0 })
     api.nvim_set_option_value("cc", "", { scope = "local" })
     api.nvim_set_option_value("list", false, { scope = "local" })
     api.nvim_set_option_value("spell", false, { scope = "local" })
@@ -65,9 +65,10 @@ end
 
 -- MID: Doc wise, it would be less awkward if the "<" and ">" maps were included in the ftplugin
 -- maps table. But I'm not sure how you pass the list context through a plug map
--- MID: Qfr the changes that have been made, and likely will be made, I'm not sure we're in
+-- MID: With the changes that have been made, and likely will be made, I'm not sure we're in
 -- emulation territory anymore for window finding. But unsure where/if a dissertation should be
 -- written on that logic
+-- MID: Add maparg checks to the keymaps
 
 ---@brief [[
 ---The |qf-rancher-ftplugin-keymaps| will be set if g:qfr_ftplugin_keymap
@@ -84,7 +85,9 @@ end
 ---window If a valid window cannot be found, a new split will always be
 ---created above the list
 ---@brief ]]
-if not vim.g.qfr_ftplugin_keymap then return end
+if not vim.g.qfr_ftplugin_keymap then
+    return
+end
 
 local in_loclist = fn.win_gettype(0) == "loclist" --- @type boolean
 

@@ -6,10 +6,6 @@ local M = {}
 
 -- MID: Which works better, the strategy pattern here or how filter does it?
 
--- ================
--- == Sort Parts ==
--- ================
-
 -- NOTE: Do not use ternaries here, as it causes logical errors
 
 ---@type QfrCheckFunc
@@ -27,7 +23,10 @@ end
 ---@param check QfrCheckFunc
 ---@return boolean|nil
 local function a_b_check(a, b, check)
-    if not (a and b) then return nil end
+    if not (a and b) then
+        return nil
+    end
+
     if a == b then
         return nil
     else
@@ -39,7 +38,10 @@ end
 ---@param b table
 ---@return string|nil, string|nil
 local function get_fnames(a, b)
-    if not (a.bufnr and b.bufnr) then return nil, nil end
+    if not (a.bufnr and b.bufnr) then
+        return nil, nil
+    end
+
     local fname_a = api.nvim_call_function("bufname", { a.bufnr }) ---@type string|nil
     local fname_b = api.nvim_call_function("bufname", { b.bufnr }) ---@type string|nil
     return fname_a, fname_b
@@ -60,13 +62,19 @@ end
 ---@return boolean|nil
 local function check_lcol(a, b, check)
     local checked_lnum = a_b_check(a.lnum, b.lnum, check) ---@type boolean|nil
-    if type(checked_lnum) == "boolean" then return checked_lnum end
+    if type(checked_lnum) == "boolean" then
+        return checked_lnum
+    end
 
     local checked_col = a_b_check(a.col, b.col, check) ---@type boolean|nil
-    if type(checked_col) == "boolean" then return checked_col end
+    if type(checked_col) == "boolean" then
+        return checked_col
+    end
 
     local checked_end_lnum = a_b_check(a.end_lnum, b.end_lnum, check) ---@type boolean|nil
-    if type(checked_end_lnum) == "boolean" then return checked_end_lnum end
+    if type(checked_end_lnum) == "boolean" then
+        return checked_end_lnum
+    end
 
     return a_b_check(a.end_col, b.end_col, check) -- Return the nil here if we get it
 end
@@ -76,7 +84,9 @@ end
 ---@return boolean|nil
 local function check_fname_lcol(a, b, check)
     local checked_fname = check_fname(a, b, check) ---@type boolean|nil
-    if type(checked_fname) == "boolean" then return checked_fname end
+    if type(checked_fname) == "boolean" then
+        return checked_fname
+    end
 
     return check_lcol(a, b, check) -- Allow the nil to pass through
 end
@@ -87,7 +97,9 @@ end
 ---@return boolean|nil
 local function check_lcol_type(a, b, check)
     local checked_lcol = check_lcol(a, b, check) ---@type boolean|nil
-    if type(checked_lcol) == "boolean" then return checked_lcol end
+    if type(checked_lcol) == "boolean" then
+        return checked_lcol
+    end
 
     return a_b_check(a.type, b.type, check)
 end
@@ -99,7 +111,9 @@ local severity_unmap = ry._severity_unmap
 ---@param b table
 ---@return integer|nil, integer|nil
 local function get_severities(a, b)
-    if not (a.type and b.type) then return nil, nil end
+    if not (a.type and b.type) then
+        return nil, nil
+    end
 
     local severity_a = severity_unmap[a.type] or nil ---@type integer|nil
     local severity_b = severity_unmap[b.type] or nil ---@type integer|nil
@@ -119,24 +133,26 @@ end
 ---@return boolean|nil
 local function check_lcol_severity(a, b, check)
     local checked_lcol = check_lcol(a, b, check) ---@type boolean|nil
-    if type(checked_lcol) == "boolean" then return checked_lcol end
+    if type(checked_lcol) == "boolean" then
+        return checked_lcol
+    end
 
     return check_severity(a, b, check) -- Allow the nil to pass through
 end
-
--- ===============
--- == Sort Info ==
--- ===============
 
 ---@param a vim.quickfix.entry
 ---@param b vim.quickfix.entry
 ---@param check QfrCheckFunc
 ---@return boolean
 local function sort_fname(a, b, check)
-    if not (a and b) then return false end
+    if not (a and b) then
+        return false
+    end
 
     local checked_fname = check_fname(a, b, check) ---@type boolean|nil
-    if type(checked_fname) == "boolean" then return checked_fname end
+    if type(checked_fname) == "boolean" then
+        return checked_fname
+    end
 
     local checked_lcol_type = check_lcol_type(a, b, check_asc) ---@type boolean|nil
     if type(checked_lcol_type) == "boolean" then
@@ -151,13 +167,16 @@ end
 ---@param check QfrCheckFunc
 ---@return boolean
 local function sort_text(a, b, check)
-    if not (a and b) then return false end
+    if not (a and b) then
+        return false
+    end
 
     local a_trim = a.text:gsub("^%s*(.-)%s*$", "%1") ---@type string
     local b_trim = b.text:gsub("^%s*(.-)%s*$", "%1") ---@type string
-
     local checked_text = a_b_check(a_trim, b_trim, check) ---@type boolean|nil
-    if type(checked_text) == "boolean" then return checked_text end
+    if type(checked_text) == "boolean" then
+        return checked_text
+    end
 
     local checked_fname_lcol = check_fname_lcol(a, b, check_asc) ---@type boolean|nil
     if type(checked_fname_lcol) == "boolean" then
@@ -172,10 +191,14 @@ end
 ---@param check QfrCheckFunc
 ---@return boolean
 local function sort_type(a, b, check)
-    if not (a and b) then return false end
+    if not (a and b) then
+        return false
+    end
 
     local checked_type = a_b_check(a.type, b.type, check) ---@type boolean|nil
-    if type(checked_type) == "boolean" then return checked_type end
+    if type(checked_type) == "boolean" then
+        return checked_type
+    end
 
     local checked_fname_lcol = check_fname_lcol(a, b, check_asc) ---@type boolean|nil
     if type(checked_fname_lcol) == "boolean" then
@@ -190,10 +213,14 @@ end
 ---@param check QfrCheckFunc
 ---@return boolean
 local function sort_severity(a, b, check)
-    if not (a and b) then return false end
+    if not (a and b) then
+        return false
+    end
 
     local checked_severity = check_severity(a, b, check) ---@type boolean|nil
-    if type(checked_severity) == "boolean" then return checked_severity end
+    if type(checked_severity) == "boolean" then
+        return checked_severity
+    end
 
     local checked_fname_lcol = check_fname_lcol(a, b, check_asc) ---@type boolean|nil
     checked_fname_lcol = checked_fname_lcol == nil and false or checked_fname_lcol
@@ -209,10 +236,14 @@ end
 ---@param check QfrCheckFunc
 ---@return boolean
 local function sort_diag_fname(a, b, check)
-    if not (a and b) then return false end
+    if not (a and b) then
+        return false
+    end
 
     local checked_fname = check_fname(a, b, check) ---@type boolean|nil
-    if type(checked_fname) == "boolean" then return checked_fname end
+    if type(checked_fname) == "boolean" then
+        return checked_fname
+    end
 
     local checked_lcol_severity = check_lcol_severity(a, b, check_asc) ---@type boolean|nil
     if type(checked_lcol_severity) == "boolean" then
@@ -221,10 +252,6 @@ local function sort_diag_fname(a, b, check)
         return false
     end
 end
-
--- =========
--- == API ==
--- =========
 
 -- MID: The sort predicates are here first so they load properly into the M.sorts table. This is
 -- not the best presentation

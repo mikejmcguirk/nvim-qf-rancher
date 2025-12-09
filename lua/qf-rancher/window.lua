@@ -15,10 +15,6 @@ local fn = vim.fn
 --- @class QfrWins
 local Window = {}
 
--- ============
--- == LOCALS ==
--- ============
-
 ---@param views vim.fn.winsaveview.ret[]
 ---@return nil
 local function restore_views(views)
@@ -71,9 +67,11 @@ local function resolve_height_for_list(src_win, height)
     if height then
         return height
     end
+
     if not vim.g.qfr_auto_list_height then
         return QFR_MAX_HEIGHT
     end
+
     local size = rt._get_list(src_win, { nr = 0, size = 0 }).size ---@type integer
     return size == 0 and 1 or math.min(size, QFR_MAX_HEIGHT)
 end
@@ -101,6 +99,7 @@ local function handle_open_list_win(list_win, opts)
     if opts.nop_if_open then
         return false
     end
+
     if opts.height or ru._get_g_var("qfr_auto_list_height") then
         Window._resize_list_win(list_win, opts.height)
     end
@@ -108,6 +107,7 @@ local function handle_open_list_win(list_win, opts)
     if not opts.keep_win then
         api.nvim_set_current_win(list_win)
     end
+
     return true
 end
 
@@ -133,6 +133,7 @@ local function get_alt_win(list_win, cur_win)
     if list_win ~= cur_win then
         return nil
     end
+
     ---@type string
     local switchbuf = api.nvim_get_option_value("switchbuf", { scope = "global" })
     if not string.find(switchbuf, "uselast", 1, true) then
@@ -279,6 +280,7 @@ function Window.close_qflist()
     if exit_win and api.nvim_win_is_valid(exit_win) then
         api.nvim_set_current_win(exit_win)
     end
+
     return true
 end
 
@@ -334,6 +336,7 @@ function Window.close_loclist(src_win)
     if exit_win and api.nvim_win_is_valid(exit_win) then
         api.nvim_set_current_win(exit_win)
     end
+
     return true
 end
 

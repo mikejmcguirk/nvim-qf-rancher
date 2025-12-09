@@ -75,7 +75,9 @@ local function goto_specific_idx(src_win, count)
     end
 
     local cur_idx = rt._get_list(src_win, { idx = 0 }).idx ---@type integer
-    if cur_idx < 1 then return end
+    if cur_idx < 1 then
+        return
+    end
 
     goto_list_entry(cur_idx, cmd, {})
 end
@@ -145,10 +147,6 @@ local function file_nav_wrap(src_win, count, cmd, backup_cmd)
     ru._do_zzze(api.nvim_get_current_win())
 end
 
--- ================
--- == PUBLIC API ==
--- ================
-
 ---@brief [[
 ---NOTE: All navigation commands will auto-center the buffer view if
 ---g:qfr_auto_center is true
@@ -159,7 +157,10 @@ end
 ---@return boolean
 function Nav.q_prev(count, opts)
     local new_idx = ru._get_idx_wrapping_sub(nil, count) ---@type integer|nil
-    if new_idx then return goto_list_entry(new_idx, "cc", opts) end
+    if new_idx then
+        return goto_list_entry(new_idx, "cc", opts)
+    end
+
     return false
 end
 
@@ -168,7 +169,10 @@ end
 ---@return boolean
 function Nav.q_next(count, opts)
     local new_idx = ru._get_idx_wrapping_add(nil, count) ---@type integer|nil
-    if new_idx then return goto_list_entry(new_idx, "cc", opts) end
+    if new_idx then
+        return goto_list_entry(new_idx, "cc", opts)
+    end
+
     return false
 end
 
@@ -179,7 +183,9 @@ end
 function Nav.l_prev(src_win, count, opts)
     return ru._locwin_check(src_win, function()
         local new_idx = ru._get_idx_wrapping_sub(src_win, count) ---@type integer|nil
-        if new_idx then goto_list_entry(new_idx, "ll", opts) end
+        if new_idx then
+            goto_list_entry(new_idx, "ll", opts)
+        end
     end)
 end
 
@@ -190,7 +196,9 @@ end
 function Nav.l_next(src_win, count, opts)
     return ru._locwin_check(src_win, function()
         local new_idx = ru._get_idx_wrapping_add(src_win, count) ---@type integer|nil
-        if new_idx then goto_list_entry(new_idx, "ll", opts) end
+        if new_idx then
+            goto_list_entry(new_idx, "ll", opts)
+        end
     end)
 end
 

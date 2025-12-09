@@ -28,7 +28,9 @@ local function filter_wrapper(filter_info, keep, input_opts, output_opts)
     ry._validate_output_opts(output_opts)
 
     local src_win = output_opts.src_win ---@type integer|nil
-    if src_win and not ru._valid_win_for_loclist(src_win) then return end
+    if src_win and not ru._valid_win_for_loclist(src_win) then
+        return
+    end
 
     local what_ret = rt._get_list(src_win, { nr = output_opts.what.nr, all = true }) ---@type table
     if what_ret.size == 0 then
@@ -42,7 +44,9 @@ local function filter_wrapper(filter_info, keep, input_opts, output_opts)
     prompt = filter_info.name .. ": " .. prompt .. " (" .. display_input_type .. "): "
 
     local pattern = ru._resolve_pattern(prompt, input_opts.pattern, input_type) ---@type string|nil
-    if not pattern then return end
+    if not pattern then
+        return
+    end
 
     local regex = input_type == "regex" and vim.regex(pattern) or nil ---@type vim.regex|nil
     local lower_pattern = string.lower(pattern) ---@type string
@@ -53,8 +57,14 @@ local function filter_wrapper(filter_info, keep, input_opts, output_opts)
     end
 
     local predicate = (function()
-        if input_type == "regex" and regex then return filter_info.regex_func end
-        if input_type == "sensitive" then return filter_info.sensitive_func end
+        if input_type == "regex" and regex then
+            return filter_info.regex_func
+        end
+
+        if input_type == "sensitive" then
+            return filter_info.sensitive_func
+        end
+
         return filter_info.insensitive_func
     end)() ---@type QfrFilterPredicate
 
@@ -92,7 +102,10 @@ end
 ---@param keep boolean
 ---@return boolean
 local function regex_filter(regex, comparison, keep)
-    if regex:match_str(comparison) then return keep end
+    if regex:match_str(comparison) then
+        return keep
+    end
+
     return not keep
 end
 
@@ -102,7 +115,10 @@ end
 ---@return boolean
 local function insensitive_filter(pattern, comparison, keep)
     local lower = string.lower(comparison) ---@type string
-    if string.find(lower, pattern, 1, true) then return keep end
+    if string.find(lower, pattern, 1, true) then
+        return keep
+    end
+
     return not keep
 end
 
@@ -111,7 +127,10 @@ end
 ---@param keep boolean
 ---@return boolean
 local function sensitive_filter(pattern, comparison, keep)
-    if string.find(comparison, pattern, 1, true) then return keep end
+    if string.find(comparison, pattern, 1, true) then
+        return keep
+    end
+
     return not keep
 end
 
@@ -121,22 +140,40 @@ end
 
 ---@type QfrFilterPredicate
 local function cfilter_regex(item, keep, opts)
-    if regex_filter(opts.regex, item.text, keep) == keep then return keep end
-    if not item.bufnr then return false end
+    if regex_filter(opts.regex, item.text, keep) == keep then
+        return keep
+    end
+
+    if not item.bufnr then
+        return false
+    end
+
     return regex_filter(opts.regex, fn.bufname(item.bufnr), keep)
 end
 
 ---@type QfrFilterPredicate
 local function cfilter_insensitive(item, keep, opts)
-    if insensitive_filter(opts.pattern, item.text, keep) == keep then return keep end
-    if not item.bufnr then return false end
+    if insensitive_filter(opts.pattern, item.text, keep) == keep then
+        return keep
+    end
+
+    if not item.bufnr then
+        return false
+    end
+
     return insensitive_filter(opts.pattern, fn.bufname(item.bufnr), keep)
 end
 
 ---@type QfrFilterPredicate
 local function cfilter_sensitive(item, keep, opts)
-    if sensitive_filter(opts.pattern, item.text, keep) == keep then return keep end
-    if not opts.bufnr then return false end
+    if sensitive_filter(opts.pattern, item.text, keep) == keep then
+        return keep
+    end
+
+    if not opts.bufnr then
+        return false
+    end
+
     return sensitive_filter(opts.pattern, fn.bufname(item.bufnr), keep)
 end
 
@@ -146,19 +183,28 @@ end
 
 ---@type QfrFilterPredicate
 local function fname_regex(item, keep, opts)
-    if not item.bufnr then return false end
+    if not item.bufnr then
+        return false
+    end
+
     return regex_filter(opts.regex, fn.bufname(item.bufnr), keep)
 end
 
 ---@type QfrFilterPredicate
 local function fname_insensitive(item, keep, opts)
-    if not item.bufnr then return false end
+    if not item.bufnr then
+        return false
+    end
+
     return insensitive_filter(opts.pattern, fn.bufname(item.bufnr), keep)
 end
 
 ---@type QfrFilterPredicate
 local function fname_sensitive(item, keep, opts)
-    if not item.bufnr then return false end
+    if not item.bufnr then
+        return false
+    end
+
     return sensitive_filter(opts.pattern, fn.bufname(item.bufnr), keep)
 end
 
@@ -216,7 +262,10 @@ end
 
 ---@type QfrFilterPredicate
 local function lnum_sensitive(item, keep, opts)
-    if tostring(item.lnum) == opts.pattern then return keep end
+    if tostring(item.lnum) == opts.pattern then
+        return keep
+    end
+
     return not keep
 end
 

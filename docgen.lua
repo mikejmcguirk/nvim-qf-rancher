@@ -39,7 +39,9 @@ for _, tbl in ipairs(doc_tbls) do
 
     lines[#lines + 1] = "---@mod " .. modtag .. " Qfr " .. titlecase .. " controls"
     lines[#lines + 1] = "---@tag " .. modtag_map
-    if tbl[1] ~= qf then lines[#lines + 1] = "---@tag " .. modtag_cmd end
+    if tbl[1] ~= qf then
+        lines[#lines + 1] = "---@tag " .. modtag_cmd
+    end
     lines[#lines + 1] = "---@brief [["
     lines[#lines + 1] = "---"
 
@@ -67,7 +69,9 @@ cmd_parts[#cmd_parts + 1] = "lua/qf-rancher/types.lua"
 
 for _, path in ipairs(doc_paths) do
     local file, err = io.open(path[1], "w") ---@type file*?, string?
-    if not file then error(err) end
+    if not file then
+        error(err)
+    end
     local doc_lines = table.concat(path[2], "\n") .. "\n" ---@type string
     file:write(doc_lines)
     file:close()

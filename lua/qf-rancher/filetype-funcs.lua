@@ -1,5 +1,6 @@
 local api = vim.api
 local fn = vim.fn
+
 local rt = Qfr_Defer_Require("qf-rancher.tools") ---@type QfrTools
 local ru = Qfr_Defer_Require("qf-rancher.util") ---@type QfrUtil
 local ry = Qfr_Defer_Require("qf-rancher.types") ---@type QfrTypes
@@ -21,7 +22,9 @@ function M._del_one_list_item()
 
     local src_win = wintype == "loclist" and list_win or nil ---@type integer|nil
     local list = rt._get_list(src_win, { nr = 0, all = true }) ---@type table
-    if #list.items < 1 then return end
+    if #list.items < 1 then
+        return
+    end
 
     local row, col = unpack(api.nvim_win_get_cursor(list_win)) ---@type integer, integer
     local cur_idx = rt._get_list(src_win, { idx = 0 }).idx ---@type integer
@@ -49,7 +52,9 @@ function M._visual_del()
 
     local src_win = wintype == "loclist" and list_win or nil ---@type integer|nil
     local list = rt._get_list(src_win, { nr = 0, all = true }) ---@type table
-    if #list.items < 1 then return end
+    if #list.items < 1 then
+        return
+    end
 
     local cur = fn.getpos(".") ---@type [integer, integer, integer, integer]
     local fin = fn.getpos("v") ---@type [integer, integer, integer, integer]
@@ -93,7 +98,9 @@ local function handle_orphan(list_win, dest_win, finish)
     end
 
     local dest_win_qf_id = fn.getloclist(dest_win, { id = 0 }).id ---@type integer
-    if dest_win_qf_id > 0 then return end
+    if dest_win_qf_id > 0 then
+        return
+    end
 
     local stack = rt._get_stack(list_win) ---@type table[]
     rw._close_win_save_views(list_win)
@@ -106,17 +113,28 @@ local function handle_orphan(list_win, dest_win, finish)
 
     if vim.g.qfr_debug_assertions then
         local cur_win = api.nvim_get_current_win() ---@type integer
-        if finish == "focusWin" then assert(cur_win == dest_win) end
-        if finish == "focusList" then assert(fn.win_gettype(cur_win) == "loclist") end
+        if finish == "focusWin" then
+            assert(cur_win == dest_win)
+        end
+
+        if finish == "focusList" then
+            assert(fn.win_gettype(cur_win) == "loclist")
+        end
     end
 end
 
 ---@param buf integer
 ---@return boolean
 local function is_buf_empty_noname(buf)
-    if #api.nvim_buf_get_name(buf) > 0 then return false end
+    if #api.nvim_buf_get_name(buf) > 0 then
+        return false
+    end
+
     local lines = api.nvim_buf_get_lines(buf, 0, -1, false) ---@type string[]
-    if #lines > 1 or #lines[1] > 0 then return false end
+    if #lines > 1 or #lines[1] > 0 then
+        return false
+    end
+
     return true
 end
 
@@ -128,9 +146,15 @@ end
 ---@return boolean
 --- NOTE: Because this runs in loops, skip validation
 local function is_valid_dest_win(win, dest_bt)
-    if fn.win_gettype(win) ~= "" then return false end
+    if fn.win_gettype(win) ~= "" then
+        return false
+    end
+
     local buf = api.nvim_win_get_buf(win) ---@type integer
-    if api.nvim_get_option_value("bt", { buf = buf }) == dest_bt then return true end
+    if api.nvim_get_option_value("bt", { buf = buf }) == dest_bt then
+        return true
+    end
+
     return is_buf_empty_noname(buf)
 end
 
@@ -147,17 +171,21 @@ local function find_win_in_tab(tabnr, dest_bt, opts)
     end
 
     local max_winnr = fn.tabpagewinnr(tabnr, "$") ---@type integer
-
     local skip_winnr = opts.skip_winnr ---@type integer|nil
     for i = 1, max_winnr do
         if i ~= skip_winnr then
             local win = fn.win_getid(i, tabnr)
             local valid_buf = (function()
-                if not opts.buf then return true end
+                if not opts.buf then
+                    return true
+                end
+
                 return api.nvim_win_get_buf(win) == opts.buf
             end)()
 
-            if valid_buf and is_valid_dest_win(win, dest_bt) then return win end
+            if valid_buf and is_valid_dest_win(win, dest_bt) then
+                return win
+            end
         end
     end
 
@@ -232,12 +260,19 @@ local function find_win_in_tabs(list_tabnr, dest_buftype, buf)
     local max_tabnr = fn.tabpagenr("$") ---@type integer
     for _ = 1, 100 do
         test_tabnr = test_tabnr + 1
-        if test_tabnr > max_tabnr then test_tabnr = 1 end
-        if test_tabnr == list_tabnr then break end
+        if test_tabnr > max_tabnr then
+            test_tabnr = 1
+        end
+
+        if test_tabnr == list_tabnr then
+            break
+        end
 
         ---@type integer|nil
         local tabpage_win = find_win_in_tab(test_tabnr, dest_buftype, { buf = buf })
-        if tabpage_win then return tabpage_win end
+        if tabpage_win then
+            return tabpage_win
+        end
     end
 
     return nil
@@ -263,14 +298,21 @@ local function find_win_in_tab_reverse(tabnr, dest_buftype, opts)
 
     for _ = 1, 100 do
         test_winnr = test_winnr - 1
-        if test_winnr <= 0 then test_winnr = max_winnr end
+        if test_winnr <= 0 then
+            test_winnr = max_winnr
+        end
+
         if test_winnr ~= skip_winnr then
             -- Convert now because win_gettype does not support tab context
             local win = fn.win_getid(test_winnr, tabnr) ---@type integer
-            if is_valid_dest_win(win, dest_buftype) then return win end
+            if is_valid_dest_win(win, dest_buftype) then
+                return win
+            end
         end
 
-        if test_winnr == fin_winnr then break end
+        if test_winnr == fin_winnr then
+            break
+        end
     end
 
     return nil
@@ -279,12 +321,20 @@ end
 ---@param dest_buftype string
 ---@return integer|nil
 local function get_vcount_win_id(dest_buftype)
-    if vim.g.qfr_debug_assertions then vim.validate("dest_buftype", dest_buftype, "string") end
+    if vim.g.qfr_debug_assertions then
+        vim.validate("dest_buftype", dest_buftype, "string")
+    end
 
-    if vim.v.count < 1 then return nil end
+    if vim.v.count < 1 then
+        return nil
+    end
+
     local adj_count = math.min(vim.v.count, #api.nvim_tabpage_list_wins(0)) ---@type integer
     local target_win = fn.win_getid(adj_count) ---@type integer
-    if is_valid_dest_win(target_win, dest_buftype) then return target_win end
+    if is_valid_dest_win(target_win, dest_buftype) then
+        return target_win
+    end
+
     return nil
 end
 
@@ -317,7 +367,10 @@ local function get_resolved_split_win(dest_win, split, list_win)
         ry._validate_split(split)
     end
 
-    if dest_win and split == "none" then return dest_win end
+    if dest_win and split == "none" then
+        return dest_win
+    end
+
     local scratch = create_scratch_buf() ---@type integer
     if not dest_win then
         return api.nvim_open_win(scratch, false, { win = list_win, split = "above" })
@@ -351,8 +404,14 @@ local function get_help_win_ext(list_tabnr, list_winnr, split)
     end
 
     local other_help_win = find_win_in_tab(list_tabnr, "help", { skip_winnr = list_winnr })
-    if other_help_win then return other_help_win end
-    if split == "none" then return nil end
+    if other_help_win then
+        return other_help_win
+    end
+
+    if split == "none" then
+        return nil
+    end
+
     ---@type QfrFindWinInTabOpts
     local find_opts = { fin_winnr = list_winnr, skip_winnr = list_winnr }
     return find_win_in_tab_reverse(list_tabnr, "", find_opts)
@@ -369,7 +428,9 @@ end
 ---@param list_win integer
 ---@return integer, integer
 local function get_list_win_nrs(list_win)
-    if vim.g.qfr_debug_assertions then ry._validate_list_win(list_win) end
+    if vim.g.qfr_debug_assertions then
+        ry._validate_list_win(list_win)
+    end
 
     local list_tabpage = api.nvim_win_get_tabpage(list_win) ---@type integer
     local list_tabnr = api.nvim_tabpage_get_number(list_tabpage) ---@type integer
@@ -392,13 +453,22 @@ local function get_help_win_ll(list_win, origin, buf, split)
 
     local dest_bt = "help"
     local vcount_win = get_vcount_win_id(dest_bt)
-    if vcount_win then return vcount_win end
-    if origin and is_valid_dest_win(origin, dest_bt) then return origin end
+    if vcount_win then
+        return vcount_win
+    end
+
+    if origin and is_valid_dest_win(origin, dest_bt) then
+        return origin
+    end
+
     local list_tabnr, list_winnr = get_list_win_nrs(list_win) ---@type integer, integer
 
     ---@type integer|nil
     local b_win = find_win_in_tab(list_tabnr, dest_bt, { buf = buf, skip_winnr = list_winnr })
-    if b_win then return b_win end
+    if b_win then
+        return b_win
+    end
+
     return get_help_win_ext(list_tabnr, list_winnr, split)
 end
 
@@ -415,7 +485,10 @@ local function get_help_win_qf(list_win, buf, split)
 
     local dest_bt = "help"
     local vcount_win = get_vcount_win_id(dest_bt)
-    if vcount_win then return vcount_win end
+    if vcount_win then
+        return vcount_win
+    end
+
     local list_tabnr, list_winnr = get_list_win_nrs(list_win) ---@type integer, integer
     local _, useopen, usetab = get_basic_swb() ---@type string, boolean, boolean
 
@@ -424,7 +497,9 @@ local function get_help_win_qf(list_win, buf, split)
         ---@type integer|nil
         local tabpage_buf_win =
             find_win_in_tab(list_tabnr, dest_bt, { buf = buf, skip_winnr = list_winnr })
-        if tabpage_buf_win then return tabpage_buf_win end
+        if tabpage_buf_win then
+            return tabpage_buf_win
+        end
     end
 
     return get_help_win_ext(list_tabnr, list_winnr, split)
@@ -438,8 +513,14 @@ local function get_norm_win_ext(list_tabnr, list_winnr, split)
     ---@type QfrFindWinInTabOpts
     local rev_find_opts = { fin_winnr = list_winnr, skip_winnr = list_winnr }
     local other_win = find_win_in_tab_reverse(list_tabnr, "", rev_find_opts)
-    if other_win then return other_win end
-    if (not split) or split == "none" then return nil end
+    if other_win then
+        return other_win
+    end
+
+    if (not split) or split == "none" then
+        return nil
+    end
+
     return find_win_in_tab(list_tabnr, "help", { skip_winnr = list_winnr })
 end
 
@@ -458,14 +539,23 @@ local function find_norm_win_ll(list_win, origin, buf, split)
 
     local dest_bt = ""
     local vcount_win = get_vcount_win_id(dest_bt)
-    if vcount_win then return vcount_win end
-    if origin and is_valid_dest_win(origin, dest_bt) then return origin end
+    if vcount_win then
+        return vcount_win
+    end
+
+    if origin and is_valid_dest_win(origin, dest_bt) then
+        return origin
+    end
+
     local list_tabnr, list_winnr = get_list_win_nrs(list_win) ---@type integer, integer
 
     ---@type integer|nil
     local tabpage_buf_win =
         find_win_in_tab(list_tabnr, dest_bt, { buf = buf, skip_winnr = list_winnr })
-    if tabpage_buf_win then return tabpage_buf_win end
+    if tabpage_buf_win then
+        return tabpage_buf_win
+    end
+
     return get_norm_win_ext(list_tabnr, list_winnr, split)
 end
 
@@ -482,7 +572,9 @@ local function find_norm_win_qf(list_win, buf, split)
 
     local dest_bt = ""
     local vcount_win = get_vcount_win_id(dest_bt)
-    if vcount_win then return vcount_win end
+    if vcount_win then
+        return vcount_win
+    end
 
     local list_tabnr, list_winnr = get_list_win_nrs(list_win) ---@type integer, integer
     local swb, useopen, usetab = get_basic_swb() ---@type string, boolean, boolean
@@ -491,17 +583,23 @@ local function find_norm_win_qf(list_win, buf, split)
         ---@type integer|nil
         local tabpage_buf_win =
             find_win_in_tab(list_tabnr, dest_bt, { buf = buf, skip_winnr = list_winnr })
-        if tabpage_buf_win then return tabpage_buf_win end
+        if tabpage_buf_win then
+            return tabpage_buf_win
+        end
     end
 
     if usetab then
         local usetab_win = find_win_in_tabs(list_tabnr, dest_bt, buf) ---@type integer|nil
-        if usetab_win then return usetab_win end
+        if usetab_win then
+            return usetab_win
+        end
     end
 
     if string.find(swb, "uselast", 1, true) ~= nil then
         local alt_win = fn.win_getid(fn.tabpagewinnr(list_tabnr, "#"), list_tabnr) ---@type integer
-        if is_valid_dest_win(alt_win, dest_bt) then return alt_win end
+        if is_valid_dest_win(alt_win, dest_bt) then
+            return alt_win
+        end
     end
 
     return get_norm_win_ext(list_tabnr, list_winnr, split)
@@ -517,9 +615,15 @@ local function should_resize_list_win(is_orphan, list_win, split)
         ry._validate_list_win(list_win)
     end
 
-    if is_orphan then return false end -- Orphan lists are expected to be closed
+    if is_orphan then
+        return false
+    end -- Orphan lists are expected to be closed
+
     local list_win_tabpage = api.nvim_win_get_tabpage(list_win) ---@type integer
-    if #api.nvim_tabpage_list_wins(list_win_tabpage) == 1 then return true end
+    if #api.nvim_tabpage_list_wins(list_win_tabpage) == 1 then
+        return true
+    end
+
     return split ~= "none" and vim.g.qfr_auto_list_height
 end
 
@@ -558,7 +662,10 @@ local function open_item_tabnew(is_orphan, dir, finish, list_win, item, new_idx,
     api.nvim_cmd({ cmd = "tabnew", range = { range } }, {})
     local dest_win = api.nvim_get_current_win() ---@type integer
 
-    if (not is_orphan) and finish == "focusList" then api.nvim_set_current_win(list_win) end
+    if (not is_orphan) and finish == "focusList" then
+        api.nvim_set_current_win(list_win)
+    end
+
     local tn_buf = api.nvim_win_get_buf(dest_win) ---@type integer
     if is_buf_empty_noname(tn_buf) then
         api.nvim_set_option_value("bufhidden", "wipe", { buf = tn_buf })
@@ -572,7 +679,9 @@ local function open_item_tabnew(is_orphan, dir, finish, list_win, item, new_idx,
 
     rt._set_list(nil, "u", { nr = 0, idx = new_idx })
     ru._open_item(item, dest_win, get_open_opts(dest_bt, "tabnew", finish))
-    if is_orphan then handle_orphan(list_win, dest_win, finish) end
+    if is_orphan then
+        handle_orphan(list_win, dest_win, finish)
+    end
 
     api.nvim_exec_autocmds("QuickFixCmdPost", { pattern = pattern })
 end
@@ -598,7 +707,9 @@ local function open_item_ll(dir, split, finish, list_win, item, new_idx, dest_bt
     end
 
     local orig_win = (function()
-        if dest_bt == "help" then return get_help_win_ll(list_win, origin, item.bufnr, split) end
+        if dest_bt == "help" then
+            return get_help_win_ll(list_win, origin, item.bufnr, split)
+        end
         return find_norm_win_ll(list_win, origin, item.bufnr, split)
     end)()
 
@@ -619,8 +730,11 @@ local function open_item_ll(dir, split, finish, list_win, item, new_idx, dest_bt
         api.nvim_cmd({ cmd = "wincmd", args = { "=" } }, {})
     end
 
-    if should_resize or dir ~= 0 then ru._do_zzze(list_win) end
-    vim.api.nvim_exec_autocmds("QuickFixCmdPost", { pattern = pattern })
+    if should_resize or dir ~= 0 then
+        ru._do_zzze(list_win)
+    end
+
+    api.nvim_exec_autocmds("QuickFixCmdPost", { pattern = pattern })
 end
 
 ---@param dir integer
@@ -633,7 +747,7 @@ end
 ---@return nil
 local function open_item_qf(dir, split, finish, list_win, item, new_idx, dest_bt)
     local pattern = "cc" ---@type string
-    vim.api.nvim_exec_autocmds("QuickFixCmdPre", { pattern = pattern })
+    api.nvim_exec_autocmds("QuickFixCmdPre", { pattern = pattern })
 
     if split == "tabnew" then
         open_item_tabnew(nil, dir, finish, list_win, item, new_idx, dest_bt, pattern)
@@ -642,7 +756,9 @@ local function open_item_qf(dir, split, finish, list_win, item, new_idx, dest_bt
 
     ---@type integer|nil
     local orig_win = (function()
-        if dest_bt == "help" then return get_help_win_qf(list_win, item.bufnr, split) end
+        if dest_bt == "help" then
+            return get_help_win_qf(list_win, item.bufnr, split)
+        end
         return find_norm_win_qf(list_win, item.bufnr, split)
     end)()
 
@@ -664,7 +780,10 @@ local function open_item_qf(dir, split, finish, list_win, item, new_idx, dest_bt
         api.nvim_cmd({ cmd = "wincmd", args = { "=" } }, {})
     end
 
-    if should_resize or dir ~= 0 then ru._do_zzze(list_win) end
+    if should_resize or dir ~= 0 then
+        ru._do_zzze(list_win)
+    end
+
     vim.api.nvim_exec_autocmds("QuickFixCmdPost", { pattern = pattern })
 end
 
@@ -674,8 +793,14 @@ end
 ---@param dir integer
 ---@return nil
 local function get_item_fn(dir, src_win)
-    if dir == -1 then return ru._get_item_wrapping_sub(src_win) end
-    if dir == 1 then return ru._get_item_wrapping_add(src_win) end
+    if dir == -1 then
+        return ru._get_item_wrapping_sub(src_win)
+    end
+
+    if dir == 1 then
+        return ru._get_item_wrapping_add(src_win)
+    end
+
     return ru._get_item_under_cursor(src_win)
 end
 

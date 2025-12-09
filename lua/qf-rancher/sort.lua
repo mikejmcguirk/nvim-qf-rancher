@@ -16,8 +16,8 @@ local api = vim.api
 --- @class QfRancherSort
 local Sort = {}
 
--- MID: nr should be a what table entry again, because the user can use it to inject whatever
--- elements they want into it. More useful interface
+-- LOW: It would be neat if a what table were passed in instead of just the nr, but I would have to
+-- think through how to merge the old list into the what table
 
 ---@tag qf-rancher-sort-predicate
 ---@tag qfr-sort-predicate

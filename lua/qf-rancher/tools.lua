@@ -37,6 +37,7 @@ local function resolve_list_nr(src_win, nr)
     if not nr then
         return 0
     end
+
     if nr == 0 or type(nr) == "string" then
         return nr
     end
@@ -62,7 +63,6 @@ local function get_result(src_win, nr)
     end
 
     local max_nr = M._get_list(src_win, { nr = "$" }).nr
-
     if nr == "$" then
         return max_nr
     end
@@ -154,6 +154,7 @@ function M.handle_new_same_title(output_opts)
     if output_opts.action ~= " " then
         return output_opts
     end
+
     local what = output_opts.what
     if not (what.title and #what.title > 0) then
         return output_opts
@@ -205,12 +206,11 @@ function M._set_stack(src_win, stack)
     end
 
     M._set_list(src_win, "f", {})
-
     for _, what in ipairs(stack) do
         M._set_list(src_win, " ", what)
     end
 
-    if ru._get_g_var("qfr_debug_assertions") then
+    if vim.g.qfr_debug_assertions then
         local max_nr = M._get_list(src_win, { nr = "$" }).nr
         assert(#stack == max_nr)
     end
@@ -259,7 +259,7 @@ function M._get_stack(src_win)
         stack[#stack + 1] = what_set
     end
 
-    if ru._get_g_var("qfr_debug_assertions") then
+    if vim.g.qfr_debug_assertions then
         assert(#stack == max_nr)
     end
 

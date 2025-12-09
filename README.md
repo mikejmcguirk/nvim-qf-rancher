@@ -1,20 +1,16 @@
 ## Nvim Quickfix Rancher
 
 #### NOTE:
-  This plugin is still experimental. APIs and defaults are subject to change without notice. Issues and PRs welcome.
+This plugin is still experimental. APIs and defaults are subject to change without notice. Issues and PRs welcome.
 
 Nvim Quickfix Rancher provides a stable of tools for taming the quickfix
 and location lists:
-- Auto opening, closing, and resizing of list windows at logical points
-  and across tabpages
+- Auto opening, closing, and resizing of list windows at logical points and across tabpages
 - Wrapping and convenience functions for list and stack navigation
-- Autocommands to stop automatic copying of location lists to new windows,
-  as well as putting location lists without a home window out to pasture
+- Autocommands to stop automatic copying of location lists to new windows, as well as putting location lists without a home window out to pasture
 - Preview window for list items
-- Built-in functions for lassoing diagnostics of all severities, including
-  highest only
-- Grep functions built on rg as a default, with grep available
-  as a backup
+- Built-in functions for lassoing diagnostics of all severities, including highest only
+- Grep functions built on rg as a default, with grep available as a backup
 - Filter and sort functions
 - Capabilities are extensible and available from the cmd line
 

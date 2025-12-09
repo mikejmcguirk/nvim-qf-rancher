@@ -248,6 +248,7 @@ local function get_title_cfg(item_buf)
     if not ru._get_g_var("qfr_preview_show_title") then
         return { title = nil }
     end
+
     if not (item_buf and api.nvim_buf_is_valid(item_buf)) then
         return { title = "No buffer" }
     end
@@ -521,6 +522,7 @@ local function range_qf_to_zero_(preview_buf, item)
         if item.col <= 0 then
             return 0
         end
+
         if item.vcol == 1 then
             ---@type boolean, integer, integer
             local _, start_byte, _ = ru._vcol_to_byte_bounds(item.col, start_line)
@@ -540,6 +542,7 @@ local function range_qf_to_zero_(preview_buf, item)
         if item.end_col <= 0 then
             return #fin_line
         end
+
         if item.vcol == 1 then
             return ru._vcol_to_end_col_(item.col, fin_line)
         end
@@ -548,6 +551,7 @@ local function range_qf_to_zero_(preview_buf, item)
         if fin_row == row and end_idx_ == col then
             end_idx_ = end_idx_ + 1
         end
+
         return end_idx_
     end)() ---@type integer
 
@@ -740,10 +744,6 @@ local function get_preview_buf(item)
 
     return bufs[item.bufnr]
 end
-
--- =======================
--- == OPEN/CLOSE/UPDATE ==
--- =======================
 
 local timer = nil ---@type uv.uv_timer_t|nil
 local queued_update = false ---@type boolean

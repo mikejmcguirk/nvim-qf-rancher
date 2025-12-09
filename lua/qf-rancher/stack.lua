@@ -1,4 +1,5 @@
 local api = vim.api
+
 local rt = Qfr_Defer_Require("qf-rancher.tools") ---@type QfrTools
 local ru = Qfr_Defer_Require("qf-rancher.util") ---@type QfrUtil
 local rw = Qfr_Defer_Require("qf-rancher.window") ---@type QfrWins
@@ -23,6 +24,7 @@ local function resize_after_stack_change(src_win)
     if not vim.g.qfr_auto_list_height then
         return
     end
+
     if src_win then
         rw._resize_loclists_by_win(src_win, { tabpage = api.nvim_win_get_tabpage(src_win) })
     else

@@ -77,9 +77,11 @@ function M._resolve_input_vimcase(input)
     if ignorecase and smartcase then
         return "smartcase"
     end
+
     if ignorecase then
         return "insensitive"
     end
+
     return "sensitive"
 end
 

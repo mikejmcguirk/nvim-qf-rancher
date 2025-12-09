@@ -8,7 +8,9 @@ local ra = require("qf-rancher.stack")
 local function find_qf_win_in_cur_tabpage()
     for _, win in ipairs(api.nvim_tabpage_list_wins(0)) do
         local wintype = vim.fn.win_gettype(win)
-        if wintype == "quickfix" then return win end
+        if wintype == "quickfix" then
+            return win
+        end
     end
 
     return nil
