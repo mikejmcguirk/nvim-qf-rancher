@@ -606,6 +606,8 @@ end
 -- == WINDOW FINDING ==
 -- ====================
 
+-- TODO: This data construct is bad. Everywhere it's used can just be a list of tabpages
+
 ---@param opts QfrTabpageOpts
 ---@return integer[]
 function M._resolve_tabpages(opts)
@@ -622,28 +624,8 @@ function M._resolve_tabpages(opts)
     end
 end
 
--- NOTE: Used in hot loops. No validations here
--- NOTE: Use wintype because we need to be able to accurately check orphan loclist wins with a
--- qf_id or 0
-
----@param qf_id integer
----@param win integer
----@return boolean
-local function is_loclist_win(qf_id, win)
-    local tw_qf_id = fn.getloclist(win, { id = 0 }).id ---@type integer
-    if tw_qf_id ~= qf_id then
-        return false
-    end
-
-    local wintype = fn.win_gettype(win)
-    if wintype == "loclist" then
-        return true
-    else
-        return false
-    end
-end
-
--- If searching for wins by qf_id, passing a zero id is allowed so that orphans can be checked
+-- NOTE: If searching for wins by qf_id, passing a zero id is allowed so
+-- that orphans can be checked
 
 ---@param qf_id integer
 ---@param opts QfrTabpageOpts
@@ -656,8 +638,12 @@ function M._get_loclist_win_by_qf_id(qf_id, opts)
     for _, tabpage in ipairs(tabpages) do
         local tabpage_wins = api.nvim_tabpage_list_wins(tabpage) ---@type integer[]
         for _, t_win in ipairs(tabpage_wins) do
-            if is_loclist_win(qf_id, t_win) then
-                return t_win
+            local t_win_qf_id = fn.getloclist(t_win, { id = 0 }).id ---@type integer
+            if t_win_qf_id == qf_id then
+                local wintype = fn.win_gettype(t_win)
+                if wintype == "loclist" then
+                    return t_win
+                end
             end
         end
     end
@@ -691,8 +677,12 @@ function M._get_ll_wins_by_qf_id(qf_id, opts)
     for _, tabpage in ipairs(tabpages) do
         local tabpage_wins = api.nvim_tabpage_list_wins(tabpage) ---@type integer[]
         for _, t_win in ipairs(tabpage_wins) do
-            if is_loclist_win(qf_id, t_win) then
-                table.insert(wins, t_win)
+            local t_win_qf_id = fn.getloclist(t_win, { id = 0 }).id ---@type integer
+            if t_win_qf_id == qf_id then
+                local wintype = fn.win_gettype(t_win)
+                if wintype == "loclist" then
+                    table.insert(wins, t_win)
+                end
             end
         end
     end
