@@ -333,6 +333,9 @@ end
 
 -- TEST: Start nvim and check package.loaded to verify no extra modules have required
 
+-- MID: General re-factoring strategy: Handle the internals of the functions first before the
+-- big picture function signatures. Changing the params is the most disruptive, so minimize the
+-- collateral damage
 -- MID: Alias wintype annotations?
 -- MID: Publish Qf items as diagnostics. Would make other ideas more useful
 -- MID: Applies to close and cwin - If closing the window and the stack is empty, schedule a
@@ -356,6 +359,7 @@ end
 -- MID: Send marks to list. Bufmarks to location list. Global marks to qflist
 -- https://github.com/chentoast/marks.nvim?tab=readme-ov-file
 
+-- LOW: Maybe re-outline the reuse_title logic once the overly complex datatypes are gone
 -- LOW: If we explore the idea of editing the qf buffer, the best way to do it seems to be to
 -- treat "edit mode" as a distinct thing, where it can then be saved and propagate the changes
 -- - https://github.com/gabrielpoca/replacer.nvim

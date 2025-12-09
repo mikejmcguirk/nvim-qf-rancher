@@ -120,10 +120,28 @@ local function get_empty_msg(getopts)
     return default .. " (" .. minmax_txt .. ")"
 end
 
+-- MID: I'm fine tossing the diag_opts here for now, but once that construct is gone or revised,
+-- revisit what data is sent into here
+---@param diag_opts QfrDiagOpts
+---@return boolean
+local function should_clear(diag_opts)
+    if not (diag_opts.getopts and diag_opts.getopts.severity) then
+        return true
+    elseif diag_opts.getopts.severity == { min = ds.INFO } then
+        return true
+    elseif diag_opts.getopts.severity == { min = nil } then
+        return true
+    else
+        return false
+    end
+end
+
 ---@class QfrDiagOpts
 ---@field disp_func? QfrDiagDispFunc List entry conversion function
 ---@field top? boolean If true, only show top severity
 ---@field getopts? vim.diagnostic.GetOpts See |vim.diagnostic.Getopts|
+
+-- TODO: Remove output_opts. Re-evaluate diag_opts
 
 ---Convert diagnostics into list entries
 ---In line with Neovim's default, the list title will be "Diagnostics"
@@ -139,6 +157,7 @@ end
 function Diag.diags_to_list(diag_opts, output_opts)
     ry._validate_diag_opts(diag_opts)
     ry._validate_output_opts(output_opts)
+    diag_opts = vim.deepcopy(diag_opts, true)
     output_opts = vim.deepcopy(output_opts, true)
 
     local src_win = output_opts.src_win ---@type integer|nil
@@ -148,34 +167,29 @@ function Diag.diags_to_list(diag_opts, output_opts)
 
     local title = "Diagnostics" ---@type string
     output_opts.what.title = title
+
     local buf = src_win and api.nvim_win_get_buf(src_win) or nil ---@type integer|nil
     local raw_diags = vim.diagnostic.get(buf, diag_opts.getopts) ---@type vim.Diagnostic[]
     if #raw_diags == 0 then
         api.nvim_echo({ { get_empty_msg(diag_opts.getopts), "" } }, false, {})
-
-        ---@return boolean
-        local function should_clear()
-            if not (diag_opts.getopts and diag_opts.getopts.severity) then
-                return true
-            elseif diag_opts.getopts.severity == { min = ds.INFO } then
-                return true
-            elseif diag_opts.getopts.severity == { min = nil } then
-                return true
-            else
-                return false
-            end
+        if not vim.g.qfr_reuse_title then
+            return
         end
 
-        if should_clear() then
-            local diag_nr = rt._find_list_with_title(src_win, title) ---@type integer|nil
-            if diag_nr then
+        local cur_diag_nr = rt._find_list_with_title(src_win, title) ---@type integer|nil
+        if not cur_diag_nr then
+            return
+        end
+
+        if should_clear(diag_opts) then
+            if cur_diag_nr then
                 local max_nr = rt._get_list(src_win, { nr = "$" }).nr ---@type integer
                 if max_nr == 1 then
                     rt._set_list(src_win, "f", {})
                 else
                     -- MID: Should also go to an active list, but would need to write a func for
                     -- that
-                    ru._clear_list_and_resize(src_win, diag_nr)
+                    ru._clear_list_and_resize(src_win, cur_diag_nr)
                 end
             end
         end
@@ -191,14 +205,20 @@ function Diag.diags_to_list(diag_opts, output_opts)
     local converted_diags = vim.tbl_map(disp_func, raw_diags) ---@type vim.quickfix.entry[]
     table.sort(converted_diags, rs_lib.sort_fname_asc)
 
-    -- MID: Get out of this + output opts
-    local adj_output_opts = rt.handle_new_same_title(output_opts) ---@type QfrOutputOpts
-    local what_set = vim.tbl_deep_extend("force", adj_output_opts.what, {
+    if vim.g.qfr_reuse_title then
+        local cur_diag_nr = rt._find_list_with_title(src_win, title) ---@type integer|nil
+        if cur_diag_nr then
+            output_opts.action = "u"
+            output_opts.what.nr = cur_diag_nr
+        end
+    end
+
+    local what_set = vim.tbl_deep_extend("force", output_opts.what, {
         items = converted_diags,
         title = title,
     }) ---@type QfrWhat
 
-    local dest_nr = rt._set_list(src_win, adj_output_opts.action, what_set) ---@type integer
+    local dest_nr = rt._set_list(src_win, output_opts.action, what_set) ---@type integer
     if vim.g.qfr_auto_open_changes then
         ra._get_history(src_win, dest_nr, { default = "cur_list", silent = true })
         rw._open_list(src_win, {})

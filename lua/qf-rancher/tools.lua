@@ -8,8 +8,8 @@ local fn = vim.fn
 ---@class QfrTools
 local M = {}
 
+-- LOW: Also return max_nr so it doesn't need to be acquired again
 -- MAYBE: Loop backwards so that, for ties, the more recent list is used
-
 ---@param src_win integer|nil
 ---@param title string
 ---@return integer|nil
@@ -140,45 +140,6 @@ function M._clear_list(src_win, list_nr)
     local what = { nr = nr, context = {}, items = {}, quickfixtextfunc = "", title = "" }
     local result = src_win and fn.setloclist(src_win, {}, "r", what) or fn.setqflist({}, "r", what)
     return result == -1 and result or get_result(src_win, nr)
-end
-
----@param output_opts QfrOutputOpts
----@return QfrOutputOpts
-function M.handle_new_same_title(output_opts)
-    ry._validate_output_opts(output_opts)
-
-    if not ru._get_g_var("qfr_reuse_title") then
-        return output_opts
-    end
-
-    if output_opts.action ~= " " then
-        return output_opts
-    end
-
-    local what = output_opts.what
-    if not (what.title and #what.title > 0) then
-        return output_opts
-    end
-
-    local src_win = output_opts.src_win
-    local max_nr = M._get_list(src_win, { nr = "$" }).nr ---@type integer
-    local title_nr = nil
-    for i = 1, max_nr do
-        if M._get_list(src_win, { nr = i, title = 0 }).title == what.title then
-            title_nr = i
-            break
-        end
-    end
-
-    if not title_nr then
-        return output_opts
-    end
-
-    local adj_output_opts = vim.deepcopy(output_opts, true)
-    adj_output_opts.what.nr = title_nr
-    adj_output_opts.action = "u"
-
-    return adj_output_opts
 end
 
 ---@param src_win integer|nil
