@@ -2,6 +2,7 @@ local ra = Qfr_Defer_Require("qf-rancher.stack") ---@type QfrStack
 local rt = Qfr_Defer_Require("qf-rancher.tools") ---@type QfrTools
 local ru = Qfr_Defer_Require("qf-rancher.util") ---@type QfrUtil
 local ry = Qfr_Defer_Require("qf-rancher.types") ---@type QfrTypes
+local rw = Qfr_Defer_Require("qf-rancher.window") ---@type QfrWins
 
 local api = vim.api
 local fn = vim.fn
@@ -80,12 +81,14 @@ local function filter_wrapper(filter_info, keep, input_opts, output_opts)
     local what_set = rt._what_ret_to_set(what_ret) ---@type QfrWhat
     what_set.nr = output_opts.what.nr
     local dest_nr = rt._set_list(src_win, output_opts.action, what_set) ---@type integer
-    if dest_nr >= 0 and vim.g.qfr_auto_open_changes then
-        ra._get_history(src_win, dest_nr, {
-            open_list = true,
-            default = "cur_list",
-            silent = true,
-        })
+    if dest_nr > 0 and vim.g.qfr_auto_open_changes then
+        local cur_nr = rt._get_list(src_win, { nr = 0 }).nr ---@type integer
+        local nr_after = ra._goto_history(src_win, dest_nr, { silent = true })
+        if cur_nr ~= nr_after and vim.g.qfr_auto_list_height then
+            ra._resize_after_change(src_win)
+        end
+
+        rw._open_list(src_win, {})
     end
 end
 

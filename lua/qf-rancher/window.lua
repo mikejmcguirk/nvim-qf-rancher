@@ -161,7 +161,15 @@ local function get_qfsplit()
     return vim.tbl_contains(valid_splits, g_split) and g_split or "botright"
 end
 
--- MID: "get_filtered_tabpage_wins" might be a useful util function
+-- LOW: In concept, I would prefer if opening and sizing the lists were handled separately. In
+-- practice, the list size is passed as an arg to copen/lopen. While you could rely on the updated
+-- window context to then update the size, this is wasteful and then relies on more assumptions.
+-- It might be possible to reverse-engineer copen and lopen. It looks like you simply create a
+-- win, load a buf, set it as the qf_buffer, and use the quickfixtextfuc to fill it. But I'm not
+-- sure how the qf internal variables are set, and I'm not sure it's possible to create the
+-- loclist associations manually.
+-- PR: It would be good if it were possible to handle these kinds of low-level qf operations
+-- directly, rather than having to hack around them
 
 -- MID: This applies to open_loclist too. We have the same issue as before where the different
 -- opts don't act mututaly exclusively, and thus do things that you would not anticipate. In this
@@ -176,6 +184,8 @@ end
 -- - silent: boolean
 -- And for location lists you would need to track distinctly if the list failed to open due to
 -- already being open or because no list exists
+-- How list list height is handled needs to be considered very carefully, since for now these
+-- behaviors cannot be de-coupled
 
 ---- If any location lists are open in the same tabpage, they will be
 ---  automatically closed before the qflist is opened
@@ -564,9 +574,4 @@ end
 
 return Window
 
--- MID: Implement a feature where, if you open list to a blank one, do a wrapping search forward or
---     backward for a list with items
--- - Or less obstrusively, showing history on blank lists or a statusline component
-
 -- LOW: Make get_list_height work without nowrap
--- LOW: Make a Neovim tools repo that has the pwin close function

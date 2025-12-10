@@ -187,14 +187,14 @@ M.doc_tbls[#M.doc_tbls + 1] = { rn_str, M.qfr_nav_maps, M.qfr_nav_cmds }
 -- stylua: ignore
 ---@type QfrMapData[]
 M.qfr_stack_maps = {
-{ nn, "<Plug>(qfr-qf-older)",        ql.."[", "Go to the [count] older quickfix list. Count is wrapping",           function() ra.q_older(vim.v.count) end },
-{ nn, "<Plug>(qfr-qf-newer)",        ql.."]", "Go to the [count] newer quickfix list. Count is wrapping",           function() ra.q_newer(vim.v.count) end },
-{ nn, "<Plug>(qfr-qf-history)",      ql..qP, "Jump to [count] list in the quickfix stack or view the current list", function() ra.q_history(vim.v.count, { default = "cur_list" }) end },
+{ nn, "<Plug>(qfr-qf-older)",        ql.."[", "Go to the [count] older quickfix list. Count is wrapping",           function() ra.q_older(vim.v.count1) end },
+{ nn, "<Plug>(qfr-qf-newer)",        ql.."]", "Go to the [count] newer quickfix list. Count is wrapping",           function() ra.q_newer(vim.v.count1) end },
+{ nn, "<Plug>(qfr-qf-history)",      ql..qP, "Jump to [count] list in the quickfix stack or view the current list", function() ra.q_history(vim.v.count) end },
 { nn, "<Plug>(qfr-qf-del)",          ql.."e", "Delete a list from the quickfix stack",                              function() ra.q_del(vim.v.count) end },
 { nn, "<Plug>(qfr-qf-del-all)",      ql.."E", "Clear the quickfix stack",                                           function() ra.q_del_all() end },
-{ nn, "<Plug>(qfr-ll-older)",        ll.."[", "Go to the [count] older location list. Count is wrapping",           function() ra.l_older(cur_win(), vim.v.count) end },
-{ nn, "<Plug>(qfr-ll-newer)",        ll.."]", "Go to the [count] newer location list. Count is wrapping",           function() ra.l_newer(cur_win(), vim.v.count) end },
-{ nn, "<Plug>(qfr-ll-history)",      ll..lP, "Jump to [count] list in the loclist stack or view the current list",  function() ra.l_history(cur_win(), vim.v.count, { default = "cur_list" }) end },
+{ nn, "<Plug>(qfr-ll-older)",        ll.."[", "Go to the [count] older location list. Count is wrapping",           function() ra.l_older(cur_win(), vim.v.count1) end },
+{ nn, "<Plug>(qfr-ll-newer)",        ll.."]", "Go to the [count] newer location list. Count is wrapping",           function() ra.l_newer(cur_win(), vim.v.count1) end },
+{ nn, "<Plug>(qfr-ll-history)",      ll..lP, "Jump to [count] list in the loclist stack or view the current list",  function() ra.l_history(cur_win(), vim.v.count) end },
 { nn, "<Plug>(qfr-ll-del)",          ll.."e", "Delete a list from the loclist stack",                               function() ra.l_del(cur_win(), vim.v.count) end },
 { nn, "<Plug>(qfr-ll-del-all)",      ll.."E", "Clear the loclist stack",                                            function() ra.l_del_all(cur_win()) end },
 }

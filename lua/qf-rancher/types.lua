@@ -679,23 +679,6 @@ end
 Types._sync_opts = { "sync", "async" }
 Types._default_sync_opt = "async"
 
------------------
--- STACK TYPES --
------------------
-
--- MID: Pass the full ListOpenOpts in here. This would allow for more flexibility with how
--- the history function behaves
-
----@param opts QfrHistoryOpts
----@return nil
-function Types._validate_history_opts(opts)
-    vim.validate("opts", opts, "table")
-    vim.validate("opts.default", opts.default, "string", true)
-    vim.validate("opts.keep_win", opts.keep_win, "boolean", true)
-    vim.validate("opts.open_list", opts.open_list, "boolean", true)
-    vim.validate("opts.silent", opts.silent, "boolean", true)
-end
-
 return Types
 
 -- LOW: Create a type and validation for getqflist returns

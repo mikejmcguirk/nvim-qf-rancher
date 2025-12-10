@@ -227,8 +227,13 @@ function Diag.diags_to_list(diag_opts, output_opts)
     }) ---@type QfrWhat
 
     local dest_nr = rt._set_list(src_win, output_opts.action, what_set) ---@type integer
-    if vim.g.qfr_auto_open_changes then
-        ra._get_history(src_win, dest_nr, { default = "cur_list", silent = true })
+    if dest_nr > 0 and vim.g.qfr_auto_open_changes then
+        local cur_nr = rt._get_list(src_win, { nr = 0 }).nr ---@type integer
+        local nr_after = ra._goto_history(src_win, dest_nr, { silent = true })
+        if cur_nr ~= nr_after and vim.g.qfr_auto_list_height then
+            ra._resize_after_change(src_win)
+        end
+
         rw._open_list(src_win, {})
     end
 end

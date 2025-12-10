@@ -1,4 +1,3 @@
-local rw = Qfr_Defer_Require("qf-rancher.window") ---@type QfrWins
 local ry = Qfr_Defer_Require("qf-rancher.types") ---@type QfrTypes
 local ru = Qfr_Defer_Require("qf-rancher.util") ---@type QfrUtil
 
@@ -73,32 +72,6 @@ local function get_result(src_win, nr)
     return math.min(nr, max_nr)
 end
 
--- MID: This function weirdly sticks out
----@param src_win integer|nil
----@return integer
-local function del_all(src_win)
-    ry._validate_win(src_win, true)
-
-    if not src_win then
-        local result = fn.setqflist({}, "f") ---@type integer
-        if result == 0 and vim.g.qfr_close_on_stack_clear then
-            local tabpages = vim.api.nvim_list_tabpages() ---@type integer[]
-            rw._close_qflists(tabpages)
-        end
-
-        return result
-    end
-
-    local qf_id = fn.getloclist(src_win, { id = 0 }).id ---@type integer
-    local result = fn.setloclist(src_win, {}, "f") ---@type integer
-    if result == 0 and vim.g.qfr_close_on_stack_clear then
-        local tabpages = vim.api.nvim_list_tabpages() ---@type integer[]
-        rw._close_loclists({ qf_id = qf_id, tabpages = tabpages })
-    end
-
-    return result
-end
-
 ---@param src_win integer|nil
 ---@param action QfrAction
 ---@param what QfrWhat
@@ -107,10 +80,6 @@ function M._set_list(src_win, action, what)
     ry._validate_win(src_win, true)
     ry._validate_action(action)
     ry._validate_what(what)
-
-    if action == "f" then
-        return del_all(src_win)
-    end
 
     local what_set = vim.deepcopy(what, true) ---@type QfrWhat
     what_set.nr = resolve_list_nr(src_win, what_set.nr)
@@ -136,8 +105,10 @@ end
 ---@param list_nr integer|"$"|nil
 ---@return integer
 function M._clear_list(src_win, list_nr)
-    ry._validate_win(src_win, true)
-    ry._validate_list_nr(list_nr, true)
+    if vim.g.qfr_debug_assertions then
+        ry._validate_win(src_win, true)
+        ry._validate_list_nr(list_nr, true)
+    end
 
     local nr = resolve_list_nr(src_win, list_nr) ---@type integer|"$"
 
@@ -233,6 +204,16 @@ function M._get_stack(src_win)
 end
 
 return M
+
+-- TODO: This is the next set of interfaces to look at. Am having questions with (a) how certain
+-- input values are parsed here and (b) what return types are sent back based on different results
+-- When re-evaluation is complete. Go back into stack module and potentially make changes
+-- Ideas:
+-- - Any what tables must be able to be sent exactly as they are in setqflist and setloclist to
+-- attain the same result. Or, if there is a change, it must be in line with qfr's documented
+-- features
+-- Questions:
+-- - How should operations on loclists be reported?
 
 -- MID: Gated behind a g:var, re-implement the ability to add new lists inside the stack without
 -- deleting the lists after by shifting the previous lists down and out. Before doing this, it is

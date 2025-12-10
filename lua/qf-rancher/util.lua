@@ -756,7 +756,7 @@ function M._find_ll_origin(qf_id, tabpages)
     return nil
 end
 
--- MID: Bad function naming
+-- TODO: Deprecate this
 ---@param win integer
 ---@param todo function
 ---@return any
@@ -795,3 +795,7 @@ function M._is_valid_loclist_win(win)
 end
 
 return M
+
+-- MID: It might be useful to have a "get_filtered_tabpage_wins" function where you pass a
+-- tabpage and a callback as an arg, and you get a list of wins back filtered through the
+-- callback. But is this over-general?

@@ -157,7 +157,7 @@ local function set_output_to_list(obj, src_win, action, what, system_opts)
     ---@type QfrWhat
     local what_set = vim.tbl_deep_extend("force", what, { items = lines_dict.items })
     local dest_nr = rt._set_list(src_win, action, what_set) ---@type integer
-    if dest_nr < 1 then
+    if dest_nr < 0 then
         api.nvim_echo({ { "Unable to set list", "ErrorMsg" } }, true, {})
         return
     end
@@ -174,7 +174,12 @@ local function set_output_to_list(obj, src_win, action, what, system_opts)
     end
 
     if vim.g.qfr_auto_open_changes then
-        ra._get_history(src_win, dest_nr, { default = "cur_list", silent = true })
+        local cur_nr = rt._get_list(src_win, { nr = 0 }).nr ---@type integer
+        local nr_after = ra._goto_history(src_win, dest_nr, { silent = true }) ---@type integer
+        if cur_nr ~= nr_after and vim.g.qfr_auto_list_height then
+            ra._resize_after_change(src_win)
+        end
+
         rw._open_list(src_win, {})
     end
 

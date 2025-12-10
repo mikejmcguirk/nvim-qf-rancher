@@ -877,116 +877,127 @@ View and edit the list stack                                             *Stack*
                                                                      *qfr-stack*
 
 
-NOTE: If no list number is provided to next/previous commands, the default
-is to cycle by one list
-For commands that target a specific list, if no count is provided, the
-current list will be used
-NOTE: All navigation commands will re-size the list if it changes and
-g:qfr_auto_list_height is true
-
-Stack.q_older({count})                                           *Stack.q_older*
-
-    Parameters: ~
-        {count}  (integer) Wrapping count previous list to go to
-
-    Returns: ~
-        (nil)
-
-
-Stack.q_newer({count})                                           *Stack.q_newer*
-
-    Parameters: ~
-        {count}  (integer) Wrapping count next list to go to
-
-    Returns: ~
-        (nil)
-
-
-Stack.l_older({src_win}, {count})                                *Stack.l_older*
-
-    Parameters: ~
-        {src_win}  (integer) Location list window context
-        {count}    (integer) Wrapping count previous list to go to
-
-    Returns: ~
-        (nil)
-
-
-Stack.l_newer({src_win}, {count})                                *Stack.l_newer*
-
-    Parameters: ~
-        {src_win}  (integer) Location list window context
-        {count}    (integer) Wrapping count next list to go to
-
-    Returns: ~
-        (nil)
-
-
-QfrHistoryDefaultOpt                                      *QfrHistoryDefaultOpt*
-
-    Whether to show the current list info or the entire stack
-    (chistory/lhistory default) on 0 count
-
-    Variants: ~
-        ("cur_list")
-        ("show_stack")
-
-
-QfrHistoryOpts                                                  *QfrHistoryOpts*
+qfr.stack.GotoHistoryOpts                            *qfr.stack.GotoHistoryOpts*
 
     Fields: ~
-        {open_list?}  (boolean) Open the list after changing history
-        {default?}    (QfrHistoryDefaultOpt)
-        {keep_win?}   (boolean) If true, don't change window focus
-        {silent?}     (boolean) Suppress messages
+        {silent}  (boolean) Suppress messages
 
 
-Stack.q_history({count}, {opts})                               *Stack.q_history*
+Stack.q_older({count}, {opts?})                                  *Stack.q_older*
+    If g:qfr_auto_list_height is true, the list will automatically resize
 
     Parameters: ~
-        {count}  (integer) List number to go to
-        {opts}   (QfrHistoryOpts)
+        {count}  (integer) Wrapping count previous list to go to. Minimum 1
+        {opts?}  (qfr.stack.GotoHistoryOpts) See |qfr.stack.GotoHistoryOpts|
 
     Returns: ~
         (nil)
 
 
-Stack.l_history({src_win}, {opts})                             *Stack.l_history*
+Stack.q_newer({count}, {opts?})                                  *Stack.q_newer*
+    If g:qfr_auto_list_height is true, the list will automatically resize
+
+    Parameters: ~
+        {count}  (integer) Wrapping count next list to go to. Minimum 1
+        {opts?}  (qfr.stack.GotoHistoryOpts) See |qfr.stack.GotoHistoryOpts|
+
+    Returns: ~
+        (nil)
+
+
+                                                                 *Stack.l_older*
+Stack.l_older({src_win}, {count}, {opts?})
+    If g:qfr_auto_list_height is true, the list will automatically resize
 
     Parameters: ~
         {src_win}  (integer) Location list window context
-        {opts}     (QfrHistoryOpts)
+        {count}    (integer) Wrapping count previous list to go to. Minimum 1
+        {opts?}    (qfr.stack.GotoHistoryOpts) See |qfr.stack.GotoHistoryOpts|
+
+    Returns: ~
+        (nil)
+
+
+                                                                 *Stack.l_newer*
+Stack.l_newer({src_win}, {count}, {opts?})
+    If g:qfr_auto_list_height is true, the list will automatically resize
+
+    Parameters: ~
+        {src_win}  (integer) Location list window context
+        {count}    (integer) Wrapping count next list to go to. Minimum 1
+        {opts?}    (qfr.stack.GotoHistoryOpts) See |qfr.stack.GotoHistoryOpts|
+
+    Returns: ~
+        (nil)
+
+
+Stack.q_history({count}, {opts?})                              *Stack.q_history*
+    If g:qfr_auto_list_height is true, the list will automatically resize
+
+    Parameters: ~
+        {count}  (integer|nil) List number to go to, nil to display the whole
+                 stack. A count of 0 shows the current list number (difference
+                 from core behavior)
+        {opts?}  (qfr.stack.GotoHistoryOpts) See |qfr.stack.GotoHistoryOpts|
+
+    Returns: ~
+        (nil)
+
+
+                                                               *Stack.l_history*
+Stack.l_history({src_win}, {count}, {opts?})
+    If g:qfr_auto_list_height is true, the list will automatically resize
+
+    Parameters: ~
+        {src_win}  (integer) Location list window context
+        {count}    (integer|nil) List number to go to, nil to display the
+                   whole stack. A count of 0 shows the current list number
+                   (difference from core behavior)
+        {opts?}    (qfr.stack.GotoHistoryOpts) See |qfr.stack.GotoHistoryOpts|
 
     Returns: ~
         (nil)
 
 
 Stack.q_del({count})                                               *Stack.q_del*
+    If the current list is cleared, and g:qfr_auto_list_height is true, the
+    list will be resized
 
     Parameters: ~
-        {count}  (integer) List number to delete
+        {count}  (integer) List number to delete. 0 for current
 
     Returns: ~
         (nil)
 
 
 Stack.l_del({src_win}, {count})                                    *Stack.l_del*
+    If the current list is cleared, and g:qfr_auto_list_height is true, the
+    list will be resized
 
     Parameters: ~
         {src_win}  (integer) Location list window context
-        {count}    (integer) List number to delete
+        {count}    (integer) List number to delete. 0 for current
 
     Returns: ~
         (nil)
 
 
 Stack.q_del_all()                                              *Stack.q_del_all*
+    Delete the quickfix stack. If g:qfr_close_on_stack_clear is true, close
+    all qfwins in all tabs
 
     Returns: ~
         (nil)
 
 
 Stack.l_del_all({src_win})                                     *Stack.l_del_all*
+    Delete a loclist stack. If g:qfr_close_on_stack_clear is true, close
+    the location list window
+    NOTE: When a location list stack is freed but the window is not closed,
+    the qf_id of the location list window is set to zero. When this function
+    is run, it searches for all qf_id 0 location list windows in all tabs and
+    closes them. If the function is run from within a qf_id 0 location list
+    window, it will always run a scan for others to close
 
     Parameters: ~
         {src_win}  (integer) Location list window context
@@ -1055,12 +1066,11 @@ Stack.l_history_cmd({cargs})                               *Stack.l_history_cmd*
         (nil)
 
 
-NOTE: If "all" is provided, any count is overridden
-A count of zero deletes the current list
-
 Stack.q_delete_cmd({cargs})                                 *Stack.q_delete_cmd*
     Qdelete cmd callback. Expects count = 0 and nargs = "?" in the command
     table
+    NOTE: If "all" is provided, any count is overridden
+    A count of zero deletes the current list
 
     Parameters: ~
         {cargs}  (vim.api.keyset.create_user_command.command_args)
@@ -1072,6 +1082,8 @@ Stack.q_delete_cmd({cargs})                                 *Stack.q_delete_cmd*
 Stack.l_delete_cmd({cargs})                                 *Stack.l_delete_cmd*
     Ldelete cmd callback. Expects count = 0 and nargs = "?" in the command
     table
+    NOTE: If "all" is provided, any count is overridden
+    A count of zero deletes the current list
 
     Parameters: ~
         {cargs}  (vim.api.keyset.create_user_command.command_args)

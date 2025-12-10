@@ -20,6 +20,9 @@ local rw = Qfr_Defer_Require("qf-rancher.window") ---@type QfrWins
 local api = vim.api
 local fn = vim.fn
 
+-- MID: Set to the most useful defaults for the most users. The README should then document
+-- default behaviors that deviate from the Neovim defaults
+
 ---@mod nvim-qf-rancher.txt Error list husbandry
 ---@brief [[
 ---Nvim Quickfix Rancher provides a stable of tools for taming the quickfix
@@ -330,6 +333,9 @@ if vim.g.qfr_set_default_cmds then
         end
     end
 end
+
+-- TODO: Organize the modules so that the actual exported module tables start where the
+-- user-facing functions start, rather than at the locals
 
 -- DOCUMENT: For cmd mappings, document what cmd opts they expect to be available. Can do this
 -- in docgen with a k, v loop
