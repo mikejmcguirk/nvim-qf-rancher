@@ -23,8 +23,16 @@ end
 ---@return integer
 local function run_history(src_win, count, opts)
     local cmd = src_win and "lhistory" or "chistory" ---@type string
-    ---@diagnostic disable-next-line: missing-fields
-    api.nvim_cmd({ cmd = cmd, count = count, mods = { silent = opts.silent } }, {})
+    if src_win then
+        api.nvim_win_call(src_win, function()
+            ---@diagnostic disable-next-line: missing-fields
+            api.nvim_cmd({ cmd = cmd, count = count, mods = { silent = opts.silent } }, {})
+        end)
+    else
+        ---@diagnostic disable-next-line: missing-fields
+        api.nvim_cmd({ cmd = cmd, count = count, mods = { silent = opts.silent } }, {})
+    end
+
     local list_nr_after = rt._get_list(src_win, { nr = 0 }).nr ---@type integer
     return list_nr_after
 end
@@ -116,6 +124,7 @@ end
 local Stack = {}
 
 -- NOGO: Keep this as an opt. It's flexible if I need to add things later
+--
 ---@class qfr.stack.GotoHistoryOpts
 ---@field silent boolean Suppress messages
 
@@ -393,6 +402,15 @@ function Stack.l_delete_cmd(cargs)
 
     Stack.l_del(cur_win, cargs.count)
 end
+
+---@brief [[
+---IMPLEMENTATION DETAIL:
+---
+---The history, prev, and next commands all use chistory/lhistory under the
+---hood. For l_history, l_prev, and l_next, rancher uses nvim_win_call to match
+---lhistory to the src_win context. The default maps and cmds all use the
+---current win for src_win
+---@brief ]]
 
 ---@export Stack
 

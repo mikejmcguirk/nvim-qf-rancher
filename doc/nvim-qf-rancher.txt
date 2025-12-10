@@ -1092,6 +1092,13 @@ Stack.l_delete_cmd({cargs})                                 *Stack.l_delete_cmd*
         (nil)
 
 
+IMPLEMENTATION DETAIL:
+
+The history, prev, and next commands all use chistory/lhistory under the
+hood. For l_history, l_prev, and l_next, rancher uses nvim_win_call to match
+lhistory to the src_win context. The default maps and cmds all use the
+current win for src_win
+
 ==============================================================================
 Qfr Ftplugin controls                             *qf-rancher-ftplugin-controls*
 
