@@ -62,3 +62,27 @@ Like the keymaps, default commands are also provided. They are listed in the hel
 ## API
 
 qf-rancher's functionality can be accessed directly using its API. See the help file for more info.
+
+## Credits
+
+- https://github.com/r0nsha/qfpreview.nvim (inspiration for previewer code)
+- https://github.com/romainl/vim-qf (inspiration for ftplugin maps)
+- https://github.com/stevearc/qf_helper.nvim ({} maps)
+- https://github.com/kevinhwang91/nvim-bqf (various mappings)
+
+## Other Alternatives
+
+*(NOTE: While Rancher tries to avoid creating parallel state and triggering events beyond what it explicitly advertises, it cannot guarantee compatibility with any of these plugins)*
+
+- https://github.com/stevearc/quicker.nvim
+- https://github.com/arsham/listish.nvim
+- https://github.com/itchyny/vim-qfedit
+- https://github.com/stevearc/qf_helper.nvim
+- https://github.com/niuiic/quickfix.nvim
+- https://github.com/ten3roberts/qf.nvim
+- https://github.com/bfrg/vim-qf-preview
+
+Grep specific projects:
+
+- https://github.com/mhinz/vim-grepper
+- https://github.com/mileszs/ack.vim
