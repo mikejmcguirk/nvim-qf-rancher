@@ -7,8 +7,6 @@ local fn = vim.fn
 ---@class QfrTools
 local M = {}
 
--- LOW: Also return max_nr so it doesn't need to be acquired again
--- MAYBE: Loop backwards so that, for ties, the more recent list is used
 ---@param src_win integer|nil
 ---@param title string
 ---@return integer|nil
@@ -17,7 +15,7 @@ function M._find_list_with_title(src_win, title)
     vim.validate("title", title, "string")
 
     local max_nr = M._get_list(src_win, { nr = "$" }).nr ---@type integer
-    for i = 1, max_nr do
+    for i = max_nr, 1, -1 do
         if M._get_list(src_win, { nr = i, title = 0 }).title == title then
             return i
         end
@@ -25,8 +23,6 @@ function M._find_list_with_title(src_win, title)
 
     return nil
 end
-
--- MID: Why are nil list nrs allowed?
 
 ---@param src_win integer|nil
 ---@param nr integer|"$"|nil
@@ -48,8 +44,6 @@ local function resolve_list_nr(src_win, nr)
     return math.min(nr, max_nr)
 end
 
--- NOTE: Post-calculate the destination nr because set_list can change the stack length
-
 ---@param src_win integer|nil
 ---@param nr integer|"$"
 ---@return integer
@@ -57,8 +51,6 @@ local function get_result(src_win, nr)
     ry._validate_win(src_win, true)
     ry._validate_list_nr(nr)
 
-    -- The output return of set_list might be used by history and navigation functions that
-    -- do not treat 0 counts as the current list. Convert here
     if nr == 0 then
         return M._get_list(src_win, { nr = 0 }).nr
     end
@@ -95,10 +87,23 @@ function M._set_list(src_win, action, what)
         what_set.idx = math.min(idx, cur_size)
     end
 
+    ---@type integer
     local result = src_win and fn.setloclist(src_win, {}, action, what_set)
         or fn.setqflist({}, action, what_set)
 
     return result == -1 and result or get_result(src_win, what_set.nr)
+end
+
+---@param src_win integer|nil
+---@return integer
+function M._add_blank_list(src_win)
+    if vim.g.qfr_debug_assertions then
+        ry._validate_win(src_win, true)
+    end
+
+    ---@type integer
+    local result = src_win and fn.setloclist(src_win, {}, " ") or fn.setqflist({}, " ")
+    return result
 end
 
 ---@param src_win integer|nil
@@ -122,21 +127,27 @@ end
 ---@param what table
 ---@return any
 function M._get_list(src_win, what)
-    ry._validate_win(src_win, true)
-    vim.validate("what", what, "table")
+    if vim.g.qfr_debug_assertions then
+        ry._validate_win(src_win, true)
+        vim.validate("what", what, "table")
+    end
 
     local what_get = vim.deepcopy(what, true) ---@type table
     what_get.nr = resolve_list_nr(src_win, what_get.nr)
 
-    return src_win and fn.getloclist(src_win, what_get) or fn.getqflist(what_get)
+    ---@type table
+    local what_ret = src_win and fn.getloclist(src_win, what_get) or fn.getqflist(what_get)
+    return what_ret
 end
 
 ---@param src_win integer|nil
----@param stack table[]
+---@param stack QfrWhat[]
 ---@return nil
 function M._set_stack(src_win, stack)
-    ry._validate_win(src_win, true)
-    vim.validate("stack", stack, "table")
+    if vim.g.qfr_debug_assertions then
+        ry._validate_win(src_win, true)
+        vim.validate("stack", stack, vim.islist)
+    end
 
     if src_win and not ru._is_valid_loclist_win(src_win) then
         return
@@ -177,12 +188,13 @@ function M._what_ret_to_set(what_ret)
 end
 
 ---@param src_win integer
----@return table[]
+---@return QfrWhat[]
 function M._get_stack(src_win)
-    ry._validate_win(src_win, true)
+    if vim.g.qfr_debug_assertions then
+        ry._validate_win(src_win, true)
+    end
 
     local stack = {} ---@type table
-
     local max_nr = M._get_list(src_win, { nr = "$" }).nr ---@type integer
     if max_nr < 1 then
         return stack
@@ -192,7 +204,6 @@ function M._get_stack(src_win)
         local what_ret = M._get_list(src_win, { nr = i, all = true }) ---@type table
         local what_set = M._what_ret_to_set(what_ret) ---@type QfrWhat
         what_set.nr = i
-
         stack[#stack + 1] = what_set
     end
 
@@ -205,25 +216,21 @@ end
 
 return M
 
--- TODO: This is the next set of interfaces to look at. Am having questions with (a) how certain
--- input values are parsed here and (b) what return types are sent back based on different results
--- When re-evaluation is complete. Go back into stack module and potentially make changes
--- Ideas:
--- - Any what tables must be able to be sent exactly as they are in setqflist and setloclist to
--- attain the same result. Or, if there is a change, it must be in line with qfr's documented
--- features
--- Questions:
--- - How should operations on loclists be reported?
+-- LOW: It would be cool to have a free_stack_if_nolist g:var that automatically frees the stack if
+-- all lists are empty. But I don't know what you tie it to. QuickfixCmdPost? Individual Rancher
+-- functions? I feel like it would be inconsistent.
 
--- MID: Gated behind a g:var, re-implement the ability to add new lists inside the stack without
--- deleting the lists after by shifting the previous lists down and out. Before doing this, it is
--- necessary to properly understand the nuances of how id, nr, and action interact
--- MID: Gated behind a g:var, re-implement the ability to de-dupe list entries when adding. The
--- blocker here is that, because the underlying file data can change, proper de-duplication
--- would require pulling the old list and removing the old list entries specifically. This would
--- then also require manually setting the idx and maybe the view to match the old list. I want to
--- properly understand the nuances of how the default "a" action works first
--- MID: Gated behind a g:var (free_stack_if_nolist), re-implement the behavior where deleting the
--- last non-empty list will free the stack. Like the items above, properly integrating this
--- into a unified _set_list function (in order to keep the behavior as consistent as possible
--- with the defaults) requires a better understanding of how the built-in setlist behaves
+-- MAYBE: Ideas for list manipulation:
+-- - Insert new lists in the middle, shifting lists below down and out
+-- - Swap lists
+-- - Copy lists
+-- - Consolidate lists (remove blank gaps)
+-- - Move between loclist and qflist
+-- - Merge and de-dupe lists
+--   - Particular issue: The underlying file data might have changed
+--   - Another issue, would have to find a way to efficiently check the text portion of the item
+--   I suppose you would just hash it right in the de-duping algorithm
+--   - On the other hand, you could set it to trigger on the "a" action, so it would fit naturally
+--   with the default behavior
+-- Problem 1: Making these behaviors interface with the defaults
+-- Problem 2: More keymaps/interfaces/complexity for unknown use cases

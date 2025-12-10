@@ -102,7 +102,7 @@ local function handle_orphan(list_win, dest_win, finish)
         return
     end
 
-    local stack = rt._get_stack(list_win) ---@type table[]
+    local stack = rt._get_stack(list_win) ---@type QfrWhat[]
     rw._close_win_save_views(list_win)
     rt._set_stack(dest_win, stack)
 

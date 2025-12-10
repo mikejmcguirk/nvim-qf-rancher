@@ -440,5 +440,4 @@ return Filter
 -- MID: do qkie and so on syntactic sugar mappings for diagnostics
 -- MID: Re-implement the view saving/restoration that calculates the new row based on how many
 -- were removed above the current one
-
 -- MID: Look again at how Cfilter works

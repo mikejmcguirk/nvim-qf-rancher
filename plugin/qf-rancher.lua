@@ -84,7 +84,7 @@ _G._QFR_G_VAR_MAP = {
 ---
 ---(Default true) Qfr commands will auto-center opened buffers
 ---@alias qfr_auto_center boolean
-qfr_auto_center = { { "boolean" }, false },
+qfr_auto_center = { { "boolean" }, true },
 ---
 ---(Default true) Always open the list when its contents are changed
 ---@alias qfr_auto_open_changes boolean
@@ -212,11 +212,8 @@ for k, v in pairs(_QFR_G_VAR_MAP) do
     end
 end
 
--- LOW: A function could be provided to delete or re-create these autocmds. And their current
--- state could be reported in checkhealth
-
 if vim.g.qfr_create_loclist_autocmds then
-    local qfr_loclist_group = api.nvim_create_augroup("qfr-loclist-group", { clear = true })
+    local qfr_loclist_group = api.nvim_create_augroup("qfr-loclist-group", {})
 
     api.nvim_create_autocmd("WinNew", {
         group = qfr_loclist_group,
@@ -268,9 +265,6 @@ end
 
 -- DOCUMENT: The default mappings use vim.v.count for the listnr. The various functions treat
 -- 0 as the current list
-
--- LOW: Use one script to autogen the keymaps file and docs. Saves a require on startup and
--- allows the generated mappings to be in a "struct of arrays" organization
 
 local maps = require("qf-rancher.maps")
 for _, tbl in ipairs(maps.plug_tbls) do
@@ -335,98 +329,76 @@ if vim.g.qfr_set_default_cmds then
 end
 
 -- TODO: Organize the modules so that the actual exported module tables start where the
--- user-facing functions start, rather than at the locals
+-- user-facing functions start, rather than at the locals, and then the underline functions
+-- should be after the doc export
+-- TODO: General refactoring strategy:
+-- - Little modules (stack/nav/util/tools)
+-- - Medium modules (window/preview)
+-- - Big modules (grep/diags/filter) for module specific params
+-- - Remove output opts
+-- - Filetype funcs
 
--- DOCUMENT: For cmd mappings, document what cmd opts they expect to be available. Can do this
--- in docgen with a k, v loop
-
--- TEST: Start nvim and check package.loaded to verify no extra modules have required
-
--- MID: General re-factoring strategy: Handle the internals of the functions first before the
--- big picture function signatures. Changing the params is the most disruptive, so minimize the
--- collateral damage
--- MID: Alias wintype annotations?
--- MID: Publish Qf items as diagnostics. Would make other ideas more useful
--- MID: Applies to close and cwin - If closing the window and the stack is empty, schedule a
--- stack clear?
--- MID: Remaining Commands to handle:
--- - cwin/lwin: count is height. Get #items in the current list. If there are items, open/focus/
---   resize the list. If no items, close the list or do nothing
--- - cexpr
--- - cbuffer/cgetbuffer/caddbuffer
--- - cfile
--- - clist
--- - cabove/cbelow
+-- MID: Publish Qfitems as diagnostics
+-- - How would you then be able to manipulate/delete them once they were out there?
+-- MID: Qsystem
+-- - Wait for other refactoring
+-- - Feels like there should be some way to specify qftf
 -- MID: How to make the list more useful with compilers. Possible starting points:
 -- - https://github.com/Zeioth/compiler.nvim
 -- - https://github.com/ahmedkhalf/project.nvim
 -- - https://github.com/stevearc/overseer.nvim
 -- - :h :make_makeprg
 -- - :h compiler-select
--- MID: Add ftplugin files that use rancher, such as make commands piped to the system module
--- MID: The open mappings and such should work in visual mode
+-- MID: Behavior of cmds in visual mode is still a fuzzy question
+-- MID: Re-check which mappings should work in visual mode
 -- MID: Send marks to list. Bufmarks to location list. Global marks to qflist
--- https://github.com/chentoast/marks.nvim?tab=readme-ov-file
+-- - https://github.com/chentoast/marks.nvim?tab=readme-ov-file
+-- - Or look at how Fzflua or another picker pulls marks
+-- - lm (buf marks), qm (all buf marks), qM (all marks, including global marks)
+-- https://github.com/arsham/listish.nvim
+-- - The functionality to add notes to lists here is cool, and pairs well with diagnostics
+-- - You could even have a way of giving them a diagnostic priority
+-- https://github.com/neovim/neovim/issues/15950 - Discussion related to qf formatting
 
--- LOW: Maybe re-outline the reuse_title logic once the overly complex datatypes are gone
 -- LOW: If we explore the idea of editing the qf buffer, the best way to do it seems to be to
 -- treat "edit mode" as a distinct thing, where it can then be saved and propagate the changes
 -- - https://github.com/gabrielpoca/replacer.nvim
 -- - https://github.com/stefandtw/quickfix-reflector.vim
--- LOW: A way to copy/replace/merge whole lists
--- LOW: Is there a way to bridge lists between the qf and loclists?
--- LOW: View adjustments should take into account scrolloff and screenlines so that if the
--- user re-enters the window, it doesn't shift to meet scrolloff requirements
--- LOW: How to improve on cdo/cfdo? Random errors on substitution are bad
--- cfdo is fairly feasible because you can win_call or buf_call on every file behind a pcall
--- But then how to show errors
--- LOW: Smoother way to run cmds from visual mode without manually removing the marks. I don't
--- want the cmds to accept then throw away a range. Deceptive UI
--- LOW: Better error format. The default masking of certain error types hides info from the
--- user. Would also be helpful if pipe cols were more consistent
--- LOW: ts-context integration in preview wins
+-- LOW: It would be cool to have a canned way to take cdo/cfdo and export the results to a
+-- scratch buf. But would need to test with something like the c substitute option
+-- LOW: Add a callback opt to preview win opening/closing. This would allow users to hook in
+-- ts-context or other desired features
 -- LOW: scrolling in preview wins
 -- LOW: Allow customizing windows to skip when looking for open targets:
 -- - https://github.com/kevinhwang91/nvim-bqf/issues/78
--- LOW: Incremental preview of cdo/cfdo changes
 -- LOW: General cmd parsing: https://github.com/niuiic/quickfix.nvim
--- LOW: Somehow auto-generate the keymaps. Would help with docgen
--- LOW: Use a g:var to control regex case sensitivity
--- LOW: The in-process LSP idea is interesting for how to work with the qflist. You could make
--- code actions based on LSP entries. For example, rather than having to run a filter cmd, you
--- could use gra then chose to remove all entries from that buffer. Or you could put sorts behind
--- code actions. It would be useful to see them all in a menu. The idea of having hover windows
--- in the qflist is also interesting, to show more info about the entry, but I'm not sure you
--- need the lsp for that
--- LOW: Right now, c/l open/close are used for opening and closing the lists in order to preserve
--- autocmd behavior. This imposes the limitation that both functions need to be called in the
--- proper window/tab context. Low priority because I think you can just get around it with a
--- win_call, but it would be better if using the base code were abandoned in favor of more
--- flexible functions. For close this is not so bad, but for open I'm not sure how you would
--- run the proper processes under the hood for building the list buffer
+-- LOW: docgen
+-- - Cmd documentation could be improved. Unsure how to approach this because the info lives
+-- in so many places. Hard to programmatically bring together
+-- - Would be really cool if the whole thing were auto-generated. Could then put the actual
+-- code execution into a struct of arrays
+-- LOW: cwin/lwin
+-- - Wait for Window module refactor
+-- - Map to qw/lw
+-- - Make a plug/default for these
+-- - Like copen, count sets height
+-- - Oddity: Does not focus the win if already open. Add for rancher?
+-- - Are the benefits of cwin better addressed by making toggle smarter? Problem there: If the
+-- window doesn't open, it might be perceived as it not working
+-- LOW: cexpr/cgetexpr
+-- - Very general/difficult/don't understand use case
+-- LOW: cbuffer/cgetbuffer/caddbuffer
+-- LOW: cfile/cgetfile/caddfile
+-- LOW: cabove/cbelow
+-- - unimpaired + diagnostic navigation address this IMO
+
+-- MAYBE: Add ftplugin files that use rancher, such as make commands piped to the system module
 
 -- DOCUMENT: vim.regex currently uses case sensitive default behavior
--- DOCUMENT: cmds are not designed to be run in visual mode
 -- DOCUMENT: How default counts are treated in cmds and maps
--- DOCUMENT: Buf greps use external grep
--- DOCUMENT: qf Buf Grep is all bufs, ll Buf Grep is current buf only
 -- DOCUMENT: rg handles true multi-line greps. For programs that don't, or is used as a fallback
--- DOCUMENT: The following are non-goals:
--- - Creating persistent state beyond what is necessary to make the preview win work
--- - Dynamically modifying buffers within the qflist
--- - Providing additional context within the list itself. Covered by the preview win
--- - No Fuzzy finding type stuff. FzfLua does this. And as far as I know, all the major finders
---   have the ability to search the qflists
--- - No annotations. Should be able to filter down to key items
--- - Dynamic behavior. Trouble has to create a whole async runtime and data model to manage this
--- - "Modernizing" the feel of the qflist. The old school feel is part of the charm
--- DOCUMENT: Cmds don't accept ranges
--- DOCUMENT: The open functions double as resizers, as per the default cmd behavior
--- DOCUMENT: If open is run and the list is open, go to the list
--- DOCUMENT: underline functions are not supported
 -- DOCUMENT: What types of regex are used where. Grep cmds have their own regex. Regex filters use
 -- vim regex
--- DOCUMENT: The README should include alternatives, including quicker
 
 -- PR: Add "uint" to vim.validate
 -- PR: Fix wintype annotations
@@ -436,17 +408,11 @@ end
 -- FUTURE: If it becomes possible to add metatables to g:vars, could use to put validations on
 -- g:var sets
 
--- RESOURCES --
--- https://github.com/romainl/vim-qf
--- https://github.com/kevinhwang91/nvim-bqf
--- https://github.com/arsham/listish.nvim
--- https://github.com/itchyny/vim-qfedit -- Simple version of quicker
--- https://github.com/mileszs/ack.vim
--- https://github.com/stevearc/qf_helper.nvim
--- https://github.com/niuiic/quickfix.nvim
--- https://github.com/mhinz/vim-grepper
--- https://github.com/ten3roberts/qf.nvim
-
--- PREVIEWERS --
--- https://github.com/r0nsha/qfpreview.nvim
--- https://github.com/bfrg/vim-qf-preview
+-- NOGO: clist
+-- NOGO: Persistent state must be minimal
+-- NOGO: Additional context within the list itself. Any info like that should be covered by the
+-- preview win or additional floating wins or cmds
+-- NOGO: Anything Fuzzy Finder related. FzfLua does this
+-- NOGO: Any sort of annotation scheme. Should be able to use filtering
+-- NOGO: Dynamic behavior. Trouble has to create a whole runtime to manage this
+-- NOGO: "Modernizing" the feel of the qflist. The old school feel is part of the charm

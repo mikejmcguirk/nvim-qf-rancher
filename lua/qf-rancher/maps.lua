@@ -199,6 +199,8 @@ M.qfr_stack_maps = {
 { nn, "<Plug>(qfr-ll-del-all)",      ll.."E", "Clear the loclist stack",                                            function() ra.l_del_all(cur_win()) end },
 }
 
+-- MID: instead of delete, "clear". Shorter
+
 -- stylua: ignore
 ---@type QfrCmdData[]
 M.qfr_stack_cmds = {
