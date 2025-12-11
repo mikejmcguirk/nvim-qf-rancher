@@ -5,6 +5,202 @@ local ry = Qfr_Defer_Require("qf-rancher.types") ---@type QfrTypes
 local api = vim.api
 local fn = vim.fn
 
+---@param src_win integer|nil
+---@param height? integer
+---@return integer
+local function resolve_height_for_list(src_win, height)
+    local valid_height = height and height > 0
+    local adj_height = valid_height and height or nil
+    if adj_height then
+        return adj_height
+    end
+
+    if not vim.g.qfr_auto_list_height then
+        return QF_RANCHER_MAX_HEIGHT
+    end
+
+    local size = rt._get_list(src_win, { nr = 0, size = 0 }).size ---@type integer
+    return size == 0 and 1 or math.min(size, QF_RANCHER_MAX_HEIGHT)
+end
+
+---@param list_win integer
+---@param height? integer
+---@return nil
+local function resize_list_win(list_win, height)
+    local list_wintype = fn.win_gettype(list_win)
+    local is_loclist = list_wintype == "loclist"
+
+    local cur_height = api.nvim_win_get_height(list_win)
+    local src_win = is_loclist and list_win or nil
+    local new_height = resolve_height_for_list(src_win, height)
+    if cur_height == new_height then
+        return
+    end
+
+    ru._with_checked_spk(function()
+        api.nvim_win_set_height(list_win, new_height)
+    end)
+end
+
+---@param tabpages? integer[]
+---@return nil
+local function close_qf_wins(tabpages)
+    local wins = ru._find_qf_wins(tabpages)
+    for _, win in ipairs(wins) do
+        ru._with_checked_spk(function()
+            ru._pwin_close(win, true)
+        end)
+    end
+end
+
+---@param opts? qf-rancher.util.FindLoclistWinOpts
+---@return nil
+local function close_ll_wins(opts)
+    local wins = ru._find_ll_wins(opts)
+    for _, win in ipairs(wins) do
+        ru._with_checked_spk(function()
+            ru._pwin_close(win, true)
+        end)
+    end
+end
+
+---@param list_win integer
+---@param tabpage integer
+---@param opts qf-rancher.window.CloseOpts
+---@return integer|nil
+local function resolve_alt_win(list_win, tabpage, opts)
+    if not opts.use_alt_win then
+        return nil
+    end
+
+    local cur_win = api.nvim_get_current_win()
+    if list_win ~= cur_win then
+        return nil
+    end
+
+    local tabnr = api.nvim_tabpage_get_number(tabpage)
+    local winnr = fn.tabpagewinnr(tabnr, "#")
+    return winnr
+end
+
+---@param list_win integer
+---@param tabpage integer
+---@param opts qf-rancher.window.CloseOpts
+---@return boolean, string|nil, string|nil
+local function do_close_list_win(list_win, tabpage, opts)
+    local alt_win = resolve_alt_win(list_win, tabpage, opts)
+    local ok, err, hl = ru._with_checked_spk(function()
+        ru._pwin_close(list_win, true)
+    end)
+
+    if not ok then
+        return ok, err, hl
+    end
+
+    if alt_win and alt_win ~= 0 then
+        local is_alt_win_valid = api.nvim_win_is_valid(alt_win)
+        if is_alt_win_valid then
+            api.nvim_set_current_win(alt_win)
+        end
+    end
+
+    return true, nil, nil
+end
+
+---@param opts qf-rancher.window.CloseOpts
+---@return nil
+local function validate_close_opts(opts)
+    vim.validate("opts", opts, "table")
+
+    ry._validate_uint(opts.tabpage, true)
+    vim.validate("opts.silent", opts.silent, "boolean", true)
+    vim.validate("opts.use_alt_win", opts.use_alt_win, "boolean", true)
+end
+
+---@param tabpage integer
+---@param opts qf-rancher.window.OpenOpts
+---@return nil
+local function do_open_qf(tabpage, opts)
+    local height = resolve_height_for_list(nil, opts.height)
+    if opts.close_others then
+        close_ll_wins({ tabpages = { tabpage } })
+    end
+
+    local split = opts.split or "botright"
+    ru._with_checked_spk(function()
+        ---@diagnostic disable-next-line: missing-fields
+        api.nvim_cmd({ cmd = "copen", count = height, mods = { split = split } }, {})
+    end)
+
+    if opts.on_open then
+        opts.on_open(tabpage)
+    end
+end
+
+---@param win integer
+---@param tabpage integer
+---@param opts qf-rancher.window.OpenOpts
+---@return nil
+local function do_open_ll(win, tabpage, opts)
+    local height = resolve_height_for_list(win, opts.height)
+    if opts.close_others then
+        close_qf_wins({ tabpage })
+    end
+
+    ru._with_checked_spk(function()
+        api.nvim_cmd({ cmd = "lopen", count = height }, {})
+    end)
+
+    if opts.on_open then
+        opts.on_open(tabpage)
+    end
+end
+
+---@param opts qf-rancher.window.OpenOpts
+---@return nil
+local function validate_open_list_win_opts(opts)
+    vim.validate("opts", opts, "table")
+
+    vim.validate("opts.close_others", opts.close_others, "boolean", true)
+    ry._validate_uint(opts.height, true)
+    vim.validate("opts.on_list", opts.on_list, "callable", true)
+    vim.validate("opts.on_open", opts.on_open, "callable", true)
+end
+
+---@param opts qf-rancher.window.OpenOpts
+---@return nil
+local function validate_open_qf_win_opts(opts)
+    validate_open_list_win_opts(opts)
+    vim.validate("opts.split", opts.split, "string", true)
+end
+
+---@param opts qf-rancher.window.OpenOpts
+---@return nil
+local function validate_open_ll_win_opts(opts)
+    validate_open_list_win_opts(opts)
+    vim.validate("opts.silent", opts.silent, "boolean", true)
+end
+
+---@param items vim.quickfix.entry[]
+---@param count integer|nil
+---@param list_win integer
+---@param tabpage integer
+---@return boolean, string|nil, string|nil
+local function do_window_cmd_has_list(items, count, list_win, tabpage)
+    if #items > 0 then
+        resize_list_win(list_win, count)
+        local cur_win = api.nvim_get_current_win()
+        if cur_win ~= list_win then
+            api.nvim_set_current_win(list_win)
+        end
+
+        return true, nil, nil
+    end
+
+    local ok, err, hl = do_close_list_win(list_win, tabpage, { use_alt_win = true })
+    return ok, err, hl
+end
+
 ---@mod Window Open, close, and resize list wins
 ---@tag qf-rancher-window
 ---@tag qfr-window
@@ -12,566 +208,485 @@ local fn = vim.fn
 ---
 ---@brief ]]
 
---- @class QfrWins
+--- @class qf-rancher.Window
 local Window = {}
 
----@param views vim.fn.winsaveview.ret[]
+-- MAYBE: Add a "before_open" callback
+
+---@class qf-rancher.window.OpenOpts
+---
+---If opening the Quickfix list, close all location
+---lists in the current tab. The reverse if opening the
+---Location list.
+---
+---@field close_others? boolean
+---
+---@field height? integer List height to open to
+---
+---Callback to run if the list is already open
+---
+---@field on_list? fun(list_win: integer, tabpage: integer)
+---
+---Callback to run on list open
+---
+---@field on_open? fun(tabpage: integer)
+---
+---Suppress messages (only applies to location lists)
+---
+---@field silent? boolean
+---
+---Default "botright". Only applies to opening the
+---quickfix list
+---
+---@field split? ''|'botright'|'topleft'|'belowright'|'aboveleft'
+
+---@param opts? qf-rancher.window.OpenOpts See |qf-rancher.window.OpenOpts|
+---
+---If height is not provided, the list will be automatically
+---sized if qfr_auto_list_height is true, otherwise set to the
+---max height
 ---@return nil
-local function restore_views(views)
-    for win, view in pairs(views) do
-        if not api.nvim_win_is_valid(win) then
-            return
+function Window.open_qf_win(opts)
+    opts = opts or {}
+    validate_open_qf_win_opts(opts)
+
+    local tabpage = api.nvim_get_current_tabpage()
+    local qf_win = ru._find_qf_win({ tabpage })
+    if qf_win then
+        if opts.on_list then
+            opts.on_list(qf_win, tabpage)
         end
 
-        api.nvim_win_call(win, function()
-            if fn.line("w0") ~= view.topline then
-                fn.winrestview(view)
-            end
-        end)
+        return
     end
+
+    do_open_qf(tabpage, opts)
 end
 
----@param wins integer[]
----@return vim.fn.winsaveview.ret[]
-local function get_views(wins)
-    local views = {} ---@type vim.fn.winsaveview.ret[]
-    if not vim.g.qfr_save_views then
-        return views
-    end
-
-    ---@type string
-    local splitkeep = api.nvim_get_option_value("splitkeep", { scope = "global" })
-    if splitkeep == "screen" or splitkeep == "topline" then
-        return views
-    end
-
-    for _, win in pairs(wins) do
-        if not views[win] then
-            local wintype = fn.win_gettype(win)
-            if wintype == "" or wintype == "loclist" or wintype == "quickfix" then
-                views[win] = api.nvim_win_call(win, fn.winsaveview)
-            end
-        end
-    end
-
-    return views
-end
-
----@param src_win integer|nil
----@param height? integer
----@return integer
-local function resolve_height_for_list(src_win, height)
-    ry._validate_win(src_win, true)
-    ry._validate_uint(height, true)
-
-    if height then
-        return height
-    end
-
-    if not vim.g.qfr_auto_list_height then
-        return QFR_MAX_HEIGHT
-    end
-
-    local size = rt._get_list(src_win, { nr = 0, size = 0 }).size ---@type integer
-    return size == 0 and 1 or math.min(size, QFR_MAX_HEIGHT)
-end
-
----@param opts QfrListOpenOpts
+---@param opts? qf-rancher.window.OpenOpts See |qf-rancher.window.OpenOpts|
+---
+---If height is not provided, the list will be automatically
+---sized if qfr_auto_list_height is true, otherwise set to
+---the max height
+---
 ---@return nil
-local function validate_and_clean_open_opts(opts)
-    ry._validate_open_opts(opts)
-    -- Let zero count fall back to default behavior
-    if opts.height and opts.height < 1 then
-        opts.height = nil
-    end
-end
+function Window.open_ll_win(opts)
+    opts = opts or {}
+    validate_open_ll_win_opts(opts)
 
--- MID: It would be useful when handling loclist orphans if the loclist open function returned
--- the loclist number after opening. This should be possible since lopen jumps to the list by
--- default
-
----@param list_win integer
----@param opts QfrListOpenOpts
----@return boolean
-local function handle_open_list_win(list_win, opts)
-    validate_and_clean_open_opts(opts)
-
-    if opts.nop_if_open then
-        return false
-    end
-
-    if opts.height or vim.g.qfr_auto_list_height then
-        Window._resize_list_win(list_win, opts.height)
-    end
-
-    if not opts.keep_win then
-        api.nvim_set_current_win(list_win)
-    end
-
-    return true
-end
-
----@param views vim.fn.winsaveview.ret[]
----@param keep_win boolean
----@param cur_win integer
----@return boolean
-local function open_cleanup(views, keep_win, cur_win)
-    restore_views(views)
-    if keep_win then
-        api.nvim_set_current_win(cur_win)
-    end
-    return true
-end
-
----@param list_win integer
----@param cur_win integer
----@return integer|nil
-local function get_alt_win(list_win, cur_win)
-    ry._validate_win(list_win)
-    ry._validate_win(cur_win)
-
-    if list_win ~= cur_win then
-        return nil
-    end
-
-    ---@type string
-    local switchbuf = api.nvim_get_option_value("switchbuf", { scope = "global" })
-    if not string.find(switchbuf, "uselast", 1, true) then
-        return nil
-    end
-
-    local alt_winnr = fn.winnr("#") ---@type integer
-    return fn.win_getid(alt_winnr)
-end
-
--- ================
--- == PUBLIC API ==
--- ================
-
----@class QfrListOpenOpts
----@field height? integer Height the list should be set to
----@field keep_win? boolean Stay in current window when opening the list?
----@field nop_if_open? boolean Do not print messages or focus on the list win
-
--- MID: Outline this at some point. Unsure if modules should be split based on function or
--- data type
-local valid_splits = { "aboveleft", "belowright", "topleft", "botright" } ---@type string[]
-local function get_qfsplit()
-    local g_split = vim.g.qfr_qfsplit
-    return vim.tbl_contains(valid_splits, g_split) and g_split or "botright"
-end
-
--- LOW: In concept, I would prefer if opening and sizing the lists were handled separately. In
--- practice, the list size is passed as an arg to copen/lopen. While you could rely on the updated
--- window context to then update the size, this is wasteful and then relies on more assumptions.
--- It might be possible to reverse-engineer copen and lopen. It looks like you simply create a
--- win, load a buf, set it as the qf_buffer, and use the quickfixtextfuc to fill it. But I'm not
--- sure how the qf internal variables are set, and I'm not sure it's possible to create the
--- loclist associations manually.
--- PR: It would be good if it were possible to handle these kinds of low-level qf operations
--- directly, rather than having to hack around them
-
--- MID: This applies to open_loclist too. We have the same issue as before where the different
--- opts don't act mututaly exclusively, and thus do things that you would not anticipate. In this
--- case, "nop_on_open" both silences messages and prevents auto-resizing, which is not intuitively
--- obvious. As much as I don't like having different open_opts, they are necessary for this
--- function to handle its various uses cases. The key is that the way they act needs to be
--- mututually exclusive, so they don't create multiplicative complexity
--- So you would need:
--- - height: Same as before
--- - resize: always(default)|only on success
--- - focus_list: always(default)|only on success
--- - silent: boolean
--- And for location lists you would need to track distinctly if the list failed to open due to
--- already being open or because no list exists
--- How list list height is handled needs to be considered very carefully, since for now these
--- behaviors cannot be de-coupled
-
----- If any location lists are open in the same tabpage, they will be
----  automatically closed before the qflist is opened
----- If the quickfix list is already open, it will be focused
----- If a height is provided, and "nop_if_open" is not true, the qflist will
----  be resized regardless of whether or not it is already open
----@param opts QfrListOpenOpts
----@return boolean
-function Window.open_qflist(opts)
-    validate_and_clean_open_opts(opts)
-
-    local cur_win = api.nvim_get_current_win() ---@type integer
-    local tabpage = api.nvim_win_get_tabpage(cur_win) ---@type integer
-    local list_win = ru._find_qf_win({ tabpage }) ---@type integer|nil
-    if list_win then
-        return handle_open_list_win(list_win, opts)
-    end
-
-    local ll_wins = ru._find_ll_wins({ tabpages = { tabpage } }) ---@type integer[]
-    local tabpage_wins = api.nvim_tabpage_list_wins(tabpage) ---@type integer[]
-    tabpage_wins = vim.tbl_filter(function(win)
-        return not vim.tbl_contains(ll_wins, win)
-    end, tabpage_wins)
-
-    local views = get_views(tabpage_wins) ---@type vim.fn.winsaveview.ret[]
-    for _, ll_win in ipairs(ll_wins) do
-        ru._pclose_and_rm(ll_win, true, true)
-    end
-
-    local height = resolve_height_for_list(nil, opts.height) ---@type integer
-    ---@diagnostic disable: missing-fields
-    api.nvim_cmd({ cmd = "copen", count = height, mods = { split = get_qfsplit() } }, {})
-    return open_cleanup(views, opts.keep_win, cur_win)
-end
-
--- MID: In reversal from previous idea - This function needs to be responsive to remote
--- context. If called from outside the src_win context, it will not open. Unsure if a hack would
--- then be needed to make the list focus, or what else is being disrupted under the hood though
--- LOW: I don't love tying the no loclist msg to nop_if_open, but it seems to work
-
----- If no location list is present for the source window, the function will
----  exit
----- If the quickfix list is open in the same tabpage, it will be closed
----  before the location list is opened
----- If the location list is already open, it will be focused
----- If a height is provided, and "nop_if_open" is not true, the location
----  list will be resized regardless of whether or not it is already open
----@param src_win integer Location list window context
----@param opts QfrListOpenOpts
----@return boolean
-function Window.open_loclist(src_win, opts)
-    validate_and_clean_open_opts(opts)
-
-    local qf_id = fn.getloclist(src_win, { id = 0 }).id ---@type integer
+    local win = api.nvim_get_current_win()
+    local qf_id = fn.getloclist(win, { id = 0 }).id ---@type integer
     if qf_id == 0 then
-        if not opts.nop_if_open then
-            api.nvim_echo({ { "Window has no location list", "" } }, false, {})
+        ru._echo(opts.silent, QF_RANCHER_NO_LL, "")
+        return
+    end
+
+    local tabpage = api.nvim_get_current_tabpage()
+    local ll_win = ru._find_ll_win({ qf_id = qf_id, tabpages = { tabpage } })
+    if ll_win then
+        if opts.on_list then
+            opts.on_list(ll_win, tabpage)
         end
 
-        return false
+        return
     end
 
-    local tabpage = api.nvim_win_get_tabpage(src_win) ---@type integer
-    local ll_win = ru._find_ll_win({ qf_id = qf_id, tabpages = { tabpage } }) ---@type integer|nil
-    if ll_win then
-        return handle_open_list_win(ll_win, opts)
-    end
-
-    local tabpage_wins = api.nvim_tabpage_list_wins(tabpage) ---@type integer[]
-    local qf_win = ru._find_qf_win({ tabpage }) ---@type integer|nil
-    if qf_win then
-        tabpage_wins = vim.tbl_filter(function(win)
-            return win ~= qf_win
-        end, tabpage_wins)
-    end
-
-    local views = get_views(tabpage_wins) ---@type vim.fn.winsaveview.ret[]
-    local height = resolve_height_for_list(src_win, opts.height) ---@type integer
-    if qf_win then
-        ru._pclose_and_rm(qf_win, true, true)
-    end
-
-    -- NOTE: Do not win call because Nvim will not properly jump to the opened win
-    ---@diagnostic disable: missing-fields
-    api.nvim_win_call(src_win, function() end)
-    api.nvim_cmd({ cmd = "lopen", count = height }, {})
-    return open_cleanup(views, opts.keep_win, src_win)
+    do_open_ll(win, tabpage, opts)
 end
 
----- If switchbuf contains uselast, focus will be changed to the alternate
----  window if it is available
----@return boolean
-function Window.close_qflist()
-    local cur_win = api.nvim_get_current_win() ---@type integer
-    local tabpage = api.nvim_win_get_tabpage(cur_win) ---@type integer
+---@class qf-rancher.window.CloseOpts
+---@field silent? boolean Suppress messages
+---@field tabpage? integer Tabpage to close a list win in
+---@field use_alt_win? boolean Go to the alternate window after closing
 
-    local qf_win = ru._find_qf_win({ tabpage }) ---@type integer|nil
+---@param opts? qf-rancher.window.CloseOpts See |qf-rancher.window.CloseOpts|
+---
+---If no tabpage opt is provided, the current tabpage will be
+---used
+---@return nil
+function Window.close_qf_win(opts)
+    opts = opts or {}
+    validate_close_opts(opts)
+
+    local tabpage = opts.tabpage or api.nvim_get_current_tabpage()
+    local qf_win = ru._find_qf_win({ tabpage })
     if not qf_win then
-        return false
+        return
     end
 
-    local tabpage_wins = api.nvim_tabpage_list_wins(tabpage) ---@type integer[]
-    if #tabpage_wins == 1 then
-        api.nvim_echo({ { "Cannot close the last window" } }, false, {})
-        return false
+    local ok, err, hl = do_close_list_win(qf_win, tabpage, opts)
+    if not ok then
+        ru._echo(opts.silent, err, hl)
     end
-
-    tabpage_wins = vim.tbl_filter(function(win)
-        return win ~= qf_win
-    end, tabpage_wins)
-
-    local exit_win = get_alt_win(qf_win, cur_win) ---@type integer|nil
-    local views = get_views(tabpage_wins) ---@type vim.fn.winsaveview.ret[]
-
-    api.nvim_cmd({ cmd = "cclose" }, {})
-    restore_views(views)
-    if exit_win and api.nvim_win_is_valid(exit_win) then
-        api.nvim_set_current_win(exit_win)
-    end
-
-    return true
 end
 
--- MID: Unsure exactly where this goes, but for Fugitive, I want an API out of here that I can
--- use to close all loclists in the current window, and not display a nag if there aren't any
+-- MID: It would be better if this function closed all loclist wins in the current tabpage, or
+-- maybe all tabpages, based on qf_id.
 
-----If switchbuf contains uselast, focus will be changed to the alternate
---- window if it is available
----- All location list windows sharing a |quickfix-ID| with the current
----  window context will also be closed
----@param src_win integer Location list window context
----@return boolean
-function Window.close_loclist(src_win)
-    ry._validate_win(src_win)
+---@param src_win integer
+---@param opts? qf-rancher.window.CloseOpts
+---
+---See |qf-rancher.window.CloseOpts|
+---
+---If no tabpage opt is provided, the current tabpage will be
+---used
+---@return nil
+function Window.close_ll_win(src_win, opts)
+    opts = opts or {}
+    validate_close_opts(opts)
+
+    ry._validate_uint(src_win)
+    local valid_src_win = api.nvim_win_is_valid(src_win)
+    if not valid_src_win then
+        ru._echo(opts.silent, "Source win " .. src_win .. " is invalid", "")
+        return
+    end
 
     local wintype = fn.win_gettype(src_win)
     local qf_id = fn.getloclist(src_win, { id = 0 }).id ---@type integer
     if qf_id == 0 and wintype ~= "loclist" then
-        api.nvim_echo({ { "Window has no loclist", "" } }, false, {})
-        return false
+        ru._echo(opts.silent, QF_RANCHER_NO_LL, "")
+        return
     end
 
-    local tabpage = api.nvim_win_get_tabpage(src_win) ---@type integer
-    local ll_wins = ru._find_ll_wins({ qf_id = qf_id, tabpages = { tabpage } }) ---@type integer[]
-    if #ll_wins < 1 then
-        return false
+    local tabpage = opts.tabpage or api.nvim_get_current_tabpage()
+    local ll_win = ru._find_ll_win({ qf_id = qf_id, tabpages = { tabpage } })
+    if not ll_win then
+        return
     end
 
-    local tabpage_wins = api.nvim_tabpage_list_wins(tabpage) ---@type integer[]
-    if #tabpage_wins == 1 then
-        api.nvim_echo({ { "Cannot close the last window" } }, false, {})
-        return false
+    local ok, err, hl = do_close_list_win(ll_win, tabpage, opts)
+    if not ok then
+        ru._echo(opts.silent, err, hl)
     end
-
-    tabpage_wins = vim.tbl_filter(function(win)
-        return not vim.tbl_contains(ll_wins, win)
-    end, tabpage_wins)
-
-    local cur_win = api.nvim_get_current_win() ---@type integer
-    ---@type integer|nil
-    local exit_win = vim.tbl_contains(ll_wins, cur_win) and get_alt_win(cur_win, cur_win) or nil
-
-    local views = get_views(tabpage_wins) ---@type vim.fn.winsaveview.ret[]
-    api.nvim_win_call(src_win, function()
-        api.nvim_cmd({ cmd = "lclose" }, {}) -- Fire QuickFixCmd event
-    end)
-
-    for _, ll_win in ipairs(ll_wins) do
-        ru._pclose_and_rm(ll_win, true, true) -- Will skip lclosed window
-    end
-
-    restore_views(views)
-    if exit_win and api.nvim_win_is_valid(exit_win) then
-        api.nvim_set_current_win(exit_win)
-    end
-
-    return true
 end
 
----opts.nop_if_open will be automatically set to true
----@param opts QfrListOpenOpts
+---
+---Toggle the Quickfix list.
+---
+---On open, any open location lists in the current tabpage will be closed
+---
+---If the list is closed, and the alternate window can be found, it will be
+---focused after closing.
+---
+---@param count integer|nil Height on open. nil will autosize
 ---@return nil
-function Window.toggle_qflist(opts)
-    local toggle_opts = vim.tbl_extend("force", opts, { nop_if_open = true })
-    if not Window.open_qflist(toggle_opts) then
-        Window.close_qflist()
+function Window.q_toggle(count)
+    local tabpage = api.nvim_get_current_tabpage()
+    local qf_win = ru._find_qf_win({ tabpage })
+
+    if not qf_win then
+        do_open_qf(tabpage, {
+            close_others = true,
+            height = count,
+            split = "botright",
+        })
+
+        return
+    end
+
+    local ok, err, hl = do_close_list_win(qf_win, tabpage, { use_alt_win = true })
+    if not ok then
+        ru._echo(false, err, hl)
     end
 end
 
----opts.nop_if_open will be automatically set to true
----@param src_win integer
----@param opts QfrListOpenOpts
+-- MID: It would be better if this function checked wintype like close_ll does
+
+---
+---Toggle the Location list.
+---
+---On open, any open Quickfix lists in the current tabpage will be closed
+---
+---If the list is closed, and the alternate window can be found, it will be
+---focused after closing.
+---
+---@param count integer|nil Height on open. nil will autosize
 ---@return nil
-function Window.toggle_loclist(src_win, opts)
-    ry._validate_win(src_win)
+function Window.l_toggle(count)
+    local cur_win = api.nvim_get_current_win()
+    local qf_id = fn.getloclist(cur_win, { id = 0 }).id ---@type integer
+    if qf_id == 0 then
+        ru._echo(false, QF_RANCHER_NO_LL, "")
+        return
+    end
 
-    local toggle_opts = vim.tbl_extend("force", opts, { nop_if_open = true })
-    local opened = Window.open_loclist(src_win, toggle_opts)
-    if not opened then
-        Window.close_loclist(src_win)
+    local tabpage = api.nvim_get_current_tabpage()
+    local ll_win = ru._find_ll_win({ qf_id = qf_id, tabpages = { tabpage } })
+    if not ll_win then
+        do_open_ll(cur_win, tabpage, {
+            close_others = true,
+            height = count,
+        })
+
+        return
+    end
+
+    local ok, err, hl = do_close_list_win(ll_win, tabpage, { use_alt_win = true })
+    if not ok then
+        ru._echo(false, err, hl)
     end
 end
 
--- MID: Add a "max" or "maxheight" arg, or maybe use bang, to open to max height from the cmd
+---
+---Open/keep open the Quickfix window when there are recognized errors.
+---Close/keep closed otherwise.
+---
+---On open, any open location lists in the current tabpage will be closed.
+---
+---If the list is already open and should stay open, it will be focused.
+---
+---If the list is already open and should stay open, it will be resized based
+---on count and the value of qfr_auto_list_height.
+---
+---If the list should be closed, and the alternate window can be found, it
+---will be focused after closing.
+---
+---@param count integer|nil Height on open. Nil autosizes
+---@return nil
+function Window.q_window(count)
+    local tabpage = api.nvim_get_current_tabpage()
+    local qf_win = ru._find_qf_win({ tabpage })
+    local items = fn.getqflist({ nr = 0, items = true }).items ---@type vim.quickfix.entry[]
 
+    if not qf_win then
+        if #items == 0 then
+            ru._echo(false, "Current quickfix list is empty", "")
+            return
+        end
+
+        do_open_qf(tabpage, {
+            close_others = true,
+            height = count,
+            split = "botright",
+        })
+
+        return
+    end
+
+    local ok, err, hl = do_window_cmd_has_list(items, count, qf_win, tabpage)
+    if not ok then
+        ru._echo(false, err, hl)
+    end
+end
+
+---
+---Open/keep open the Loclist window when there are recognized errors.
+---Close/keep closed otherwise.
+---
+---On open, any open quickfix lists in the current tabpage will be closed.
+---
+---If the list is already open and should stay open, it will be focused.
+---
+---If the list is already open and should stay open, it will be resized based
+---on count and the value of qfr_auto_list_height.
+---
+---If the list should be closed, and the alternate window can be found, it
+---will be focused after closing.
+---
+---@param count integer|nil Height on open. Nil autosizes
+---@return nil
+function Window.l_window(count)
+    local cur_win = api.nvim_get_current_win()
+    local qf_id = fn.getloclist(cur_win, { id = 0 }).id ---@type integer
+    if qf_id == 0 then
+        ru._echo(false, QF_RANCHER_NO_LL, "")
+        return
+    end
+
+    local tabpage = api.nvim_get_current_tabpage()
+    local ll_win = ru._find_ll_win({ qf_id = qf_id, tabpages = { tabpage } })
+    ---@type vim.quickfix.entry[]
+    local items = fn.getloclist(cur_win, { nr = 0, items = true }).items
+
+    if not ll_win then
+        if #items == 0 then
+            ru._echo(false, "Current location list is empty", "")
+            return
+        end
+
+        do_open_ll(cur_win, tabpage, {
+            close_others = true,
+            height = count,
+        })
+
+        return
+    end
+
+    local ok, err, hl = do_window_cmd_has_list(items, count, ll_win, tabpage)
+    if not ok then
+        ru._echo(false, err, hl)
+    end
+end
+
+---
+---Resize a list window. Handles both Quickfix and Location lists.
+---
+---If g:qfr_always_keep_topline is true, the list will be resized with |'splitkeep'| set
+---to "topline"
+---
+---@param list_win integer The list win to resize
+---
+---If nil, the new height will be based on the list contents
+---@param height? integer
+---@return nil
+function Window.resize_list_win(list_win, height)
+    ry._validate_win(list_win)
+    ry._validate_uint(height, true)
+    resize_list_win(list_win, height)
+end
+
+-- MID: For the open cmds, add a max or maxheight arg, or maybe use a bang, to always open to the
+-- max height even when auto-resizing is enabled
+
+---
 ---Qopen cmd callback. Expects count = 0 in the user_command table
 ---@param cargs vim.api.keyset.create_user_command.command_args
 ---@return nil
-function Window.open_qflist_cmd(cargs)
-    local count = cargs.count > 0 and cargs.count or nil ---@type integer|nil
-    Window.open_qflist({ height = count })
+function Window.q_open_cmd(cargs)
+    Window.open_qf_win({
+        height = cargs.count,
+        on_list = function(qf_win, _)
+            resize_list_win(qf_win, vim.v.count)
+            api.nvim_set_current_win(qf_win)
+        end,
+    })
 end
 
+---
 ---Lopen cmd callback. Expects count = 0 in the user_command table
 ---@param cargs vim.api.keyset.create_user_command.command_args
 ---@return nil
-function Window.open_loclist_cmd(cargs)
-    local count = cargs.count > 0 and cargs.count or nil ---@type integer|nil
-    local src_win = api.nvim_get_current_win()
-    Window.open_loclist(src_win, { height = count })
+function Window.l_open_cmd(cargs)
+    Window.open_ll_win({
+        height = cargs.count,
+        on_list = function(qf_win, _)
+            resize_list_win(qf_win, vim.v.count)
+            api.nvim_set_current_win(qf_win)
+        end,
+    })
 end
 
+---
 ---Qclose cmd callback
 ---@return nil
-function Window.close_qflist_cmd()
-    Window.close_qflist()
+function Window.q_close_cmd()
+    Window.close_qf_win({ use_alt_win = true })
 end
 
+---
 ---Lclose cmd callback
 ---@return nil
-function Window.close_loclist_cmd()
-    Window.close_loclist(api.nvim_get_current_win())
+function Window.l_close_cmd()
+    Window.close_ll_win(api.nvim_get_current_win())
 end
 
+---
 ---Qtoggle cmd callback. Expects count = 0 in the user_command table
 ---@param cargs vim.api.keyset.create_user_command.command_args
 ---@return nil
-function Window.toggle_qflist_cmd(cargs)
-    local count = cargs.count > 0 and cargs.count or nil ---@type integer|nil
-    Window.toggle_qflist({ height = count })
+function Window.q_toggle_cmd(cargs)
+    Window.q_toggle(cargs.count)
 end
 
+---
 ---Ltoggle cmd callback. Expects count = 0 in the user_command table
 ---@param cargs vim.api.keyset.create_user_command.command_args
 ---@return nil
-function Window.toggle_loclist_cmd(cargs)
-    local count = cargs.count > 0 and cargs.count or nil ---@type integer|nil
-    Window.toggle_loclist(vim.api.nvim_get_current_win(), { height = count })
+function Window.l_toggle_cmd(cargs)
+    Window.l_toggle(cargs.count)
+end
+
+---
+---Qwindow cmd callback. Expects count = 0 in the user_command table
+---@param cargs vim.api.keyset.create_user_command.command_args
+---@return nil
+function Window.q_window_cmd(cargs)
+    Window.q_window(cargs.count)
+end
+
+---
+---Lwindow cmd callback. Expects count = 0 in the user_command table
+---@param cargs vim.api.keyset.create_user_command.command_args
+---@return nil
+function Window.l_window_cmd(cargs)
+    Window.l_window(cargs.count)
 end
 
 ---@export Window
 
--- =================
--- == UNSUPPORTED ==
--- =================
-
--- MID: The opts table should the optional
-
 ---@param src_win? integer
----@param opts QfrListOpenOpts
----@return boolean
+---@param opts? qf-rancher.window.OpenOpts
+---@return nil
 function Window._open_list(src_win, opts)
     ry._validate_win(src_win, true)
-    -- NOTE: Because these functions return booleans, cannot use the Lua ternary
     if src_win then
-        return Window.open_loclist(src_win, opts)
+        Window.open_ll_win(opts)
     else
-        return Window.open_qflist(opts)
+        Window.open_qf_win(opts)
     end
 end
 
----@param src_win? integer
+---@param tabpages? integer[]
 ---@return nil
-function Window._close_list(src_win)
-    ry._validate_win(src_win, true)
+function Window._close_qf_wins(tabpages)
+    close_qf_wins(tabpages)
+end
 
-    if src_win then
-        Window.close_loclist(src_win)
-    else
-        Window.close_qflist()
+---@param opts? qf-rancher.util.FindLoclistWinOpts
+---@return nil
+function Window._close_ll_wins(opts)
+    close_ll_wins(opts)
+end
+
+---@param tabpages? integer[]
+---@return nil
+function Window._resize_qf_wins(tabpages)
+    local wins = ru._find_qf_wins(tabpages)
+    for _, win in ipairs(wins) do
+        resize_list_win(win, nil)
     end
 end
 
----@param win integer
----@return boolean
-function Window._close_win_save_views(win)
-    ry._validate_win(win, false)
-
-    local tabpage = api.nvim_win_get_tabpage(win) ---@type integer
-    local tabpage_wins = api.nvim_tabpage_list_wins(tabpage) ---@type integer[]
-    tabpage_wins = vim.tbl_filter(function(t_win)
-        return t_win ~= win
-    end, tabpage_wins)
-
-    local views = get_views(tabpage_wins) ---@type vim.fn.winsaveview.ret[]
-    local result = ru._pclose_and_rm(win, true, true)
-    if result >= 0 then
-        restore_views(views)
+---@param opts? qf-rancher.util.FindLoclistWinOpts
+---@return nil
+function Window._resize_ll_wins(opts)
+    local wins = ru._find_ll_wins(opts)
+    for _, win in ipairs(wins) do
+        resize_list_win(win, nil)
     end
-
-    return true
 end
 
 ---@param list_win integer
 ---@param height? integer
 ---@return nil
 function Window._resize_list_win(list_win, height)
-    ry._validate_list_win(list_win)
-    vim.validate("height", height, "number", true)
-
-    local list_wintype = fn.win_gettype(list_win)
-    local is_loclist = list_wintype == "loclist" ---@type boolean
-    local is_qflist = list_wintype == "quickfix" ---@type boolean
-    if not (is_loclist or is_qflist) then
-        return
-    end
-
-    local old_height = api.nvim_win_get_height(list_win) ---@type integer
-    local src_win = is_loclist and list_win or nil ---@type integer|nil
-    local new_height = resolve_height_for_list(src_win, height) ---@type integer
-    if old_height == new_height then
-        return
-    end
-
-    local tabpage = api.nvim_win_get_tabpage(list_win) ---@type integer
-    local tabpage_wins = api.nvim_tabpage_list_wins(tabpage) ---@type integer[]
-    tabpage_wins = vim.tbl_filter(function(win)
-        return win ~= list_win
-    end, tabpage_wins)
-
-    local views = get_views(tabpage_wins) ---@type vim.fn.winsaveview.ret[]
-    api.nvim_win_set_height(list_win, new_height)
-    restore_views(views)
-end
-
--- MID: For any bulk operation that resizes, the views should be saved per-tabpage rather than
--- per-win for performance. On the other hand, this is really just an argument for temporarily
--- setting splitkeep
-
----@param tabpages? integer[]
----@return nil
-function Window._close_qflists(tabpages)
-    local wins = ru._find_qf_wins(tabpages)
-    for _, win in ipairs(wins) do
-        Window._close_win_save_views(win)
-    end
-end
-
----@param opts qfr.util.FindLoclistWinOpts
----@return nil
-function Window._close_loclists(opts)
-    local wins = ru._find_ll_wins(opts)
-    for _, win in ipairs(wins) do
-        Window._close_win_save_views(win)
-    end
-end
-
----@param tabpages? integer[]
----@return nil
-function Window._resize_qflists(tabpages)
-    local wins = ru._find_qf_wins(tabpages)
-    for _, win in ipairs(wins) do
-        Window._resize_list_win(win, nil)
-    end
-end
-
----@param opts qfr.util.FindLoclistWinOpts
----@return nil
-function Window._resize_loclists(opts)
-    local wins = ru._find_ll_wins(opts)
-    for _, win in ipairs(wins) do
-        Window._resize_list_win(win, nil)
-    end
+    resize_list_win(list_win, height)
 end
 
 ---@param src_win integer|nil
----@param tabpages integer[]
+---@param tabpages? integer[]
 ---@return nil
-function Window._resize_lists(src_win, tabpages)
+function Window._resize_list_wins(src_win, tabpages)
     if src_win then
-        Window._resize_loclists({ src_win = src_win, tabpages = tabpages })
+        Window._resize_ll_wins({ src_win = src_win, tabpages = tabpages })
     else
-        Window._resize_qflists(tabpages)
+        Window._resize_qf_wins(tabpages)
     end
 end
 
 return Window
 
--- LOW: Make get_list_height work without nowrap
+-- MID: For fugitive, I would like an API to close all loclists in the current tabpage, without
+-- any cmdline feedback
+-- MID: Break back the vars for use_alt_win, close_other_lists, and default_qf_split
+-- - Because both behaviors apply to multiple functions, providing a variable to control them is
+-- better than forcing the user to create multiple re-mappings
+-- - Unlike the on_list/on_open behaviors, this should not create exploding combinatorial
+-- complexity. They are pocketed fairly discretely
+-- - If the opt is nil, the g:var should be used.
+
+-- LOW: Make get_list_height work consistently without nowrap
+
+-- FUTURE: Would be good to make qopen/copen responsive to tab/window context. But right now
+-- doing that is hacky because you have to move the cursor around

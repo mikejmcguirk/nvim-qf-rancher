@@ -2,7 +2,7 @@ local ra = Qfr_Defer_Require("qf-rancher.stack") ---@type QfrStack
 local rs_lib = Qfr_Defer_Require("qf-rancher.lib.sort") ---@type QfrLibSort
 local rt = Qfr_Defer_Require("qf-rancher.tools") ---@type QfrTools
 local ru = Qfr_Defer_Require("qf-rancher.util") ---@type QfrUtil
-local rw = Qfr_Defer_Require("qf-rancher.window") ---@type QfrWins
+local rw = Qfr_Defer_Require("qf-rancher.window") ---@type qf-rancher.Window
 local ry = Qfr_Defer_Require("qf-rancher.types") ---@type QfrTypes
 
 local api = vim.api
@@ -196,7 +196,7 @@ function Diag.diags_to_list(diag_opts, output_opts)
                     if vim.g.qfr_auto_list_height and result >= 0 then
                         local tabpage = src_win and api.nvim_win_get_tabpage(src_win)
                             or api.nvim_get_current_tabpage()
-                        rw._resize_lists(src_win, { tabpage })
+                        rw._resize_list_wins(src_win, { tabpage })
                     end
                 end
             end
@@ -234,7 +234,13 @@ function Diag.diags_to_list(diag_opts, output_opts)
             ra._resize_after_change(src_win)
         end
 
-        rw._open_list(src_win, {})
+        rw._open_list(src_win, {
+            close_others = true,
+            silent = true,
+            on_list = function(list_win, _)
+                api.nvim_set_current_win(list_win)
+            end,
+        })
     end
 end
 

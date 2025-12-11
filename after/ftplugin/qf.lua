@@ -1,4 +1,4 @@
-local eo = Qfr_Defer_Require("qf-rancher.window") --- @type QfrWins
+local rw = Qfr_Defer_Require("qf-rancher.window") --- @type qf-rancher.Window
 
 local api = vim.api
 local bufmap = api.nvim_buf_set_keymap
@@ -100,10 +100,20 @@ local ll = "<leader>" .. lp ---@type string
 local ip = in_loclist and lp or qp
 local il = in_loclist and ll or ql
 
+local close_list = in_loclist
+        and function()
+            rw.close_ll_win(api.nvim_get_current_win(), { use_alt_win = true })
+        end
+    or function()
+        rw.close_qf_win({ use_alt_win = true })
+    end
+
 for _, lhs in ipairs({ il .. ip, "q" }) do
-    vim.keymap.set("n", lhs, function()
-        eo._close_list(in_loclist and api.nvim_get_current_win() or nil)
-    end, { buffer = true, nowait = true, desc = "Close the list" })
+    vim.keymap.set("n", lhs, close_list, {
+        buffer = true,
+        nowait = true,
+        desc = "Close the list",
+    })
 end
 
 bufmap_plug("n", "dd", "<Plug>(qfr-list-del-one)", "Delete the current list line")

@@ -3,7 +3,7 @@ local ra = Qfr_Defer_Require("qf-rancher.stack") ---@type QfrStack
 local rt = Qfr_Defer_Require("qf-rancher.tools") ---@type QfrTools
 local ru = Qfr_Defer_Require("qf-rancher.util") ---@type QfrUtil
 local ry = Qfr_Defer_Require("qf-rancher.types") ---@type QfrTypes
-local rw = Qfr_Defer_Require("qf-rancher.window") ---@type QfrWins
+local rw = Qfr_Defer_Require("qf-rancher.window") ---@type qf-rancher.Window
 
 local api = vim.api
 
@@ -61,7 +61,13 @@ function Sort.sort(pred, src_win, action, nr)
             ra._resize_after_change(src_win)
         end
 
-        rw._open_list(src_win, {})
+        rw._open_list(src_win, {
+            close_others = true,
+            silent = true,
+            on_list = function(list_win, _)
+                api.nvim_set_current_win(list_win)
+            end,
+        })
     end
 end
 

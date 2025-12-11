@@ -1,4 +1,5 @@
-_G.QFR_MAX_HEIGHT = 10
+_G.QF_RANCHER_MAX_HEIGHT = 10
+_G.QF_RANCHER_NO_LL = "Window has no location list"
 
 ---https://github.com/tjdevries/lazy-require.nvim/blob/master/lua/lazy-require.lua
 ---@param require_path string
@@ -14,8 +15,6 @@ function _G.Qfr_Defer_Require(require_path)
         end,
     })
 end
-
-local rw = Qfr_Defer_Require("qf-rancher.window") ---@type QfrWins
 
 local api = vim.api
 local fn = vim.fn
@@ -75,9 +74,8 @@ local fn = vim.fn
 ---The current settings can be verified with "checkhealth qf-rancher"
 ---@brief ]]
 
+-- TODO: Deprecate debug assertions. Locals should not have validations
 -- MID: Create specific validator functions for these where appropriate
--- MID: For deferred keymaps, could add an option to control the event(s) or
--- if there should be an event at all
 
 -- stylua: ignore
 _G._QFR_G_VAR_MAP = {
@@ -115,11 +113,11 @@ qfr_create_loclist_autocmds = { { "boolean" }, true },
 ---@alias qfr_debug_assertions boolean
 qfr_debug_assertions = { { "boolean" }, false },
 ---
----(Default true) Save views of other windows in the same tab when
+---(Default true) Temporarily set splitkeep to topline when
 ---the list is open, closed, or resized. This option is ignored if
----splitkeep is set for screen or topline
----@alias qfr_save_views boolean
-qfr_save_views = { { "boolean" }, true },
+---splitkeep is already set for screen or topline
+---@alias qfr_always_keep_topline boolean
+qfr_always_keep_topline = { { "boolean" }, true },
 ---@brief [[
 ---Qf Rancher provides a qf.lua after/ftplugin file to customize list behavior
 ---Customize which |qfr-ftplugin| features to use with the options below
@@ -179,14 +177,6 @@ qfr_preview_title_pos = { { "string" }, "left" },
 ---@alias qfr_preview_winblend integer
 qfr_preview_winblend = { { "number" }, 0 },
 ---
----(Default "botright") Set the split the quickfix list opens to
----@alias qfr_qfsplit
----| 'aboveleft'
----| 'belowright'
----| 'topleft'
----| 'botright'
-qfr_qfsplit = { { "string" }, "botright" },
----
 ---(Default true) When running a Qfr cmd to gather new entries, look for
 ---destination lists to re-use based on title
 ---@alias qfr_reuse_title boolean
@@ -234,7 +224,7 @@ if vim.g.qfr_create_loclist_autocmds then
                 return
             end
 
-            local config = api.nvim_win_get_config(win) ---@type vim.api.keyset.win_config
+            local config = api.nvim_win_get_config(win)
             if config.relative and config.relative ~= "" then
                 return
             end
@@ -244,14 +234,15 @@ if vim.g.qfr_create_loclist_autocmds then
                 return
             end
 
-            local buf = api.nvim_win_get_buf(win) ---@type integer
+            local buf = api.nvim_win_get_buf(win)
             if api.nvim_get_option_value("buftype", { buf = buf }) == "quickfix" then
                 return
             end
 
             vim.schedule(function()
-                local tabpages = api.nvim_list_tabpages() ---@type integer[]
-                rw._close_loclists({ qf_id = qf_id, tabpages = tabpages })
+                local tabpages = api.nvim_list_tabpages()
+                local rw = require("qf-rancher.window")
+                rw._close_ll_wins({ qf_id = qf_id, tabpages = tabpages })
             end)
         end,
     })
@@ -328,6 +319,11 @@ if vim.g.qfr_set_default_cmds then
     end
 end
 
+-- TODO: Replace all echoes with the new interface, this would probably also mean changing
+-- some error reporting. If something would be too big a refactor, mark it to do later
+-- TODO: Rename all classes based on the new naming system
+-- TODO: Check all TODO comments and make sure they are not connected to functions or exported
+-- definitions. Lua_Ls includes them in hover info
 -- TODO: Organize the modules so that the actual exported module tables start where the
 -- user-facing functions start, rather than at the locals, and then the underline functions
 -- should be after the doc export

@@ -103,11 +103,11 @@ qfr_debug_assertions                                      *qfr_debug_assertions*
         boolean
 
 
-qfr_save_views                                                  *qfr_save_views*
+qfr_always_keep_topline                                *qfr_always_keep_topline*
 
-    (Default true) Save views of other windows in the same tab when
+    (Default true) Temporarily set splitkeep to topline when
     the list is open, closed, or resized. This option is ignored if
-    splitkeep is set for screen or topline
+    splitkeep is already set for screen or topline
 
     Type: ~
         boolean
@@ -204,17 +204,6 @@ qfr_preview_winblend                                      *qfr_preview_winblend*
         integer
 
 
-qfr_qfsplit                                                        *qfr_qfsplit*
-
-    (Default "botright") Set the split the quickfix list opens to
-
-    Variants: ~
-        ("aboveleft")
-        ("belowright")
-        ("topleft")
-        ("botright")
-
-
 qfr_reuse_title                                                *qfr_reuse_title*
 
     (Default true) When running a Qfr cmd to gather new entries, look for
@@ -260,6 +249,9 @@ Modes: { n }, Plug: <Plug>(qfr-close-qf-list), Default: "<leader>qo"
 Modes: { n }, Plug: <Plug>(qfr-toggle-qf-list), Default: "<leader>qq"
  Desc: Toggle the quickfix list (count sets height on open)
 
+Modes: { n }, Plug: <Plug>(qfr-qf-window), Default: "<leader>qw"
+ Desc: Toggle the quickfix list based on recognized errors (count sets height on open)
+
 Modes: { n }, Plug: <Plug>(qfr-open-loclist), Default: "<leader>lp"
  Desc: Open the location list to [count] height (focus if already open)
 
@@ -268,6 +260,9 @@ Modes: { n }, Plug: <Plug>(qfr-close-loclist), Default: "<leader>lo"
 
 Modes: { n }, Plug: <Plug>(qfr-toggle-loclist), Default: "<leader>ll"
  Desc: Toggle the location list (count sets height on open)
+
+Modes: { n }, Plug: <Plug>(qfr-ll-window), Default: "<leader>lw"
+ Desc: Toggle the location list based on recognized errors (count sets height on open)
 
 Cmd: Qopen
 Desc: Open the quickfix list to [count] height (focus if already open)
@@ -278,6 +273,9 @@ Desc: Close the Quickfix list
 Cmd: Qtoggle
 Desc: Toggle the quickfix list (count sets height on open)
 
+Cmd: Qwindow
+Desc: Toggle the quickfix list based on recognized errors (count sets height on open)
+
 Cmd: Lopen
 Desc: Open the location list to [count] height (focus if already open)
 
@@ -287,6 +285,9 @@ Desc: Close the location List
 Cmd: Ltoggle
 Desc: Toggle the location list (count sets height on open)
 
+Cmd: Lwindow
+Desc: Toggle the location list based on recognized errors (count sets height on open)
+
 ==============================================================================
 Open, close, and resize list wins                                       *Window*
 
@@ -294,88 +295,193 @@ Open, close, and resize list wins                                       *Window*
                                                                     *qfr-window*
 
 
-QfrListOpenOpts                                                *QfrListOpenOpts*
+qf-rancher.window.OpenOpts                          *qf-rancher.window.OpenOpts*
 
     Fields: ~
-        {height?}       (integer) Height the list should be set to
-        {keep_win?}     (boolean) Stay in current window when opening the list?
-        {nop_if_open?}  (boolean) Do not print messages or focus on the list win
+        {close_others?}  (boolean)
+                         If opening the Quickfix list, close all location
+                         lists in the current tab. The reverse if opening the
+                         Location list.
+
+        {height?}        (integer) List height to open to
+
+        {on_list?}       (fun(list_win:integer,tabpage:integer))
+                         Callback to run if the list is already open
+
+        {on_open?}       (fun(tabpage:integer))
+                         Callback to run on list open
+
+        {silent?}        (boolean)
+                         Suppress messages (only applies to location lists)
+
+        {split?}         (""|"botright"|"topleft"|"belowright"|"aboveleft")
+                         Default "botright". Only applies to opening the
+                         quickfix list
 
 
-Window.open_qflist({opts})                                  *Window.open_qflist*
-    - If any location lists are open in the same tabpage, they will be
-      automatically closed before the qflist is opened
-    - If the quickfix list is already open, it will be focused
-    - If a height is provided, and "nop_if_open" is not true, the qflist will
-      be resized regardless of whether or not it is already open
 
-    Parameters: ~
-        {opts}  (QfrListOpenOpts)
-
-    Returns: ~
-        (boolean)
-
-
-Window.open_loclist({src_win}, {opts})                     *Window.open_loclist*
-    - If no location list is present for the source window, the function will
-      exit
-    - If the quickfix list is open in the same tabpage, it will be closed
-      before the location list is opened
-    - If the location list is already open, it will be focused
-    - If a height is provided, and "nop_if_open" is not true, the location
-      list will be resized regardless of whether or not it is already open
+Window.open_qf_win({opts?})                                 *Window.open_qf_win*
 
     Parameters: ~
-        {src_win}  (integer) Location list window context
-        {opts}     (QfrListOpenOpts)
+        {opts?}  (qf-rancher.window.OpenOpts) See |qf-rancher.window.OpenOpts|
 
-    Returns: ~
-        (boolean)
-
-
-Window.close_qflist()                                      *Window.close_qflist*
-    - If switchbuf contains uselast, focus will be changed to the alternate
-      window if it is available
-
-    Returns: ~
-        (boolean)
-
-
-Window.close_loclist({src_win})                           *Window.close_loclist*
-    -If switchbuf contains uselast, focus will be changed to the alternate
-     window if it is available
-    - All location list windows sharing a |quickfix-ID| with the current
-      window context will also be closed
-
-    Parameters: ~
-        {src_win}  (integer) Location list window context
-
-    Returns: ~
-        (boolean)
-
-
-Window.toggle_qflist({opts})                              *Window.toggle_qflist*
-    opts.nop_if_open will be automatically set to true
-
-    Parameters: ~
-        {opts}  (QfrListOpenOpts)
+                 If height is not provided, the list will be automatically
+                 sized if qfr_auto_list_height is true, otherwise set to the
+                 max height
 
     Returns: ~
         (nil)
 
 
-Window.toggle_loclist({src_win}, {opts})                 *Window.toggle_loclist*
-    opts.nop_if_open will be automatically set to true
+Window.open_ll_win({opts?})                                 *Window.open_ll_win*
+
+    Parameters: ~
+        {opts?}  (qf-rancher.window.OpenOpts) See |qf-rancher.window.OpenOpts|
+
+                 If height is not provided, the list will be automatically
+                 sized if qfr_auto_list_height is true, otherwise set to
+                 the max height
+
+
+    Returns: ~
+        (nil)
+
+
+qf-rancher.window.CloseOpts                        *qf-rancher.window.CloseOpts*
+
+    Fields: ~
+        {silent?}       (boolean) Suppress messages
+        {tabpage?}      (integer) Tabpage to close a list win in
+        {use_alt_win?}  (boolean) Go to the alternate window after closing
+
+
+Window.close_qf_win({opts?})                               *Window.close_qf_win*
+
+    Parameters: ~
+        {opts?}  (qf-rancher.window.CloseOpts) See |qf-rancher.window.CloseOpts|
+
+                 If no tabpage opt is provided, the current tabpage will be
+                 used
+
+    Returns: ~
+        (nil)
+
+
+Window.close_ll_win({src_win}, {opts?})                    *Window.close_ll_win*
 
     Parameters: ~
         {src_win}  (integer)
-        {opts}     (QfrListOpenOpts)
+        {opts?}    (qf-rancher.window.CloseOpts)
+                   See |qf-rancher.window.CloseOpts|
+
+                   If no tabpage opt is provided, the current tabpage will be
+                   used
 
     Returns: ~
         (nil)
 
 
-Window.open_qflist_cmd({cargs})                         *Window.open_qflist_cmd*
+Window.q_toggle({count})                                       *Window.q_toggle*
+
+    Toggle the Quickfix list.
+
+    On open, any open location lists in the current tabpage will be closed
+
+    If the list is closed, and the alternate window can be found, it will be
+    focused after closing.
+
+
+    Parameters: ~
+        {count}  (integer|nil) Height on open. nil will autosize
+
+    Returns: ~
+        (nil)
+
+
+Window.l_toggle({count})                                       *Window.l_toggle*
+
+    Toggle the Location list.
+
+    On open, any open Quickfix lists in the current tabpage will be closed
+
+    If the list is closed, and the alternate window can be found, it will be
+    focused after closing.
+
+
+    Parameters: ~
+        {count}  (integer|nil) Height on open. nil will autosize
+
+    Returns: ~
+        (nil)
+
+
+Window.q_window({count})                                       *Window.q_window*
+
+    Open/keep open the Quickfix window when there are recognized errors.
+    Close/keep closed otherwise.
+
+    On open, any open location lists in the current tabpage will be closed.
+
+    If the list is already open and should stay open, it will be focused.
+
+    If the list is already open and should stay open, it will be resized based
+    on count and the value of qfr_auto_list_height.
+
+    If the list should be closed, and the alternate window can be found, it
+    will be focused after closing.
+
+
+    Parameters: ~
+        {count}  (integer|nil) Height on open. Nil autosizes
+
+    Returns: ~
+        (nil)
+
+
+Window.l_window({count})                                       *Window.l_window*
+
+    Open/keep open the Loclist window when there are recognized errors.
+    Close/keep closed otherwise.
+
+    On open, any open quickfix lists in the current tabpage will be closed.
+
+    If the list is already open and should stay open, it will be focused.
+
+    If the list is already open and should stay open, it will be resized based
+    on count and the value of qfr_auto_list_height.
+
+    If the list should be closed, and the alternate window can be found, it
+    will be focused after closing.
+
+
+    Parameters: ~
+        {count}  (integer|nil) Height on open. Nil autosizes
+
+    Returns: ~
+        (nil)
+
+
+                                                        *Window.resize_list_win*
+Window.resize_list_win({list_win}, {height?})
+
+    Resize a list window. Handles both Quickfix and Location lists.
+
+    If g:qfr_always_keep_topline is true, the list will be resized with |'splitkeep'| set
+    to "topline"
+
+
+    Parameters: ~
+        {list_win}  (integer) The list win to resize
+
+                    If nil, the new height will be based on the list contents
+        {height?}   (integer)
+
+    Returns: ~
+        (nil)
+
+
+Window.q_open_cmd({cargs})                                   *Window.q_open_cmd*
+
     Qopen cmd callback. Expects count = 0 in the user_command table
 
     Parameters: ~
@@ -385,7 +491,8 @@ Window.open_qflist_cmd({cargs})                         *Window.open_qflist_cmd*
         (nil)
 
 
-Window.open_loclist_cmd({cargs})                       *Window.open_loclist_cmd*
+Window.l_open_cmd({cargs})                                   *Window.l_open_cmd*
+
     Lopen cmd callback. Expects count = 0 in the user_command table
 
     Parameters: ~
@@ -395,21 +502,24 @@ Window.open_loclist_cmd({cargs})                       *Window.open_loclist_cmd*
         (nil)
 
 
-Window.close_qflist_cmd()                              *Window.close_qflist_cmd*
+Window.q_close_cmd()                                        *Window.q_close_cmd*
+
     Qclose cmd callback
 
     Returns: ~
         (nil)
 
 
-Window.close_loclist_cmd()                            *Window.close_loclist_cmd*
+Window.l_close_cmd()                                        *Window.l_close_cmd*
+
     Lclose cmd callback
 
     Returns: ~
         (nil)
 
 
-Window.toggle_qflist_cmd({cargs})                     *Window.toggle_qflist_cmd*
+Window.q_toggle_cmd({cargs})                               *Window.q_toggle_cmd*
+
     Qtoggle cmd callback. Expects count = 0 in the user_command table
 
     Parameters: ~
@@ -419,8 +529,31 @@ Window.toggle_qflist_cmd({cargs})                     *Window.toggle_qflist_cmd*
         (nil)
 
 
-Window.toggle_loclist_cmd({cargs})                   *Window.toggle_loclist_cmd*
+Window.l_toggle_cmd({cargs})                               *Window.l_toggle_cmd*
+
     Ltoggle cmd callback. Expects count = 0 in the user_command table
+
+    Parameters: ~
+        {cargs}  (vim.api.keyset.create_user_command.command_args)
+
+    Returns: ~
+        (nil)
+
+
+Window.q_window_cmd({cargs})                               *Window.q_window_cmd*
+
+    Qwindow cmd callback. Expects count = 0 in the user_command table
+
+    Parameters: ~
+        {cargs}  (vim.api.keyset.create_user_command.command_args)
+
+    Returns: ~
+        (nil)
+
+
+Window.l_window_cmd({cargs})                               *Window.l_window_cmd*
+
+    Lwindow cmd callback. Expects count = 0 in the user_command table
 
     Parameters: ~
         {cargs}  (vim.api.keyset.create_user_command.command_args)

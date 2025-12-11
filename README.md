@@ -40,7 +40,7 @@ Key options are listed below. See the help file for more:
 |--------|-------------|
 | qfr_auto_list_height | (Default true) Resize the list based on its contents. Max automatic height is 10 |
 | qfr_create_loclist_autocmds | (Default true) Automatically close orphan location lists and prevent them from duplicating |
-| qfr_save_views | (Default true) Save views of other windows in the same tab when the list is open, closed, or resized. This option is ignored if splitkeep is set for screen or topline |
+| qfr_always_keep_topline | (Default true) Save views of other windows in the same tab when the list is open, closed, or resized. This option is ignored if splitkeep is set for screen or topline |
 | qfr_ftplugin_demap | (Default true) Disable obtrusive defaults |
 | qfr_ftplugin_keymap | (Default true) Set ack.vim style ftplugin list keymaps |
 | qfr_ftplugin_set_opts | (Default true) Set list-specific options |
