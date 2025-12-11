@@ -20,8 +20,8 @@ function M._find_pattern_in_cmd(fargs)
     ry._validate_list(fargs, { type = "string" })
 
     for _, arg in ipairs(fargs) do
-        if vim.startswith(arg, "/") then
-            return string.sub(arg, 2) or ""
+        if arg:sub(1, 1) == "/" then
+            return arg:sub(2) or ""
         end
     end
 
@@ -64,6 +64,8 @@ function M._get_display_input_type(input)
     end
 end
 
+-- TODO: Deprecate
+--
 ---@param input QfrInputType
 ---@return QfrInputType
 function M._resolve_input_vimcase(input)
@@ -73,14 +75,14 @@ function M._resolve_input_vimcase(input)
         return input
     end
 
-    local ignorecase = api.nvim_get_option_value("ignorecase", { scope = "global" })
-    local smartcase = api.nvim_get_option_value("smartcase", { scope = "global" })
+    local ic = api.nvim_get_option_value("ic", { scope = "global" })
+    local scs = api.nvim_get_option_value("scs", { scope = "global" })
 
-    if ignorecase and smartcase then
+    if ic and scs then
         return "smartcase"
     end
 
-    if ignorecase then
+    if ic then
         return "insensitive"
     end
 
@@ -322,6 +324,25 @@ end
 -- OPENING AND CLOSING --
 -------------------------
 
+---@param f function
+---@return nil
+function M._with_checked_spk(f)
+    if not vim.g.qfr_save_views then
+        f()
+        return
+    end
+
+    local old_spk = api.nvim_get_option_value("spk", { scope = "global" })
+    if old_spk == "screen" or old_spk == "topline" then
+        f()
+        return
+    end
+
+    api.nvim_set_option_value("spk", "topline", { scope = "global" })
+    pcall(f)
+    api.nvim_set_option_value("spk", old_spk, { scope = "global" })
+end
+
 ---@param win integer
 ---@param cur_pos {[1]: integer, [2]: integer}
 ---@return nil
@@ -346,82 +367,26 @@ end
 
 ---@param win integer
 ---@param force boolean
----@return integer
+---@return boolean, string|nil
 function M._pwin_close(win, force)
-    ry._validate_uint(win)
-    vim.validate("force", force, "boolean")
+    if vim.g.qfr_debug_assertions then
+        ry._validate_uint(win)
+        vim.validate("force", force, "boolean")
+    end
 
     if not api.nvim_win_is_valid(win) then
-        return -1
+        return true, nil
     end
 
     local tabpages = api.nvim_list_tabpages() ---@type integer[]
     local win_tabpage = api.nvim_win_get_tabpage(win) ---@type integer
     local win_tabpage_wins = api.nvim_tabpage_list_wins(win_tabpage) ---@type integer[]
-    local buf = api.nvim_win_get_buf(win) ---@type integer
     if #tabpages == 1 and #win_tabpage_wins == 1 then
-        return buf
+        return true, nil
     end
 
-    local ok, _ = pcall(api.nvim_win_close, win, force) ---@type boolean, nil
-    return ok and buf or -1
-end
-
--- FUTURE: https://github.com/neovim/neovim/pull/33402
--- Redo this once this issue is resolved. Be sure to use has() for compatibility
-
--- Return an integer to stay consistent with pwin_close
-
----@param buf integer
----@param force boolean
----@param wipeout boolean
----@return integer
-function M._pbuf_rm(buf, force, wipeout)
-    ry._validate_uint(buf)
-    vim.validate("force", force, "boolean")
-    vim.validate("wipeout", wipeout, "boolean")
-
-    if not api.nvim_buf_is_valid(buf) then
-        return -1
-    end
-
-    local modifiable = api.nvim_get_option_value("modifiable", { buf = buf }) ---@type boolean
-    if modifiable then
-        api.nvim_buf_call(buf, function()
-            ---@diagnostic disable-next-line: missing-fields
-            api.nvim_cmd({ cmd = "update", mods = { silent = true } }, {})
-        end)
-    end
-
-    if not wipeout then
-        api.nvim_set_option_value("buflisted", false, { buf = buf })
-    end
-
-    local delete_opts = wipeout and { force = force } or { force = force, unload = true }
-    local ok, _ = pcall(api.nvim_buf_delete, buf, delete_opts)
-    return ok and 0 or -1
-end
-
--- MAYBE: Additional validation, checking, and error messaging could be added here around if the
--- buf is the list one listed. But, since this is currently only used for deleting list wins, will
--- opt for simplicity
-
----@param win integer
----@param force boolean
----@param wipeout boolean
----@return integer
-function M._pclose_and_rm(win, force, wipeout)
-    local buf = M._pwin_close(win, force)
-    if buf > 0 then
-        -- MAYBE: Do when idle
-        vim.schedule(function()
-            if #fn.win_findbuf(buf) == 0 then
-                M._pbuf_rm(buf, force, wipeout)
-            end
-        end)
-    end
-
-    return buf
+    local ok, result = pcall(api.nvim_win_close, win, force) ---@type boolean, nil
+    return ok, result
 end
 
 ---@param buf integer

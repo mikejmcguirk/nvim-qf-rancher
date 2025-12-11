@@ -103,7 +103,10 @@ local function handle_orphan(list_win, dest_win, finish)
     end
 
     local stack = rt._get_stack(list_win) ---@type QfrWhat[]
-    rw._close_win_save_views(list_win)
+    ru._with_checked_spk(function()
+        ru._pwin_close(list_win, true)
+    end)
+
     rt._set_stack(dest_win, stack)
 
     -- open_loclist uses :lopen, so must set win for proper context

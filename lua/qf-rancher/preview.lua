@@ -117,7 +117,7 @@ local function clear_session_data()
     close_and_clear()
 
     for _, buf in pairs(bufs) do
-        ru._pbuf_rm(buf, true, true)
+        api.nvim_buf_delete(buf, { force = true })
     end
 
     bufs = {}

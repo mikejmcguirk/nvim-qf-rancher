@@ -75,6 +75,7 @@ local fn = vim.fn
 ---The current settings can be verified with "checkhealth qf-rancher"
 ---@brief ]]
 
+-- TODO: Rename and re-document the save_views var. No longer accurate
 -- MID: Create specific validator functions for these where appropriate
 -- MID: For deferred keymaps, could add an option to control the event(s) or
 -- if there should be an event at all
