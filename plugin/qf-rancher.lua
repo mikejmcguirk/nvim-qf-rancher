@@ -369,9 +369,6 @@ end
 -- LOW: Add a callback opt to preview win opening/closing. This would allow users to hook in
 -- ts-context or other desired features
 -- LOW: scrolling in preview wins
--- LOW: Allow customizing windows to skip when looking for open targets:
--- - https://github.com/kevinhwang91/nvim-bqf/issues/78
--- LOW: General cmd parsing: https://github.com/niuiic/quickfix.nvim
 -- LOW: docgen
 -- - Cmd documentation could be improved. Unsure how to approach this because the info lives
 -- in so many places. Hard to programmatically bring together
@@ -400,6 +397,8 @@ end
 -- DOCUMENT: What types of regex are used where. Grep cmds have their own regex. Regex filters use
 -- vim regex
 
+-- PR: Make the fields in vim.api.keyset.cmd.mods optional. Verify it is possible to use an
+-- empty table
 -- PR: Add "uint" to vim.validate
 -- PR: Fix wintype annotations
 -- PR: It should be possible to output vimgrep to a list so it can be used by internal scripting

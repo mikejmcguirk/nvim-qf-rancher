@@ -1,4 +1,5 @@
 local api = vim.api
+local fn = vim.fn
 
 local rt = Qfr_Defer_Require("qf-rancher.tools") ---@type QfrTools
 local ru = Qfr_Defer_Require("qf-rancher.util") ---@type QfrUtil
@@ -22,15 +23,16 @@ end
 ---@param opts qfr.stack.GotoHistoryOpts
 ---@return integer
 local function run_history(src_win, count, opts)
-    local cmd = src_win and "lhistory" or "chistory" ---@type string
+    ---@diagnostic disable-next-line: missing-fields
+    local mods = { silent = opts.silent } ---@type vim.api.keyset.cmd.mods
     if src_win then
         api.nvim_win_call(src_win, function()
             ---@diagnostic disable-next-line: missing-fields
-            api.nvim_cmd({ cmd = cmd, count = count, mods = { silent = opts.silent } }, {})
+            api.nvim_cmd({ cmd = "lhistory", count = count, mods = mods }, {})
         end)
     else
         ---@diagnostic disable-next-line: missing-fields
-        api.nvim_cmd({ cmd = cmd, count = count, mods = { silent = opts.silent } }, {})
+        api.nvim_cmd({ cmd = "chistory", count = count, mods = mods }, {})
     end
 
     local list_nr_after = rt._get_list(src_win, { nr = 0 }).nr ---@type integer
@@ -40,7 +42,7 @@ end
 ---@param src_win integer|nil
 ---@param count integer|nil
 ---@param opts? qfr.stack.GotoHistoryOpts
----@return integer
+---@return integer, integer, string|nil
 local function goto_history(src_win, count, opts)
     opts = opts or {}
     ry._validate_win(src_win, true)
@@ -49,51 +51,50 @@ local function goto_history(src_win, count, opts)
 
     local max_list_nr = rt._get_list(src_win, { nr = "$" }).nr ---@type integer
     if max_list_nr < 1 then
-        api.nvim_echo({ { "No entries", "" } }, false, {})
-        return -1
+        return 0, 0, "No entries"
     end
 
     local adj_count = count and math.min(count, max_list_nr) or nil ---@type integer|nil
+    local cur_list_nr = rt._get_list(src_win, { nr = 0 }).nr ---@type integer
     ---@type integer|nil
     local fix_count = (function()
         if (not adj_count) or adj_count > 0 then
             return adj_count
         end
 
-        local cur_list_nr = rt._get_list(src_win, { nr = 0 }).nr ---@type integer
         return cur_list_nr
     end)()
 
-    return run_history(src_win, fix_count, opts)
+    local nr_after = run_history(src_win, fix_count, opts)
+    return cur_list_nr, nr_after, nil
 end
 
 ---@param src_win integer|nil
 ---@param count integer
----@param opts? qfr.stack.GotoHistoryOpts
----@return integer
+---@param opts qfr.stack.GotoHistoryOpts
+---@return integer, integer, string|nil
 local function goto_prev(src_win, count, opts)
-    opts = opts or {}
     ry._validate_win(src_win, true)
     ry._validate_uint(count)
     validate_history_opts(opts)
 
     local max_list_nr = rt._get_list(src_win, { nr = "$" }).nr ---@type integer
     if max_list_nr < 1 then
-        api.nvim_echo({ { "No entries", "" } }, false, {})
-        return -1
+        return 0, 0, "No entries"
     end
 
     local cur_list_nr = rt._get_list(src_win, { nr = 0 }).nr ---@type integer
     local adj_count = math.max(count, 1) ---@type integer
     local new_list_nr = ru._wrapping_sub(cur_list_nr, adj_count, 1, max_list_nr) ---@type integer
 
-    return run_history(src_win, new_list_nr, opts)
+    local nr_after = run_history(src_win, new_list_nr, opts)
+    return cur_list_nr, nr_after, nil
 end
 
 ---@param src_win integer|nil
 ---@param count integer
 ---@param opts? qfr.stack.GotoHistoryOpts
----@return integer
+---@return integer, integer, string|nil
 local function goto_next(src_win, count, opts)
     opts = opts or {}
     ry._validate_win(src_win, true)
@@ -102,15 +103,15 @@ local function goto_next(src_win, count, opts)
 
     local max_list_nr = rt._get_list(src_win, { nr = "$" }).nr ---@type integer
     if max_list_nr < 1 then
-        api.nvim_echo({ { "No entries", "" } }, false, {})
-        return -1
+        return 0, 0, "No entries"
     end
 
     local cur_list_nr = rt._get_list(src_win, { nr = 0 }).nr ---@type integer
     local adj_count = math.max(count, 1) ---@type integer
     local new_list_nr = ru._wrapping_add(cur_list_nr, adj_count, 1, max_list_nr) ---@type integer
 
-    return run_history(src_win, new_list_nr, opts)
+    local nr_after = run_history(src_win, new_list_nr, opts)
+    return cur_list_nr, nr_after, nil
 end
 
 ---@mod Stack View and edit the list stack
@@ -133,13 +134,22 @@ local Stack = {}
 ---@param opts? qfr.stack.GotoHistoryOpts See |qfr.stack.GotoHistoryOpts|
 ---@return nil
 function Stack.q_older(count, opts)
-    local cur_nr = vim.fn.getqflist({ nr = 0 }).nr ---@type integer
-    local nr_after = goto_prev(nil, count, opts) ---@type integer
+    opts = opts or {}
 
-    local ran = nr_after > 0 ---@type boolean
-    local changed = cur_nr ~= nr_after ---@type boolean
-    local can_resize = ran and changed ---@type boolean
-    if can_resize and vim.g.qfr_auto_list_height then
+    ---@type integer, integer, string|nil
+    local cur_nr, nr_after, msg = goto_prev(nil, count, opts)
+    if not (cur_nr > 0 and nr_after > 0) then
+        if (not msg) or opts.silent then
+            return
+        end
+
+        local is_err = cur_nr < 0 or nr_after < 0 ---@type boolean
+        local hl = is_err and "ErrorMsg" or "" ---@type string
+        api.nvim_echo({ { msg, hl } }, is_err, {})
+        return
+    end
+
+    if cur_nr ~= nr_after and vim.g.qfr_auto_list_height then
         Stack._resize_after_change()
     end
 end
@@ -149,13 +159,22 @@ end
 ---@param opts? qfr.stack.GotoHistoryOpts See |qfr.stack.GotoHistoryOpts|
 ---@return nil
 function Stack.q_newer(count, opts)
-    local cur_nr = vim.fn.getqflist({ nr = 0 }).nr ---@type integer
-    local nr_after = goto_next(nil, count, opts) ---@type integer
+    opts = opts or {}
 
-    local ran = nr_after > 0 ---@type boolean
-    local changed = cur_nr ~= nr_after ---@type boolean
-    local can_resize = ran and changed ---@type boolean
-    if can_resize and vim.g.qfr_auto_list_height then
+    ---@type integer, integer, string|nil
+    local cur_nr, nr_after, msg = goto_next(nil, count, opts)
+    if not (cur_nr > 0 and nr_after > 0) then
+        if (not msg) or opts.silent then
+            return
+        end
+
+        local is_err = cur_nr < 0 or nr_after < 0 ---@type boolean
+        local hl = is_err and "ErrorMsg" or "" ---@type string
+        api.nvim_echo({ { msg, hl } }, is_err, {})
+        return
+    end
+
+    if cur_nr ~= nr_after and vim.g.qfr_auto_list_height then
         Stack._resize_after_change()
     end
 end
@@ -166,13 +185,28 @@ end
 ---@param opts? qfr.stack.GotoHistoryOpts See |qfr.stack.GotoHistoryOpts|
 ---@return nil
 function Stack.l_older(src_win, count, opts)
-    local cur_nr = vim.fn.getloclist(src_win, { nr = 0 }).nr ---@type integer
-    local nr_after = goto_prev(src_win, count, opts) ---@type integer
+    opts = opts or {}
 
-    local ran = nr_after > 0 ---@type boolean
-    local changed = cur_nr ~= nr_after ---@type boolean
-    local can_resize = ran and changed ---@type boolean
-    if can_resize and vim.g.qfr_auto_list_height then
+    local qf_id = fn.getloclist(src_win, { id = 0 }).id ---@type integer
+    if qf_id == 0 then
+        api.nvim_echo({ { "Window has no location list" } }, false, {})
+        return
+    end
+
+    ---@type integer, integer, string|nil
+    local cur_nr, nr_after, msg = goto_prev(src_win, count, opts)
+    if not (cur_nr > 0 and nr_after > 0) then
+        if (not msg) or opts.silent then
+            return
+        end
+
+        local is_err = cur_nr < 0 or nr_after < 0 ---@type boolean
+        local hl = is_err and "ErrorMsg" or "" ---@type string
+        api.nvim_echo({ { msg, hl } }, is_err, {})
+        return
+    end
+
+    if cur_nr ~= nr_after and vim.g.qfr_auto_list_height then
         Stack._resize_after_change(src_win)
     end
 end
@@ -183,13 +217,28 @@ end
 ---@param opts? qfr.stack.GotoHistoryOpts See |qfr.stack.GotoHistoryOpts|
 ---@return nil
 function Stack.l_newer(src_win, count, opts)
-    local cur_nr = vim.fn.getloclist(src_win, { nr = 0 }).nr ---@type integer
-    local nr_after = goto_next(src_win, count, opts) ---@type integer
+    opts = opts or {}
 
-    local ran = nr_after > 0 ---@type boolean
-    local changed = cur_nr ~= nr_after ---@type boolean
-    local can_resize = ran and changed ---@type boolean
-    if can_resize and vim.g.qfr_auto_list_height then
+    local qf_id = fn.getloclist(src_win, { id = 0 }).id ---@type integer
+    if qf_id == 0 then
+        api.nvim_echo({ { "Window has no location list" } }, false, {})
+        return
+    end
+
+    ---@type integer, integer, string|nil
+    local cur_nr, nr_after, msg = goto_next(src_win, count, opts)
+    if not (cur_nr > 0 and nr_after > 0) then
+        if (not msg) or opts.silent then
+            return
+        end
+
+        local is_err = cur_nr < 0 or nr_after < 0 ---@type boolean
+        local hl = is_err and "ErrorMsg" or "" ---@type string
+        api.nvim_echo({ { msg, hl } }, is_err, {})
+        return
+    end
+
+    if cur_nr ~= nr_after and vim.g.qfr_auto_list_height then
         Stack._resize_after_change(src_win)
     end
 end
@@ -201,13 +250,22 @@ end
 ---@param opts? qfr.stack.GotoHistoryOpts See |qfr.stack.GotoHistoryOpts|
 ---@return nil
 function Stack.q_history(count, opts)
-    local cur_nr = vim.fn.getqflist({ nr = 0 }).nr ---@type integer
-    local nr_after = goto_history(nil, count, opts) ---@type integer
+    opts = opts or {}
 
-    local ran = nr_after > 0 ---@type boolean
-    local changed = cur_nr ~= nr_after ---@type boolean
-    local can_resize = ran and changed ---@type boolean
-    if can_resize and vim.g.qfr_auto_list_height then
+    ---@type integer, integer, string|nil
+    local cur_nr, nr_after, msg = goto_history(nil, count, opts)
+    if not (cur_nr > 0 and nr_after > 0) then
+        if (not msg) or opts.silent then
+            return
+        end
+
+        local is_err = cur_nr < 0 or nr_after < 0 ---@type boolean
+        local hl = is_err and "ErrorMsg" or "" ---@type string
+        api.nvim_echo({ { msg, hl } }, is_err, {})
+        return
+    end
+
+    if cur_nr ~= nr_after and vim.g.qfr_auto_list_height then
         Stack._resize_after_change()
     end
 end
@@ -220,22 +278,37 @@ end
 ---@param opts? qfr.stack.GotoHistoryOpts See |qfr.stack.GotoHistoryOpts|
 ---@return nil
 function Stack.l_history(src_win, count, opts)
-    local cur_nr = vim.fn.getloclist(src_win, { nr = 0 }).nr ---@type integer
-    local nr_after = goto_history(src_win, count, opts) ---@type integer
+    opts = opts or {}
 
-    local ran = nr_after > 0 ---@type boolean
-    local changed = cur_nr ~= nr_after ---@type boolean
-    local can_resize = ran and changed ---@type boolean
-    if can_resize and vim.g.qfr_auto_list_height then
+    local qf_id = fn.getloclist(src_win, { id = 0 }).id ---@type integer
+    if qf_id == 0 then
+        api.nvim_echo({ { "Window has no location list" } }, false, {})
+        return
+    end
+
+    ---@type integer, integer, string|nil
+    local cur_nr, nr_after, msg = goto_history(src_win, count, opts)
+    if not (cur_nr > 0 and nr_after > 0) then
+        if (not msg) or opts.silent then
+            return
+        end
+
+        local is_err = cur_nr < 0 or nr_after < 0 ---@type boolean
+        local hl = is_err and "ErrorMsg" or "" ---@type string
+        api.nvim_echo({ { msg, hl } }, is_err, {})
+        return
+    end
+
+    if cur_nr ~= nr_after and vim.g.qfr_auto_list_height then
         Stack._resize_after_change(src_win)
     end
 end
 
 ---If the current list is cleared, and g:qfr_auto_list_height is true, the
 ---list will be resized
----@param count integer List number to delete. 0 for current
+---@param count integer List number to clear. 0 for current
 ---@return nil
-function Stack.q_del(count)
+function Stack.q_clear(count)
     ry._validate_uint(count)
 
     local result = rt._clear_list(nil, count)
@@ -243,7 +316,7 @@ function Stack.q_del(count)
         return
     end
 
-    local cur_list_nr = vim.fn.getqflist({ nr = 0 }).nr ---@type integer
+    local cur_list_nr = fn.getqflist({ nr = 0 }).nr ---@type integer
     if (result == cur_list_nr) and vim.g.qfr_auto_list_height then
         Stack._resize_after_change()
     end
@@ -252,15 +325,14 @@ end
 ---If the current list is cleared, and g:qfr_auto_list_height is true, the
 ---list will be resized
 ---@param src_win integer Location list window context
----@param count integer List number to delete. 0 for current
+---@param count integer List number to clear. 0 for current
 ---@return nil
-function Stack.l_del(src_win, count)
+function Stack.l_clear(src_win, count)
     ry._validate_win(src_win)
     ry._validate_uint(count)
 
-    local wintype = vim.fn.win_gettype(src_win)
-    local qf_id = vim.fn.getloclist(src_win, { id = 0 }).id ---@type integer
-    if qf_id == 0 and wintype ~= "loclist" then
+    local qf_id = fn.getloclist(src_win, { id = 0 }).id ---@type integer
+    if qf_id == 0 then
         api.nvim_echo({ { "Window has no location list" } }, false, {})
         return
     end
@@ -270,17 +342,17 @@ function Stack.l_del(src_win, count)
         return
     end
 
-    local cur_list_nr = vim.fn.getloclist(src_win, { nr = 0 }).nr ---@type integer
+    local cur_list_nr = fn.getloclist(src_win, { nr = 0 }).nr ---@type integer
     if (result == cur_list_nr) and vim.g.qfr_auto_list_height then
         Stack._resize_after_change(src_win)
     end
 end
 
----Delete the quickfix stack. If g:qfr_close_on_stack_clear is true, close
+---Clear the quickfix stack. If g:qfr_close_on_stack_clear is true, close
 ---all qfwins in all tabs
 ---@return nil
-function Stack.q_del_all()
-    local result = vim.fn.setqflist({}, "f") ---@type integer
+function Stack.q_clear_all()
+    local result = fn.setqflist({}, "f") ---@type integer
     if result == 0 and vim.g.qfr_close_on_stack_clear then
         local tabpages = api.nvim_list_tabpages() ---@type integer[]
         rw._close_qflists(tabpages)
@@ -290,7 +362,7 @@ end
 -- MAYBE: At least as far as I know, it's not possible for a qf_id to be duplicated in multiple
 -- loclist windows, so avoiding doing anything to handle that case until I see a way to produce it
 --
----Delete a loclist stack. If g:qfr_close_on_stack_clear is true, close
+---Clear a loclist stack. If g:qfr_close_on_stack_clear is true, close
 ---the location list window
 ---NOTE: When a location list stack is freed but the window is not closed,
 ---the qf_id of the location list window is set to zero. When this function
@@ -299,18 +371,18 @@ end
 ---window, it will always run a scan for others to close
 ---@param src_win integer Location list window context
 ---@return nil
-function Stack.l_del_all(src_win)
+function Stack.l_clear_all(src_win)
     ry._validate_win(src_win)
 
-    local wintype = vim.fn.win_gettype(src_win)
-    local qf_id = vim.fn.getloclist(src_win, { id = 0 }).id ---@type integer
+    local wintype = fn.win_gettype(src_win)
+    local qf_id = fn.getloclist(src_win, { id = 0 }).id ---@type integer
     if qf_id == 0 and wintype ~= "loclist" then
         api.nvim_echo({ { "Window has no location list" } }, false, {})
         return
     end
 
-    local result = vim.fn.setloclist(src_win, {}, "f") ---@type integer
-    local should_close = result == 0 and vim.g.qfr_close_on_stack_clear
+    local result = fn.setloclist(src_win, {}, "f") ---@type integer
+    local should_close = result == 0 and vim.g.qfr_close_on_stack_clear ---@type boolean
     if qf_id == 0 or should_close then
         local tabpages = api.nvim_list_tabpages() ---@type integer[]
         rw._close_loclists({ qf_id = 0, tabpages = tabpages })
@@ -372,35 +444,41 @@ function Stack.l_history_cmd(cargs)
     Stack.l_history(win, adj_count)
 end
 
----Qdelete cmd callback. Expects count = 0 and nargs = "?" in the command
+---Qclear cmd callback. Expects count = 0 and nargs = "?" in the command
 ---table
----NOTE: If "all" is provided, any count is overridden
----A count of zero deletes the current list
+---
+---A count of zero clears the current list
+---
+---If "all" (and no other arg) is provided, any count will be overridden and
+---the stack will be cleared
 ---@param cargs vim.api.keyset.create_user_command.command_args
 ---@return nil
-function Stack.q_delete_cmd(cargs)
+function Stack.q_clear_cmd(cargs)
     if cargs.args == "all" then
-        Stack.q_del_all()
+        Stack.q_clear_all()
         return
     end
 
-    Stack.q_del(cargs.count)
+    Stack.q_clear(cargs.count)
 end
 
----Ldelete cmd callback. Expects count = 0 and nargs = "?" in the command
+---Lclear cmd callback. Expects count = 0 and nargs = "?" in the command
 ---table
----NOTE: If "all" is provided, any count is overridden
----A count of zero deletes the current list
+---
+---A count of zero clears the current list
+---
+---If "all" (and no other arg) is provided, any count will be overridden and
+---the stack will be cleared
 ---@param cargs vim.api.keyset.create_user_command.command_args
 ---@return nil
-function Stack.l_delete_cmd(cargs)
+function Stack.l_clear_cmd(cargs)
     local cur_win = api.nvim_get_current_win()
     if cargs.args == "all" then
-        Stack.l_del_all(cur_win)
+        Stack.l_clear_all(cur_win)
         return
     end
 
-    Stack.l_del(cur_win, cargs.count)
+    Stack.l_clear(cur_win, cargs.count)
 end
 
 ---@brief [[
@@ -420,7 +498,7 @@ end
 ---@param src_win integer|nil
 ---@param count integer|nil
 ---@param opts? qfr.stack.GotoHistoryOpts See |qfr.stack.GotoHistoryOpts|
----@return integer
+---@return integer, integer, string|nil
 function Stack._goto_history(src_win, count, opts)
     return goto_history(src_win, count, opts)
 end
@@ -439,16 +517,8 @@ end
 
 return Stack
 
--- MID: Centralize the stack size validity checks in the core logic and return the starting +
--- ending list numbers from there. As is, stack size validity is being needlessly checked
--- multiple times
--- MID: Right now, the outer interface functions are pulling cur_nr to check for resize, letting
--- the inner functions check stack size, then checking nr_after to see if they ran as if cur_nr
--- did not exist. Either the outer interface functions should be treated as pass-throughts,
--- meaning the inner functions need to also return cur_nr, or the outer functions need to perform
--- validation, and the inner functions should assume it is correct
--- If all the actual work happens in the inner functions, they also need to pass up errors for
--- the outer functions to report, rather than burying the echo behavior
+-- MID: Obvious opportunity to outline the error printing logic, but want to see if the module
+-- evolves.
 
 -- LOW: The more clever way to do the history changes is to pass the wrapping math as a param
 -- into a generalized function. Keeping it simple for now though

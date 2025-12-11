@@ -163,19 +163,13 @@ local function set_output_to_list(obj, src_win, action, what, system_opts)
     end
 
     if src_win and orig_src_win ~= src_win then
-        -- MID: It should not be necessary to do this until the buf is opened, however, if we do
-        -- not do this, the window context is not correct for the history and lopen functions
-        -- below. lopen in particular cannot be win-called because the auto-focus logic fails
-        -- (though I suppose that could be fixed/papered-over), and I'm not sure what effects if
-        -- any win_call would have on history. Broader thing to put a pin on as everything in here
-        -- is re-factored is - The various functions need to be able to take in and be responsive
-        -- to context, rather than going along with implicit context
+        -- MID: Set so that lopen has proper window context
         api.nvim_set_current_win(src_win)
     end
 
     if vim.g.qfr_auto_open_changes then
-        local cur_nr = rt._get_list(src_win, { nr = 0 }).nr ---@type integer
-        local nr_after = ra._goto_history(src_win, dest_nr, { silent = true }) ---@type integer
+        ---@type integer, integer, string|nil
+        local cur_nr, nr_after, _ = ra._goto_history(src_win, dest_nr, { silent = true })
         if cur_nr ~= nr_after and vim.g.qfr_auto_list_height then
             ra._resize_after_change(src_win)
         end

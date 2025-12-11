@@ -825,10 +825,10 @@ Modes: { n }, Plug: <Plug>(qfr-qf-newer), Default: "<leader>q]"
 Modes: { n }, Plug: <Plug>(qfr-qf-history), Default: "<leader>qQ"
  Desc: Jump to [count] list in the quickfix stack or view the current list
 
-Modes: { n }, Plug: <Plug>(qfr-qf-del), Default: "<leader>qe"
- Desc: Delete a list from the quickfix stack
+Modes: { n }, Plug: <Plug>(qfr-qf-clear), Default: "<leader>qe"
+ Desc: Clear a list from the quickfix stack
 
-Modes: { n }, Plug: <Plug>(qfr-qf-del-all), Default: "<leader>qE"
+Modes: { n }, Plug: <Plug>(qfr-qf-clear-all), Default: "<leader>qE"
  Desc: Clear the quickfix stack
 
 Modes: { n }, Plug: <Plug>(qfr-ll-older), Default: "<leader>l["
@@ -840,10 +840,10 @@ Modes: { n }, Plug: <Plug>(qfr-ll-newer), Default: "<leader>l]"
 Modes: { n }, Plug: <Plug>(qfr-ll-history), Default: "<leader>lL"
  Desc: Jump to [count] list in the loclist stack or view the current list
 
-Modes: { n }, Plug: <Plug>(qfr-ll-del), Default: "<leader>le"
- Desc: Delete a list from the loclist stack
+Modes: { n }, Plug: <Plug>(qfr-ll-clear), Default: "<leader>le"
+ Desc: Clear a list from the loclist stack
 
-Modes: { n }, Plug: <Plug>(qfr-ll-del-all), Default: "<leader>lE"
+Modes: { n }, Plug: <Plug>(qfr-ll-clear-all), Default: "<leader>lE"
  Desc: Clear the loclist stack
 
 Cmd: Qolder
@@ -959,39 +959,39 @@ Stack.l_history({src_win}, {count}, {opts?})
         (nil)
 
 
-Stack.q_del({count})                                               *Stack.q_del*
+Stack.q_clear({count})                                           *Stack.q_clear*
     If the current list is cleared, and g:qfr_auto_list_height is true, the
     list will be resized
 
     Parameters: ~
-        {count}  (integer) List number to delete. 0 for current
+        {count}  (integer) List number to clear. 0 for current
 
     Returns: ~
         (nil)
 
 
-Stack.l_del({src_win}, {count})                                    *Stack.l_del*
+Stack.l_clear({src_win}, {count})                                *Stack.l_clear*
     If the current list is cleared, and g:qfr_auto_list_height is true, the
     list will be resized
 
     Parameters: ~
         {src_win}  (integer) Location list window context
-        {count}    (integer) List number to delete. 0 for current
+        {count}    (integer) List number to clear. 0 for current
 
     Returns: ~
         (nil)
 
 
-Stack.q_del_all()                                              *Stack.q_del_all*
-    Delete the quickfix stack. If g:qfr_close_on_stack_clear is true, close
+Stack.q_clear_all()                                          *Stack.q_clear_all*
+    Clear the quickfix stack. If g:qfr_close_on_stack_clear is true, close
     all qfwins in all tabs
 
     Returns: ~
         (nil)
 
 
-Stack.l_del_all({src_win})                                     *Stack.l_del_all*
-    Delete a loclist stack. If g:qfr_close_on_stack_clear is true, close
+Stack.l_clear_all({src_win})                                 *Stack.l_clear_all*
+    Clear a loclist stack. If g:qfr_close_on_stack_clear is true, close
     the location list window
     NOTE: When a location list stack is freed but the window is not closed,
     the qf_id of the location list window is set to zero. When this function
@@ -1066,11 +1066,14 @@ Stack.l_history_cmd({cargs})                               *Stack.l_history_cmd*
         (nil)
 
 
-Stack.q_delete_cmd({cargs})                                 *Stack.q_delete_cmd*
-    Qdelete cmd callback. Expects count = 0 and nargs = "?" in the command
+Stack.q_clear_cmd({cargs})                                   *Stack.q_clear_cmd*
+    Qclear cmd callback. Expects count = 0 and nargs = "?" in the command
     table
-    NOTE: If "all" is provided, any count is overridden
-    A count of zero deletes the current list
+
+    A count of zero clears the current list
+
+    If "all" (and no other arg) is provided, any count will be overridden and
+    the stack will be cleared
 
     Parameters: ~
         {cargs}  (vim.api.keyset.create_user_command.command_args)
@@ -1079,11 +1082,14 @@ Stack.q_delete_cmd({cargs})                                 *Stack.q_delete_cmd*
         (nil)
 
 
-Stack.l_delete_cmd({cargs})                                 *Stack.l_delete_cmd*
-    Ldelete cmd callback. Expects count = 0 and nargs = "?" in the command
+Stack.l_clear_cmd({cargs})                                   *Stack.l_clear_cmd*
+    Lclear cmd callback. Expects count = 0 and nargs = "?" in the command
     table
-    NOTE: If "all" is provided, any count is overridden
-    A count of zero deletes the current list
+
+    A count of zero clears the current list
+
+    If "all" (and no other arg) is provided, any count will be overridden and
+    the stack will be cleared
 
     Parameters: ~
         {cargs}  (vim.api.keyset.create_user_command.command_args)
