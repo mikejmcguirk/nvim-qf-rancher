@@ -3,7 +3,7 @@ local fn = vim.fn
 
 local rt = Qfr_Defer_Require("qf-rancher.tools") ---@type QfrTools
 local ru = Qfr_Defer_Require("qf-rancher.util") ---@type QfrUtil
-local rw = Qfr_Defer_Require("qf-rancher.window") ---@type QfrWins
+local rw = Qfr_Defer_Require("qf-rancher.window") ---@type qfr.Window
 local ry = Qfr_Defer_Require("qf-rancher.types") ---@type QfrTypes
 
 ---@param opts? qfr.stack.GotoHistoryOpts

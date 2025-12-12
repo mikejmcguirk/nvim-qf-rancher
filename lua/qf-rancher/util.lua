@@ -377,18 +377,11 @@ function M._protected_set_cursor(win, cur_pos)
     api.nvim_win_set_cursor(win, { row, col })
 end
 
--- TODO: Should return true if the win was closed, false if not. The echo hl should be blank if
--- if failed for an expected reason, like the win being invalid, or ErrorMsg if pcall fails
--- Callers can then use that to determine what is propagated
-
 ---@param win integer
 ---@param force boolean
 ---@return boolean, string|nil, string|nil
 function M._pwin_close(win, force)
-    if vim.g.qfr_debug_assertions then
-        ry._validate_uint(win)
-        vim.validate("force", force, "boolean")
-    end
+    -- No validation. Can be run in loops
 
     if not api.nvim_win_is_valid(win) then
         return false, "Win " .. win .. " is not valid", "ErrorMsg"
@@ -794,6 +787,12 @@ end
 ---@param hl string|nil
 ---@return nil
 function M._echo(silent, msg, hl)
+    if vim.g.qfr_debug_assertions then
+        vim.validate("silent", silent, "boolean", true)
+        vim.validate("msg", msg, "string", true)
+        vim.validate("hl", hl, "string", true)
+    end
+
     if silent then
         return
     end
@@ -801,6 +800,7 @@ function M._echo(silent, msg, hl)
     msg = msg or ""
     hl = hl or ""
     local history = hl == "ErrorMsg" or hl == "WarningMsg" ---@type boolean
+
     api.nvim_echo({ { msg, hl } }, history, {})
 end
 

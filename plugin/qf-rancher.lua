@@ -15,7 +15,7 @@ function _G.Qfr_Defer_Require(require_path)
     })
 end
 
-local rw = Qfr_Defer_Require("qf-rancher.window") ---@type QfrWins
+local rw = Qfr_Defer_Require("qf-rancher.window") ---@type qfr.Window
 
 local api = vim.api
 local fn = vim.fn
@@ -179,14 +179,6 @@ qfr_preview_title_pos = { { "string" }, "left" },
 ---(Default 0) Set the winblend of the preview win (see :h winblend)
 ---@alias qfr_preview_winblend integer
 qfr_preview_winblend = { { "number" }, 0 },
----
----(Default "botright") Set the split the quickfix list opens to
----@alias qfr_qfsplit
----| 'aboveleft'
----| 'belowright'
----| 'topleft'
----| 'botright'
-qfr_qfsplit = { { "string" }, "botright" },
 ---
 ---(Default true) When running a Qfr cmd to gather new entries, look for
 ---destination lists to re-use based on title

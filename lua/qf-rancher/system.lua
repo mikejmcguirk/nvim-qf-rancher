@@ -2,7 +2,7 @@ local ls = Qfr_Defer_Require("qf-rancher.lib.sort") ---@type QfrLibSort
 local ra = Qfr_Defer_Require("qf-rancher.stack") ---@type QfrStack
 local rt = Qfr_Defer_Require("qf-rancher.tools") ---@type QfrTools
 local ru = Qfr_Defer_Require("qf-rancher.util") ---@type QfrUtil
-local rw = Qfr_Defer_Require("qf-rancher.window") ---@type QfrWins
+local rw = Qfr_Defer_Require("qf-rancher.window") ---@type qfr.Window
 local ry = Qfr_Defer_Require("qf-rancher.types") ---@type QfrTypes
 
 local api = vim.api
