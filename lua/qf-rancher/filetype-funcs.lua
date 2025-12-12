@@ -893,6 +893,11 @@ end
 
 return M
 
+-- MID: The relevant cmds this is emulating do not actually fire Quickfix Autocmd events.
+-- There is merit to leaving them in so the user has something to hook into without needing to
+-- define a custom mapping with a callback, but that would need to be documented. What info in
+-- the autocmd would be the most useful?
+
 -- MAYBE: For some of the context switching, eventignore could be useful. But very bad if we error
 -- with that option on
 

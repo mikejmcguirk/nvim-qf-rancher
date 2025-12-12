@@ -324,23 +324,35 @@ end
 -- OPENING AND CLOSING --
 -------------------------
 
+-- TODO: Test that this works the way that it looks like it does. Should be able to handle nested
+-- pcalls properly
+-- MAYBE: Would xpcall work better here? Because then we could explicitly set back spk on error
+
+---NOTE: Uses pcall to avoid hard errors before resetting spk.
 ---@param f function
----@return nil
+---@return any, any, any, any, any, any, any, any, any, any
 function M._with_checked_spk(f)
     if not vim.g.qfr_save_views then
-        f()
-        return
+        return f()
     end
 
     local old_spk = api.nvim_get_option_value("spk", { scope = "global" })
     if old_spk == "screen" or old_spk == "topline" then
-        f()
-        return
+        return f()
     end
 
     api.nvim_set_option_value("spk", "topline", { scope = "global" })
-    pcall(f)
+    local ok, rets = pcall(function()
+        return { f() }
+    end)
+
     api.nvim_set_option_value("spk", old_spk, { scope = "global" })
+
+    if ok then
+        return unpack(rets)
+    else
+        error(rets)
+    end
 end
 
 ---@param win integer
@@ -365,9 +377,13 @@ function M._protected_set_cursor(win, cur_pos)
     api.nvim_win_set_cursor(win, { row, col })
 end
 
+-- TODO: Should return true if the win was closed, false if not. The echo hl should be blank if
+-- if failed for an expected reason, like the win being invalid, or ErrorMsg if pcall fails
+-- Callers can then use that to determine what is propagated
+
 ---@param win integer
 ---@param force boolean
----@return boolean, string|nil
+---@return boolean, string|nil, string|nil
 function M._pwin_close(win, force)
     if vim.g.qfr_debug_assertions then
         ry._validate_uint(win)
@@ -375,18 +391,22 @@ function M._pwin_close(win, force)
     end
 
     if not api.nvim_win_is_valid(win) then
-        return true, nil
+        return false, "Win " .. win .. " is not valid", "ErrorMsg"
     end
 
     local tabpages = api.nvim_list_tabpages() ---@type integer[]
     local win_tabpage = api.nvim_win_get_tabpage(win) ---@type integer
     local win_tabpage_wins = api.nvim_tabpage_list_wins(win_tabpage) ---@type integer[]
     if #tabpages == 1 and #win_tabpage_wins == 1 then
-        return true, nil
+        return false, "Cannot close the last window", ""
     end
 
     local ok, result = pcall(api.nvim_win_close, win, force) ---@type boolean, nil
-    return ok, result
+    if ok then
+        return ok, result, nil
+    else
+        return ok, result, "ErrorMsg"
+    end
 end
 
 ---@param buf integer
@@ -633,6 +653,7 @@ end
 
 ---If opts.src_win is provided, opts.qf_id will be overridden
 ---If opts.tabpages is omitted, current tabpage will be used
+---If neither src_win nor qf_id are provided, all loclists within the tabpages will be closed
 ---@param opts? qfr.util.FindLoclistWinOpts
 ---@return integer[]
 function M._find_ll_wins(opts)
@@ -737,9 +758,11 @@ function M._locwin_check(win, todo)
     return todo()
 end
 
+-- TODO: Should propagate msg
 -- MID: Error should not be printed here
 -- MID: Why would this function be able to accept a nil win at all? Feels like something the
 -- caller should handle
+
 ---@param win integer
 ---@return boolean
 function M._is_valid_loclist_win(win)
@@ -757,6 +780,28 @@ function M._is_valid_loclist_win(win)
     local text = "Window " .. win .. " with type " .. wintype .. " cannot contain a location list"
     api.nvim_echo({ { text, "ErrorMsg" } }, true, { err = true })
     return false
+end
+
+-- TODO: Move all error echoes to here.
+-- - Standardizes error propagation
+-- - Reduce boilerplate handling silent opts
+-- - Outlines resolution of echo args
+--   - Including nil resolution
+-- - In partiular, this allows the hl to function implicitly as an Error code, providing a
+-- common method for parsing error output
+---@param silent boolean
+---@param msg string|nil
+---@param hl string|nil
+---@return nil
+function M._echo(silent, msg, hl)
+    if silent then
+        return
+    end
+
+    msg = msg or ""
+    hl = hl or ""
+    local history = hl == "ErrorMsg" or hl == "WarningMsg" ---@type boolean
+    api.nvim_echo({ { msg, hl } }, history, {})
 end
 
 return M

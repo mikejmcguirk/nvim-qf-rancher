@@ -51,28 +51,33 @@ local function open_cleanup(keep_win, cur_win)
     return true
 end
 
--- TODO: This should be configurable behavior
---
+-- TODO: Document an actual data type for opts
+
 ---@param list_win integer
 ---@param cur_win integer
+---@param tabpage integer
+---@param opts? table
 ---@return integer|nil
-local function get_alt_win(list_win, cur_win)
-    ry._validate_win(list_win)
-    ry._validate_win(cur_win)
+local function resolve_alt_win(list_win, cur_win, tabpage, opts)
+    opts = opts or {}
+    if vim.g.qfr_debug_assertions then
+        ry._validate_win(list_win)
+        ry._validate_win(cur_win)
+        ry._validate_uint(tabpage)
+        vim.validate("opts", opts, "table")
+    end
 
     if list_win ~= cur_win then
         return nil
     end
 
-    ---@type string
-    local switchbuf = api.nvim_get_option_value("switchbuf", { scope = "global" })
-    if not string.find(switchbuf, "uselast", 1, true) then
+    if not opts.use_alt_win then
         return nil
     end
 
-    -- TODO: Might need to be called in some kind of context
-    local alt_winnr = fn.winnr("#") ---@type integer
-    return fn.win_getid(alt_winnr)
+    local tabnr = api.nvim_tabpage_get_number(tabpage) ---@type integer
+    local winnr = fn.tabpagewinnr(tabnr, "#") ---@type integer
+    return winnr
 end
 
 ---@mod Window Open, close, and resize list wins
@@ -137,6 +142,16 @@ end
 -- Adds a bit of conceptual complexity, but saves complexity downstream because concerns are
 -- separated, and then the behaviors can be grouped together into easily followed functions
 
+---@return integer|nil, integer, integer
+function Window.get_qf_ctx(opts)
+    opts = opts or {}
+
+    local cur_win = opts.cur_win or api.nvim_get_current_win() ---@type integer
+    local tabpage = api.nvim_win_get_tabpage(cur_win) ---@type integer
+    local list_win = ru._find_qf_win({ tabpage }) ---@type integer|nil
+    return list_win, cur_win, tabpage
+end
+
 -- TODO: Actually write the functions first before baking in the opt types
 --
 ---@class qfr.window.OpenOpts
@@ -153,9 +168,8 @@ end
 -- TODO: Do you outline this and return cur_win, tabpage, list_win?
 --
 function Window.open_qf(opts)
-    local cur_win = api.nvim_get_current_win() ---@type integer
-    local tabpage = api.nvim_win_get_tabpage(cur_win) ---@type integer
-    local list_win = ru._find_qf_win({ tabpage }) ---@type integer|nil
+    ---@type integer|nil, integer, integer
+    local list_win, cur_win, tabpage = Window.get_qf_ctx()
     if list_win then
         -- TODO: would add stuff here
         return
@@ -164,49 +178,65 @@ function Window.open_qf(opts)
     Window.do_open_qf(cur_win, tabpage, opts)
 end
 
+-- TODO: This might apply to the stack context too - Are the user facing and remote control
+-- contexts inseverable?
+-- Upon thinking - I don't think separating them is actually a good idea. The stack module is
+-- instructive. By creating older/newer and such for qf/ll, it just creates a kind of combinatorial
+-- bloat. And it spreads me thinner. In that case, you can control the user facing vs remote
+-- control behaviors with opts. And I think the same applies here. Though the use cases here are
+-- a bit harder to parse through
 -- TODO: Similar to above, do you outline the step?
---
-function Window.close_qf()
-    local cur_win = api.nvim_get_current_win() ---@type integer
-    local tabpage = api.nvim_win_get_tabpage(cur_win) ---@type integer
-    local list_win = ru._find_qf_win({ tabpage }) ---@type integer|nil
-    if list_win then
-        Window.do_close_qf(list_win, cur_win, tabpage)
+
+--- If opts.qf_win and opts.tabpage are both provided, qf_win takes priority
+function Window.close_qf(opts)
+    opts = opts or {}
+    vim.validate("opts", opts, "table")
+
+    opts = function()
+        if opts.qf_win then
+            local wintype = fn.win_gettype(opts.qf_win)
+            if wintype == "quickfix" then
+                opts.tabpage = api.nvim_win_get_tabpage(opts.qf_win)
+                return
+            end
+
+            -- TODO: DO you print a warning here gated behind a silent opt?
+            opts.qf_win = nil
+        end
+
+        if opts.tabpage then
+            opts.qf_win = ru._find_qf_win({ opts.tabpage })
+        end
+    end
+
+    if not opts.qf_win then
+        ru._echo(opts.silent, "No valid qf win found", "")
         return
+    end
+
+    ---@type boolean, string|nil, string|nil
+    local ok, err, hl = Window.do_close_qf(list_win, cur_win, tabpage)
+    if not ok then
+        ru._echo(err, hl)
     end
 end
 
--- TODO: Where are messages/results handled here? With the stack module, they were propagated up
--- because resize_after_stack_change was a common behavior. Here, we can either keep_win or
--- use the alt_win target. I'm less concerned about propagating up because we aren't doing
--- toggle resolution. Another reason propagated error handling works in the stack module is
--- because qf/ll logic cleanly combines in the stack module. Here I'm not sure it does.
--- I also, conceptually, want to avoid complexity with the depth of the logic because of the
--- checked_spk calls. Not strictly relevant now, but it just seems cleaner here to follow a
--- pure chain of responsibility for any particular behavior, though that is somewhat complicated
--- by the validity checks
--- An idea to experiment with - What if creating interfaces isn't pre-mature. Imagine if
--- get_current_win() didn't exist. You would have to get the current tabpage, then iterate though
--- the tabpage wins and use some indicator to find the current win. You would obviously, and
--- immediately, abstract this logic. More complicated - pwin_close or get_input
--- What are data abstractions vs. conceptual abstractions? Do conceptual abstractions
--- actually exist? Or are "conceptual abstractions" just collections of data abstractions?
-function Window.do_close_qf(qf_win, cur_win, tabpage)
-    local tabpages = api.nvim_list_tabpages() ---@type integer[]
-    local tabpage_wins = api.nvim_tabpage_list_wins(tabpage) ---@type integer[]
-    if #tabpages == 1 and #tabpage_wins == 1 then
-        api.nvim_echo({ { "Cannot close the last window" } }, false, {})
-        return false
-    end
-
-    local exit_win = get_alt_win(qf_win, cur_win) ---@type integer|nil
-    ru._with_checked_spk(function()
-        api.nvim_cmd({ cmd = "cclose" }, {})
+---@return boolean, string|nil, string|nil
+function Window.do_close_qf(qf_win, cur_win, tabpage, opts)
+    local exit_win = resolve_alt_win(qf_win, cur_win, tabpage, opts)
+    local ok, err, hl = ru._with_checked_spk(function()
+        ru._pwin_close(qf_win, true)
     end)
 
-    if exit_win and api.nvim_win_is_valid(exit_win) then
+    if not ok then
+        ru._echo(err, hl)
+    end
+
+    if exit_win and exit_win ~= 0 and api.nvim_win_is_valid(exit_win) then
         api.nvim_set_current_win(exit_win)
     end
+
+    return true, nil, nil
 end
 
 function Window.toggle_qf()
@@ -245,14 +275,9 @@ function Window.qwin(opts)
     end
 end
 
+-- TODO: Need more opts management but this is a start
 function Window.do_open_qf(cur_win, tabpage, opts)
-    local ll_wins = ru._find_ll_wins({ tabpages = { tabpage } }) ---@type integer[]
-    for _, ll_win in ipairs(ll_wins) do
-        ru._with_checked_spk(function()
-            ru._pwin_close(ll_win, true)
-        end)
-    end
-
+    Window._close_loclists({ tabpages = { tabpage } })
     local height = resolve_height_for_list(nil, opts.height) ---@type integer
     ru._with_checked_spk(function()
         ---@diagnostic disable: missing-fields
@@ -369,7 +394,7 @@ function Window.close_qflist()
         return false
     end
 
-    local exit_win = get_alt_win(qf_win, cur_win) ---@type integer|nil
+    local exit_win = resolve_alt_win(qf_win, cur_win) ---@type integer|nil
     ru._with_checked_spk(function()
         api.nvim_cmd({ cmd = "cclose" }, {})
     end)
@@ -418,7 +443,8 @@ function Window.close_loclist(src_win)
 
     local cur_win = api.nvim_get_current_win() ---@type integer
     ---@type integer|nil
-    local exit_win = vim.tbl_contains(ll_wins, cur_win) and get_alt_win(cur_win, cur_win) or nil
+    local exit_win = vim.tbl_contains(ll_wins, cur_win) and resolve_alt_win(cur_win, cur_win)
+        or nil
 
     ru._with_checked_spk(function()
         api.nvim_win_call(src_win, function()
@@ -528,6 +554,8 @@ function Window._open_list(src_win, opts)
         return Window.open_qflist(opts)
     end
 end
+
+-- TODO: deprecate once removed from ftplugin
 
 ---@param src_win? integer
 ---@return nil

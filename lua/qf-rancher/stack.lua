@@ -517,6 +517,9 @@ end
 
 return Stack
 
+-- TODO: Get rid of the q_ an l_ APIs and just run it all through goto_history and change_history
+-- I think for the cmds you still need to have them separate but can look at that too
+
 -- MID: Obvious opportunity to outline the error printing logic, but want to see if the module
 -- evolves.
 

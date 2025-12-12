@@ -329,6 +329,8 @@ if vim.g.qfr_set_default_cmds then
     end
 end
 
+-- TODO: Check all TODO comments and make sure they are not connected to functions or exported
+-- definitions. Lua_Ls includes them in hover info
 -- TODO: Organize the modules so that the actual exported module tables start where the
 -- user-facing functions start, rather than at the locals, and then the underline functions
 -- should be after the doc export

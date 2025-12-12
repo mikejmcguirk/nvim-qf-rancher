@@ -100,6 +100,8 @@ local ll = "<leader>" .. lp ---@type string
 local ip = in_loclist and lp or qp
 local il = in_loclist and ll or ql
 
+-- TODO: Once Window refactor is done, call either close_ll or close_qf based on in_loclist
+-- The the win type is something the caller should know
 for _, lhs in ipairs({ il .. ip, "q" }) do
     vim.keymap.set("n", lhs, function()
         eo._close_list(in_loclist and api.nvim_get_current_win() or nil)
