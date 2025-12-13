@@ -204,17 +204,6 @@ qfr_preview_winblend                                      *qfr_preview_winblend*
         integer
 
 
-qfr_qfsplit                                                        *qfr_qfsplit*
-
-    (Default "botright") Set the split the quickfix list opens to
-
-    Variants: ~
-        ("aboveleft")
-        ("belowright")
-        ("topleft")
-        ("botright")
-
-
 qfr_reuse_title                                                *qfr_reuse_title*
 
     (Default true) When running a Qfr cmd to gather new entries, look for
@@ -294,12 +283,62 @@ Open, close, and resize list wins                                       *Window*
                                                                     *qfr-window*
 
 
-QfrListOpenOpts                                                *QfrListOpenOpts*
+qfr.window.OpenOpts                                        *qfr.window.OpenOpts*
 
     Fields: ~
-        {height?}       (integer) Height the list should be set to
-        {keep_win?}     (boolean) Stay in current window when opening the list?
-        {nop_if_open?}  (boolean) Do not print messages or focus on the list win
+        {height?}       (integer) List height to open to
+        {keep_height?}  (boolean) Keep current height for already open lists
+        {keep_win?}     (boolean) Stay in the win the cmd is executed from
+        {split?}        (""|"botright"|"topleft"|"belowright"|"aboveleft")
+
+
+Window.open_qf_win({opts?})                                 *Window.open_qf_win*
+
+    Parameters: ~
+        {opts?}  (qfr.window.OpenOpts)
+
+    Returns: ~
+        (nil)
+
+
+qfr.window.CloseOpts                                      *qfr.window.CloseOpts*
+
+    Fields: ~
+        {qf_win?}       (integer) Qf win to close (overrides tabpage opt)
+        {silent?}       (boolean) Suppress messages
+        {tabpage?}      (integer) Tabpage to close a qf win in
+        {use_alt_win?}  (boolean) Go to the alternate window after closing?
+
+
+Window.close_qf_win({opts})                                *Window.close_qf_win*
+
+    Parameters: ~
+        {opts}  (qfr.window.CloseOpts)
+
+    Returns: ~
+        (nil)
+
+
+qfr.window.ToggleOpts                                    *qfr.window.ToggleOpts*
+
+    Fields: ~
+        {height?}       (integer) List height to open to
+        {keep_win?}     (boolean) On open, stay in the win the cmd is executed from
+        {silent?}       (boolean) Suppress messages
+        {split?}        (""|"botright"|"topleft"|"belowright"|"aboveleft")
+        {use_alt_win?}  (boolean) On close, go to the alternate window
+
+
+Window.toggle_qf({opts})                                      *Window.toggle_qf*
+
+    Parameters: ~
+        {opts}  (qfr.window.ToggleOpts)
+
+    Returns: ~
+        (nil)
+
+
+Window.qwin()                                                      *Window.qwin*
 
 
 Window.open_qflist({opts})                                  *Window.open_qflist*
