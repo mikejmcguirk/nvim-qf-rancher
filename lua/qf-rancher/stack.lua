@@ -3,7 +3,7 @@ local fn = vim.fn
 
 local rt = Qfr_Defer_Require("qf-rancher.tools") ---@type QfrTools
 local ru = Qfr_Defer_Require("qf-rancher.util") ---@type QfrUtil
-local rw = Qfr_Defer_Require("qf-rancher.window") ---@type QfrWins
+local rw = Qfr_Defer_Require("qf-rancher.window") ---@type qf-rancher.Window
 local ry = Qfr_Defer_Require("qf-rancher.types") ---@type QfrTypes
 
 ---@param opts? qfr.stack.GotoHistoryOpts
@@ -355,7 +355,7 @@ function Stack.q_clear_all()
     local result = fn.setqflist({}, "f") ---@type integer
     if result == 0 and vim.g.qfr_close_on_stack_clear then
         local tabpages = api.nvim_list_tabpages() ---@type integer[]
-        rw._close_qflists(tabpages)
+        rw._close_qf_wins(tabpages)
     end
 end
 
@@ -385,7 +385,7 @@ function Stack.l_clear_all(src_win)
     local should_close = result == 0 and vim.g.qfr_close_on_stack_clear ---@type boolean
     if qf_id == 0 or should_close then
         local tabpages = api.nvim_list_tabpages() ---@type integer[]
-        rw._close_loclists({ qf_id = 0, tabpages = tabpages })
+        rw._close_ll_wins({ qf_id = 0, tabpages = tabpages })
     end
 end
 
@@ -508,14 +508,17 @@ end
 function Stack._resize_after_change(src_win)
     if src_win then
         local tabpage = api.nvim_win_get_tabpage(src_win) ---@type integer
-        rw._resize_loclists({ src_win = src_win, tabpages = { tabpage } })
+        rw._resize_ll_wins({ src_win = src_win, tabpages = { tabpage } })
     else
         local tabpages = api.nvim_list_tabpages() ---@type integer[]
-        rw._resize_qflists(tabpages)
+        rw._resize_qf_wins(tabpages)
     end
 end
 
 return Stack
+
+-- TODO: Get rid of the q_ an l_ APIs and just run it all through goto_history and change_history
+-- I think for the cmds you still need to have them separate but can look at that too
 
 -- MID: Obvious opportunity to outline the error printing logic, but want to see if the module
 -- evolves.

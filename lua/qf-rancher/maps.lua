@@ -25,7 +25,7 @@ local ri = maps_defer_require("qf-rancher.filetype-funcs") ---@type QfRancherFil
 local rn_str = "nav" ---@type string
 local rn = maps_defer_require("qf-rancher." .. rn_str) ---@type QfRancherNav
 local rw_str = "window" ---@type string
-local rw = maps_defer_require("qf-rancher." .. rw_str) ---@type QfrWins
+local rw = maps_defer_require("qf-rancher." .. rw_str) ---@type qf-rancher.Window
 local rr = maps_defer_require("qf-rancher.preview") ---@type QfRancherPreview
 local rs_str = "sort" ---@type string
 local rs = maps_defer_require("qf-rancher." .. rs_str) ---@type QfRancherSort
@@ -107,26 +107,40 @@ M.bufevent_tbls = {} ---@type QfrMapData[][]
 M.cmd_tbls = {} ---@type QfrCmdData[][]
 M.doc_tbls = {} ---@type { [1]: string, [2]:QfrMapData[], [3]: QfrCmdData[] }[]
 
+-- TODO: Unsure if you can pass vim.v.count directly to resize_list_win. Feels like a more useful interface if you could pass it and it would treat zero like nil, rather than having to manually
+-- resolve it
+
+-- MAYBE: Since the on_list callbacks are the same for the maps and the cmds, perhaps it's worth it to outline them somewhere.
+
+-- stylua: ignore
+local open_on_list = function(qf_win, _) rw._resize_list_win(qf_win, vim.v.count) vim.api.nvim_set_current_win(qf_win) end
+
+-- TODO: Re-format after the maps and cmds are updated here
+
 -- stylua: ignore
 ---@type QfrMapData[]
 M.qfr_win_maps = {
-{ nn, "<Plug>(qfr-open-qf-list)",     ql.."p", "Open the quickfix list to [count] height (focus if already open)", function() rw.open_qflist({ height = vim.v.count }) end },
-{ nn, "<Plug>(qfr-close-qf-list)",    ql.."o", "Close the quickfix list",                                          function() rw.close_qflist() end },
-{ nn, "<Plug>(qfr-toggle-qf-list)",   ql..qp,  "Toggle the quickfix list (count sets height on open)",             function() rw.toggle_qflist({})  end },
-{ nn, "<Plug>(qfr-open-loclist)",     ll.."p", "Open the location list to [count] height (focus if already open)", function() rw.open_loclist(cur_win(), { height = vim.v.count }) end },
-{ nn, "<Plug>(qfr-close-loclist)",    ll.."o", "Close the location list",                                          function() rw.close_loclist(cur_win()) end },
-{ nn, "<Plug>(qfr-toggle-loclist)",   ll..lp,  "Toggle the location list (count sets height on open)",             function() rw.toggle_loclist(cur_win(), {}) end },
+{ nn, "<Plug>(qfr-open-qf-list)",     ql.."p", "Open the quickfix list to [count] height (focus if already open)", function() rw.open_qf_win({ height = vim.v.count, on_list = open_on_list }) end },
+{ nn, "<Plug>(qfr-close-qf-list)",    ql.."o", "Close the quickfix list",                                          function() rw.close_qf_win({ use_alt_win = true }) end },
+{ nn, "<Plug>(qfr-toggle-qf-list)",   ql..qp,  "Toggle the quickfix list (count sets height on open)",             function() rw.q_toggle(vim.v.count) end },
+{ nn, "<Plug>(qfr-qf-window)",   ql.."w",  "Toggle the quickfix list based on recognized errors (count sets height on open)",             function() rw.q_window(vim.v.count) end },
+{ nn, "<Plug>(qfr-open-loclist)",     ll.."p", "Open the location list to [count] height (focus if already open)", function() rw.open_ll_win({ height = vim.v.count, on_list = open_on_list }) end },
+{ nn, "<Plug>(qfr-close-loclist)",    ll.."o", "Close the location list",                                          function() rw.close_ll_win(cur_win(), { use_alt_win = true }) end },
+{ nn, "<Plug>(qfr-toggle-loclist)",   ll..lp,  "Toggle the location list (count sets height on open)",             function() rw.l_toggle(vim.v.count) end },
+{ nn, "<Plug>(qfr-ll-window)",        ll.."w",  "Toggle the location list based on recognized errors (count sets height on open)",             function() rw.l_window(vim.v.count) end },
 }
 
 -- stylua: ignore
 ---@type QfrCmdData[]
 M.qfr_win_cmds = {
-{ "Qopen",   function(cargs) rw.open_qflist_cmd(cargs) end,    { count = 0, desc = "Open the quickfix list to [count] height (focus if already open)" } },
-{ "Qclose",  function() rw.close_qflist_cmd() end,             { desc = "Close the Quickfix list" } },
-{ "Qtoggle", function(cargs) rw.toggle_qflist_cmd(cargs) end,  { count = 0, desc = "Toggle the quickfix list (count sets height on open)" } },
-{ "Lopen",   function(cargs) rw.open_loclist_cmd(cargs) end,   { count = 0, desc = "Open the location list to [count] height (focus if already open)" } },
-{ "Lclose",  function() rw.close_loclist_cmd() end,            { desc = "Close the location List" } },
-{ "Ltoggle", function(cargs) rw.toggle_loclist_cmd(cargs) end, { count = 0, desc = "Toggle the location list (count sets height on open)" } },
+{ "Qopen",   function(cargs) rw.q_open_cmd(cargs) end,    { count = 0, desc = "Open the quickfix list to [count] height (focus if already open)" } },
+{ "Qclose",  function() rw.q_close_cmd() end,             { desc = "Close the Quickfix list" } },
+{ "Qtoggle", function(cargs) rw.q_toggle_cmd(cargs) end,  { count = 0, desc = "Toggle the quickfix list (count sets height on open)" } },
+{ "Qwindow", function(cargs) rw.q_window_cmd(cargs) end,  { count = 0, desc = "Toggle the quickfix list based on recognized errors (count sets height on open)" } },
+{ "Lopen",   function(cargs) rw.l_open_cmd(cargs) end,   { count = 0, desc = "Open the location list to [count] height (focus if already open)" } },
+{ "Lclose",  function() rw.l_close_cmd() end,            { desc = "Close the location List" } },
+{ "Ltoggle", function(cargs) rw.l_toggle_cmd(cargs) end, { count = 0, desc = "Toggle the location list (count sets height on open)" } },
+{ "Lwindow", function(cargs) rw.l_window_cmd(cargs) end,  { count = 0, desc = "Toggle the location list based on recognized errors (count sets height on open)" } },
 }
 
 M.plug_tbls[#M.plug_tbls + 1] = M.qfr_win_maps
@@ -457,3 +471,7 @@ M.default_masks = {
 }
 
 return M
+
+-- MID: Update qfr to qf-rancher in plug names
+-- MID: For deferred keymaps, could add an option to control the event(s) or
+-- if there should be an event at all

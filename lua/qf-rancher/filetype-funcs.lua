@@ -4,7 +4,7 @@ local fn = vim.fn
 local rt = Qfr_Defer_Require("qf-rancher.tools") ---@type QfrTools
 local ru = Qfr_Defer_Require("qf-rancher.util") ---@type QfrUtil
 local ry = Qfr_Defer_Require("qf-rancher.types") ---@type QfrTypes
-local rw = Qfr_Defer_Require("qf-rancher.window") ---@type QfrWins
+local rw = Qfr_Defer_Require("qf-rancher.window") ---@type qf-rancher.Window
 
 --- @class QfRancherFiletypeFuncs
 local M = {}
@@ -103,14 +103,24 @@ local function handle_orphan(list_win, dest_win, finish)
     end
 
     local stack = rt._get_stack(list_win) ---@type QfrWhat[]
-    rw._close_win_save_views(list_win)
+    ru._with_checked_spk(function()
+        ru._pwin_close(list_win, true)
+    end)
+
     rt._set_stack(dest_win, stack)
 
-    -- open_loclist uses :lopen, so must set win for proper context
-    -- LOW: Does win_call provide proper context? Does it actually help the logic at all?
+    -- open_ll_win uses :lopen, so must set win for proper context
     api.nvim_set_current_win(dest_win)
-    rw.open_loclist(dest_win, { keep_win = finish == "focusWin" })
+    local opts = {} ---@type qf-rancher.window.OpenOpts
+    if finish == "focusWin" then
+        opts.on_open = function(_)
+            api.nvim_set_current_win(dest_win)
+        end
+    end
 
+    rw.open_ll_win(opts)
+
+    -- TODO: This might be a valid use of debug_assertions
     if vim.g.qfr_debug_assertions then
         local cur_win = api.nvim_get_current_win() ---@type integer
         if finish == "focusWin" then
@@ -889,6 +899,11 @@ function M._open_next_focuslist()
 end
 
 return M
+
+-- MID: The relevant cmds this is emulating do not actually fire Quickfix Autocmd events.
+-- There is merit to leaving them in so the user has something to hook into without needing to
+-- define a custom mapping with a callback, but that would need to be documented. What info in
+-- the autocmd would be the most useful?
 
 -- MAYBE: For some of the context switching, eventignore could be useful. But very bad if we error
 -- with that option on

@@ -511,7 +511,7 @@ function Types._validate_input_opts(input_opts)
     vim.validate("input_opts.pattern", input_opts.pattern, "string", true)
 end
 
----@class qfr.util.FindLoclistWinOpts
+---@class qf-rancher.util.FindLoclistWinOpts
 ---@field tabpages? integer[]
 ---@field src_win? integer
 ---@field qf_id? integer
