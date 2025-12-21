@@ -101,11 +101,6 @@ function Types._validate_what(what)
     Types._validate_uint(what.id, true)
     Types._validate_uint(what.idx, true)
     vim.validate("what.items", what.items, "table", true)
-    if vim.g.qfr_debug_assertions and type(what.items) == "table" then
-        for _, item in ipairs(what.items) do
-            Types._validate_list_item(item)
-        end
-    end
 
     Types._validate_list(what.lines, { optional = true, item_type = "string" })
 
@@ -258,31 +253,6 @@ function Types._validate_list(list, opts)
             return #list == opts.len
         end, "List length must be " .. opts.len)
     end
-
-    if opts.item_type and vim.g.qfr_debug_assertions then
-        vim.validate("list", list, function()
-            for _, value in ipairs(list) do
-                if type(value) ~= opts.item_type then
-                    return false
-                end
-            end
-
-            return true
-        end, "List values must be type " .. opts.item_type)
-    end
-end
-
----@param cur_pos {[1]: integer, [2]: integer}
----@return nil
-function Types._validate_cur_pos(cur_pos)
-    Types._validate_list(cur_pos, { len = 2, item_type = "number" })
-
-    Types._validate_uint(cur_pos[1])
-    vim.validate("row", cur_pos[1], function()
-        return cur_pos[1] >= 1
-    end, "Cursor row must be >= 1")
-
-    Types._validate_uint(cur_pos[2])
 end
 
 -- MID: This and the utils module are getting bigger, and another split will be necessary
@@ -420,15 +390,6 @@ function Types._validate_title_pos(pos)
     end)
 end
 
----@param winblend integer
----@return nil
-function Types._validate_winblend(winblend)
-    Types._validate_uint(winblend)
-    vim.validate("winblend", winblend, function()
-        return winblend >= 0 and winblend <= 100
-    end, false, "Winblend is not between 0 and 100")
-end
-
 -- =============================
 -- == CUSTOM TYPES -- GENERAL ==
 -- =============================
@@ -516,18 +477,6 @@ end
 ---@field skip_set_cur_pos? boolean
 ---@field skip_zzze? boolean
 ---@field win? integer
-
----@param opts qf-rancher.types.BufOpenOpts
----@return nil
-function Types._validate_open_buf_opts(opts)
-    vim.validate("opts", opts, "table")
-    vim.validate("opts.buftype", opts.buftype, "string", true)
-    vim.validate("opts.clearjumps", opts.clearjumps, "boolean", true)
-    vim.validate("opts.focus", opts.focus, "boolean", true)
-    vim.validate("opts.skip_set_cur_pos", opts.skip_set_cur_pos, "boolean", true)
-    vim.validate("opts.skip_zzze", opts.skip_zzze, "boolean", true)
-    Types._validate_win(opts.win, true)
-end
 
 -- =========================
 -- == CUSTOM TYPES - DIAG ==
@@ -621,19 +570,8 @@ end
 
 ---@alias QfrSplitType "none"|"split"|"tabnew"|"vsplit"
 
-local valid_splits = { "none", "split", "tabnew", "vsplit" }
-
 ---@alias QfrFinishMethod "focusList"|"focusWin"
 local valid_finishes = { "focusList", "focusWin" }
-
----@param split QfrSplitType
----@return nil
-function Types._validate_split(split)
-    vim.validate("split", split, "string")
-    vim.validate("split", split, function()
-        return vim.tbl_contains(valid_splits, split)
-    end, "Split type of " .. split .. " is invalid")
-end
 
 ---@param finish QfrFinishMethod
 ---@return nil
@@ -664,5 +602,7 @@ Types._sync_opts = { "sync", "async" }
 Types._default_sync_opt = "async"
 
 return Types
+
+-- TODO: Stuff that's only used in one module needs to be moved to the module it's used in
 
 -- LOW: Create a type and validation for getqflist returns

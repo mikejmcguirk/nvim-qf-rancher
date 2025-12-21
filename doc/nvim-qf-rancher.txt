@@ -93,16 +93,6 @@ qfr_create_loclist_autocmds                        *qfr_create_loclist_autocmds*
         boolean
 
 
-qfr_debug_assertions                                      *qfr_debug_assertions*
-
-    (Default false) Enables extra type checking and logical assertions. This
-    can affect performance, as individual list items will have extra
-    validation
-
-    Type: ~
-        boolean
-
-
 qfr_always_keep_topline                                *qfr_always_keep_topline*
 
     (Default true) Temporarily set splitkeep to topline when

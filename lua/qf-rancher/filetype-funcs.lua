@@ -91,12 +91,6 @@ end
 ---@param finish QfrFinishMethod
 ---@return nil
 local function handle_orphan(list_win, dest_win, finish)
-    if vim.g.qfr_debug_assertions then
-        ry._validate_list_win(list_win)
-        ry._validate_win(dest_win)
-        ry._validate_finish(finish)
-    end
-
     local dest_win_qf_id = fn.getloclist(dest_win, { id = 0 }).id ---@type integer
     if dest_win_qf_id > 0 then
         return
@@ -119,18 +113,6 @@ local function handle_orphan(list_win, dest_win, finish)
     end
 
     rw.open_ll_win(opts)
-
-    -- TODO: This might be a valid use of debug_assertions
-    if vim.g.qfr_debug_assertions then
-        local cur_win = api.nvim_get_current_win() ---@type integer
-        if finish == "focusWin" then
-            assert(cur_win == dest_win)
-        end
-
-        if finish == "focusList" then
-            assert(fn.win_gettype(cur_win) == "loclist")
-        end
-    end
 end
 
 ---@param buf integer
@@ -174,12 +156,6 @@ end
 ---@param opts QfrFindWinInTabOpts
 ---@return integer|nil
 local function find_win_in_tab(tabnr, dest_bt, opts)
-    if vim.g.qfr_debug_assertions then
-        ry._validate_uint(tabnr)
-        vim.validate("dest_buftype", dest_bt, "string")
-        ry._validate_find_win_in_tab_opts(opts)
-    end
-
     local max_winnr = fn.tabpagewinnr(tabnr, "$") ---@type integer
     local skip_winnr = opts.skip_winnr ---@type integer|nil
     for i = 1, max_winnr do
@@ -215,12 +191,6 @@ end
 -- ---@param but integer?
 -- ---@return integer|nil
 -- local function find_win_in_tab(tabnr, winnrs, dest_bt, buf)
---     if vim.g.qfr_debug_assertions then
---         ry._validate_uint(tabnr)
---         ry._validate_list(winnrs, { type = "number" })
---         vim.validate("dest_buftype", dest_bt, "string")
---         ry._validate_uint(buf, true)
---     end
 --
 --     for _, n in ipairs(winnrs) do
 --         local win = fn.win_getid(n, tabnr)
@@ -260,12 +230,6 @@ end
 ---@param buf integer|nil
 ---@return integer|nil
 local function find_win_in_tabs(list_tabnr, dest_buftype, buf)
-    if vim.g.qfr_debug_assertions then
-        ry._validate_uint(list_tabnr)
-        vim.validate("dest_buftype", dest_buftype, "string")
-        ry._validate_uint(buf, true)
-    end
-
     local test_tabnr = list_tabnr ---@type integer
     local max_tabnr = fn.tabpagenr("$") ---@type integer
     for _ = 1, 100 do
@@ -295,12 +259,6 @@ end
 ---@param opts QfrFindWinInTabOpts
 ---@return integer|nil
 local function find_win_in_tab_reverse(tabnr, dest_buftype, opts)
-    if vim.g.qfr_debug_assertions then
-        ry._validate_uint(tabnr)
-        vim.validate("dest_buftype", dest_buftype, "string")
-        ry._validate_find_win_in_tab_opts(opts)
-    end
-
     local max_winnr = fn.tabpagewinnr(tabnr, "$") ---@type integer
     local fin_winnr = opts.fin_winnr or 1 ---@type integer
     local test_winnr = fin_winnr ---@type integer
@@ -331,10 +289,6 @@ end
 ---@param dest_buftype string
 ---@return integer|nil
 local function get_vcount_win_id(dest_buftype)
-    if vim.g.qfr_debug_assertions then
-        vim.validate("dest_buftype", dest_buftype, "string")
-    end
-
     if vim.v.count < 1 then
         return nil
     end
@@ -371,12 +325,6 @@ end
 ---@param split QfrSplitType
 ---@param list_win integer
 local function get_resolved_split_win(dest_win, split, list_win)
-    if vim.g.qfr_debug_assertions then
-        ry._validate_win(dest_win, true)
-        ry._validate_list_win(list_win)
-        ry._validate_split(split)
-    end
-
     if dest_win and split == "none" then
         return dest_win
     end
@@ -407,12 +355,6 @@ end
 ---@param split QfrSplitType
 ---@return integer|nil
 local function get_help_win_ext(list_tabnr, list_winnr, split)
-    if vim.g.qfr_debug_assertions then
-        ry._validate_uint(list_tabnr)
-        ry._validate_uint(list_winnr)
-        ry._validate_split(split)
-    end
-
     local other_help_win = find_win_in_tab(list_tabnr, "help", { skip_winnr = list_winnr })
     if other_help_win then
         return other_help_win
@@ -438,10 +380,6 @@ end
 ---@param list_win integer
 ---@return integer, integer
 local function get_list_win_nrs(list_win)
-    if vim.g.qfr_debug_assertions then
-        ry._validate_list_win(list_win)
-    end
-
     local list_tabpage = api.nvim_win_get_tabpage(list_win) ---@type integer
     local list_tabnr = api.nvim_tabpage_get_number(list_tabpage) ---@type integer
     local list_winnr = api.nvim_win_get_number(list_win) ---@type integer
@@ -454,13 +392,6 @@ end
 ---@param split QfrSplitType
 ---@return integer|nil
 local function get_help_win_ll(list_win, origin, buf, split)
-    if vim.g.qfr_debug_assertions then
-        ry._validate_list_win(list_win)
-        ry._validate_win(origin, true)
-        ry._validate_buf(buf)
-        ry._validate_split(split)
-    end
-
     local dest_bt = "help"
     local vcount_win = get_vcount_win_id(dest_bt)
     if vcount_win then
@@ -487,12 +418,6 @@ end
 ---@param split QfrSplitType
 ---@return integer|nil
 local function get_help_win_qf(list_win, buf, split)
-    if vim.g.qfr_debug_assertions then
-        ry._validate_list_win(list_win)
-        ry._validate_buf(buf)
-        ry._validate_split(split)
-    end
-
     local dest_bt = "help"
     local vcount_win = get_vcount_win_id(dest_bt)
     if vcount_win then
@@ -540,13 +465,6 @@ end
 ---@param split QfrSplitType
 ---@return integer|nil
 local function find_norm_win_ll(list_win, origin, buf, split)
-    if vim.g.qfr_debug_assertions then
-        ry._validate_list_win(list_win)
-        ry._validate_win(origin, true)
-        ry._validate_buf(buf)
-        ry._validate_split(split)
-    end
-
     local dest_bt = ""
     local vcount_win = get_vcount_win_id(dest_bt)
     if vcount_win then
@@ -574,12 +492,6 @@ end
 ---@param split QfrSplitType
 ---@return integer|nil
 local function find_norm_win_qf(list_win, buf, split)
-    if vim.g.qfr_debug_assertions then
-        ry._validate_list_win(list_win)
-        ry._validate_buf(buf)
-        ry._validate_split(split)
-    end
-
     local dest_bt = ""
     local vcount_win = get_vcount_win_id(dest_bt)
     if vcount_win then
@@ -620,11 +532,6 @@ end
 ---@param split QfrSplitType
 ---@return boolean
 local function should_resize_list_win(is_orphan, list_win, split)
-    if vim.g.qfr_debug_assertions then
-        vim.validate("is_orphan", is_orphan, "boolean", true)
-        ry._validate_list_win(list_win)
-    end
-
     if is_orphan then
         return false
     end -- Orphan lists are expected to be closed
@@ -655,17 +562,6 @@ end
 ---@param pattern string
 ---@return nil
 local function open_item_tabnew(is_orphan, dir, finish, list_win, item, new_idx, dest_bt, pattern)
-    if vim.g.qfr_debug_assertions then
-        vim.validate("is_orphan", is_orphan, "boolean", true)
-        ry._validate_int(dir)
-        ry._validate_finish(finish)
-        ry._validate_list_win(list_win)
-        ry._validate_list_item(item)
-        ry._validate_uint(new_idx)
-        vim.validate("dest_bt", dest_bt, "string")
-        vim.validate("pattern", pattern, "string")
-    end
-
     local max_tabnr = fn.tabpagenr("$") ---@type integer
     ---@type integer
     local range = vim.v.count <= 0 and max_tabnr or math.min(vim.v.count, fn.tabpagenr("$"))

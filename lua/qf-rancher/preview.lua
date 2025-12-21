@@ -586,10 +586,6 @@ end
 ---@param p_buf integer
 ---@return nil
 local function setup_preview_buf(p_buf)
-    if vim.g.qfr_debug_assertions then
-        ry._validate_buf(p_buf)
-    end
-
     set_opt("buflisted", false, { buf = p_buf })
     set_opt("buftype", "nofile", { buf = p_buf })
     set_opt("modifiable", false, { buf = p_buf })
@@ -649,10 +645,6 @@ end
 ---@param item_buf integer
 ---@return integer
 local function get_mtime(item_buf)
-    if vim.g.qfr_debug_assertions then
-        ry._validate_buf(item_buf)
-    end
-
     local item_buf_full_path = api.nvim_buf_get_name(item_buf) ---@type string
     local stat = vim.uv.fs_stat(item_buf_full_path) ---@type uv.fs_stat.result|nil
     return stat and stat.mtime.sec or 0
@@ -662,12 +654,6 @@ end
 ---@param lines string[]
 ---@return nil
 local function create_preview_buf_from_lines(item_buf, lines)
-    -- Do not assert that item_buf is valid since a buf can be wiped after the list is created
-    if vim.g.qfr_debug_assertions then
-        ry._validate_uint(item_buf)
-        ry._validate_list(lines, { item_type = "string" })
-    end
-
     local preview_buf = api.nvim_create_buf(false, true) ---@type integer
     api.nvim_buf_set_lines(preview_buf, 0, 0, false, lines)
     setup_preview_buf(preview_buf)

@@ -108,12 +108,6 @@ qfr_close_on_stack_clear = { { "boolean" }, true },
 ---@alias qfr_create_loclist_autocmds boolean
 qfr_create_loclist_autocmds = { { "boolean" }, true },
 ---
----(Default false) Enables extra type checking and logical assertions. This
----can affect performance, as individual list items will have extra
----validation
----@alias qfr_debug_assertions boolean
-qfr_debug_assertions = { { "boolean" }, false },
----
 ---(Default true) Temporarily set splitkeep to topline when
 ---the list is open, closed, or resized. This option is ignored if
 ---splitkeep is already set for screen or topline

@@ -181,12 +181,6 @@ end
 ---@param regex boolean
 ---@return string|nil
 function M._get_input(prompt, case, regex)
-    if vim.g.qfr_debug_assertions then
-        vim.validate("prompt", prompt, "string")
-        vim.validate("case", case, "string")
-        vim.validate("regex", regex, "boolean")
-    end
-
     local pattern = get_input(prompt) ---@type string|nil
     if not pattern then
         return nil
@@ -359,11 +353,6 @@ end
 ---@param cur_pos {[1]: integer, [2]: integer}
 ---@return nil
 function M._protected_set_cursor(win, cur_pos)
-    if vim.g.qfr_debug_assertions then
-        ry._validate_win(win)
-        ry._validate_cur_pos(cur_pos)
-    end
-
     local buf = api.nvim_win_get_buf(win) ---@type integer
 
     local cursor_row = math.max(cur_pos[1], 1) ---@type integer
@@ -408,11 +397,6 @@ end
 --- accurately understood as creating help *windows*. Thus, options are set at Window rather than
 --- local scope. And this function should not be called for bufs/wins expected to be used normally
 local function prep_help_buf(buf, win)
-    if vim.g.qfr_debug_assertions then
-        ry._validate_buf(buf)
-        ry._validate_win(win)
-    end
-
     api.nvim_set_option_value("bin", false, { buf = buf })
     api.nvim_set_option_value("bl", false, { buf = buf })
     api.nvim_set_option_value("isk", '!-~,^*,^|,^",192-255', { buf = buf })
@@ -439,12 +423,6 @@ end
 ---@param opts qf-rancher.types.BufOpenOpts
 ---@return boolean
 function M._open_item(item, win, opts)
-    if vim.g.qfr_debug_assertions then
-        ry._validate_list_item(item)
-        ry._validate_win(win)
-        ry._validate_open_buf_opts(opts)
-    end
-
     local buf = item.bufnr ---@type integer|nil
     if not (buf and api.nvim_buf_is_valid(buf)) then
         return false
@@ -786,12 +764,6 @@ end
 ---@param hl string|nil
 ---@return nil
 function M._echo(silent, msg, hl)
-    if vim.g.qfr_debug_assertions then
-        vim.validate("silent", silent, "boolean", true)
-        vim.validate("msg", msg, "string", true)
-        vim.validate("hl", hl, "string", true)
-    end
-
     if silent then
         return
     end

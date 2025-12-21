@@ -97,10 +97,6 @@ end
 ---@param src_win integer|nil
 ---@return integer
 function M._add_blank_list(src_win)
-    if vim.g.qfr_debug_assertions then
-        ry._validate_win(src_win, true)
-    end
-
     ---@type integer
     local result = src_win and fn.setloclist(src_win, {}, " ") or fn.setqflist({}, " ")
     return result
@@ -110,11 +106,6 @@ end
 ---@param list_nr integer|"$"|nil
 ---@return integer
 function M._clear_list(src_win, list_nr)
-    if vim.g.qfr_debug_assertions then
-        ry._validate_win(src_win, true)
-        ry._validate_list_nr(list_nr, true)
-    end
-
     local nr = resolve_list_nr(src_win, list_nr) ---@type integer|"$"
 
     ---@type qf-rancher.What
@@ -127,11 +118,6 @@ end
 ---@param what table
 ---@return any
 function M._get_list(src_win, what)
-    if vim.g.qfr_debug_assertions then
-        ry._validate_win(src_win, true)
-        vim.validate("what", what, "table")
-    end
-
     local what_get = vim.deepcopy(what, true) ---@type table
     what_get.nr = resolve_list_nr(src_win, what_get.nr)
 
@@ -144,11 +130,6 @@ end
 ---@param stack qf-rancher.What[]
 ---@return nil
 function M._set_stack(src_win, stack)
-    if vim.g.qfr_debug_assertions then
-        ry._validate_win(src_win, true)
-        vim.validate("stack", stack, vim.islist)
-    end
-
     if src_win and not ru._is_valid_loclist_win(src_win) then
         return
     end
@@ -156,11 +137,6 @@ function M._set_stack(src_win, stack)
     M._set_list(src_win, "f", {})
     for _, what in ipairs(stack) do
         M._set_list(src_win, " ", what)
-    end
-
-    if vim.g.qfr_debug_assertions then
-        local max_nr = M._get_list(src_win, { nr = "$" }).nr
-        assert(#stack == max_nr)
     end
 end
 
@@ -190,10 +166,6 @@ end
 ---@param src_win integer
 ---@return qf-rancher.What[]
 function M._get_stack(src_win)
-    if vim.g.qfr_debug_assertions then
-        ry._validate_win(src_win, true)
-    end
-
     local stack = {} ---@type table
     local max_nr = M._get_list(src_win, { nr = "$" }).nr ---@type integer
     if max_nr < 1 then
@@ -205,10 +177,6 @@ function M._get_stack(src_win)
         local what_set = M._what_ret_to_set(what_ret) ---@type qf-rancher.What
         what_set.nr = i
         stack[#stack + 1] = what_set
-    end
-
-    if vim.g.qfr_debug_assertions then
-        assert(#stack == max_nr)
     end
 
     return stack

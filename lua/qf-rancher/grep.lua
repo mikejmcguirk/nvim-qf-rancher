@@ -129,10 +129,6 @@ end
 ---@param case QfrCase
 ---@return QfrCase
 local function resolve_case(case)
-    if vim.g.qfr_debug_assertions then
-        ry._validate_case(case)
-    end
-
     if case ~= "vimcase" then
         return case
     end
