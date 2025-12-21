@@ -321,11 +321,17 @@ end
 -- user-facing functions start, rather than at the locals, and then the underline functions
 -- should be after the doc export
 -- TODO: General refactoring strategy:
--- - Little modules (stack/nav/util/tools)
--- - Medium modules (window/preview)
--- - Big modules (grep/diags/filter) for module specific params
--- - Remove output opts
--- - Filetype funcs
+-- - nav
+-- - util
+-- - tools
+-- - window
+-- - preview
+-- - grep
+-- - diags
+-- - filter
+-- - remove output opts
+-- - filetype funcs
+-- - maps file
 
 -- MID: Publish Qfitems as diagnostics
 -- - How would you then be able to manipulate/delete them once they were out there?

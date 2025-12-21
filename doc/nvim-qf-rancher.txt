@@ -1003,26 +1003,26 @@ View and edit the list stack                                             *Stack*
 qf-rancher.stack.GotoHistoryOpts              *qf-rancher.stack.GotoHistoryOpts*
 
     Fields: ~
-        {silent}  (boolean) Suppress messages
+        {silent?}  (boolean) Suppress messages
 
 
 Stack.q_older({count}, {opts?})                                  *Stack.q_older*
-    If g:qfr_auto_list_height is true, the list will automatically resize
 
     Parameters: ~
         {count}  (integer) Wrapping count previous list to go to. Minimum 1
-        {opts?}  (qf-rancher.stack.GotoHistoryOpts) See |qfr.stack.GotoHistoryOpts|
+        {opts?}  (qf-rancher.stack.GotoHistoryOpts)
+                 See |qfr.stack.GotoHistoryOpts|
 
     Returns: ~
         (nil)
 
 
 Stack.q_newer({count}, {opts?})                                  *Stack.q_newer*
-    If g:qfr_auto_list_height is true, the list will automatically resize
 
     Parameters: ~
         {count}  (integer) Wrapping count next list to go to. Minimum 1
-        {opts?}  (qf-rancher.stack.GotoHistoryOpts) See |qfr.stack.GotoHistoryOpts|
+        {opts?}  (qf-rancher.stack.GotoHistoryOpts)
+                 See |qfr.stack.GotoHistoryOpts|
 
     Returns: ~
         (nil)
@@ -1034,7 +1034,8 @@ Stack.l_older({src_win}, {count}, {opts?})
     Parameters: ~
         {src_win}  (integer) Location list window context
         {count}    (integer) Wrapping count previous list to go to. Minimum 1
-        {opts?}    (qf-rancher.stack.GotoHistoryOpts) See |qfr.stack.GotoHistoryOpts|
+        {opts?}    (qf-rancher.stack.GotoHistoryOpts)
+                   See |qfr.stack.GotoHistoryOpts|
 
     Returns: ~
         (nil)
@@ -1046,7 +1047,8 @@ Stack.l_newer({src_win}, {count}, {opts?})
     Parameters: ~
         {src_win}  (integer) Location list window context
         {count}    (integer) Wrapping count next list to go to. Minimum 1
-        {opts?}    (qf-rancher.stack.GotoHistoryOpts) See |qfr.stack.GotoHistoryOpts|
+        {opts?}    (qf-rancher.stack.GotoHistoryOpts)
+                   See |qfr.stack.GotoHistoryOpts|
 
     Returns: ~
         (nil)
@@ -1058,7 +1060,8 @@ Stack.q_history({count}, {opts?})                              *Stack.q_history*
         {count}  (integer|nil) List number to go to, nil to display the whole
                  stack. A count of 0 shows the current list number (difference
                  from core behavior)
-        {opts?}  (qf-rancher.stack.GotoHistoryOpts) See |qfr.stack.GotoHistoryOpts|
+        {opts?}  (qf-rancher.stack.GotoHistoryOpts)
+                 See |qfr.stack.GotoHistoryOpts|
 
     Returns: ~
         (nil)
@@ -1072,7 +1075,8 @@ Stack.l_history({src_win}, {count}, {opts?})
         {count}    (integer|nil) List number to go to, nil to display the
                    whole stack. A count of 0 shows the current list number
                    (difference from core behavior)
-        {opts?}    (qf-rancher.stack.GotoHistoryOpts) See |qfr.stack.GotoHistoryOpts|
+        {opts?}    (qf-rancher.stack.GotoHistoryOpts)
+                   See |qfr.stack.GotoHistoryOpts|
 
     Returns: ~
         (nil)
@@ -1090,8 +1094,11 @@ Stack.q_clear({count})                                           *Stack.q_clear*
 
 
 Stack.l_clear({src_win}, {count})                                *Stack.l_clear*
-    If the current list is cleared, and g:qfr_auto_list_height is true, the
-    list will be resized
+
+    Clear a location list.
+
+    Called in src_win context
+
 
     Parameters: ~
         {src_win}  (integer) Location list window context
@@ -1112,6 +1119,9 @@ Stack.q_clear_all()                                          *Stack.q_clear_all*
 Stack.l_clear_all({src_win})                                 *Stack.l_clear_all*
     Clear a loclist stack. If g:qfr_close_on_stack_clear is true, close
     the location list window
+
+    Called in src_win context.
+
     NOTE: When a location list stack is freed but the window is not closed,
     the qf_id of the location list window is set to zero. When this function
     is run, it searches for all qf_id 0 location list windows in all tabs and
