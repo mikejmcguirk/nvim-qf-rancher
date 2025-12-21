@@ -23,7 +23,7 @@ local rg_str = "grep" ---@type string
 local rg = maps_defer_require("qf-rancher." .. rg_str) ---@type qf-rancher.Grep
 local ri = maps_defer_require("qf-rancher.filetype-funcs") ---@type QfRancherFiletypeFuncs
 local rn_str = "nav" ---@type string
-local rn = maps_defer_require("qf-rancher." .. rn_str) ---@type QfRancherNav
+local rn = maps_defer_require("qf-rancher." .. rn_str) ---@type qf-rancher.Nav
 local rw_str = "window" ---@type string
 local rw = maps_defer_require("qf-rancher." .. rw_str) ---@type qf-rancher.Window
 local rr = maps_defer_require("qf-rancher.preview") ---@type QfRancherPreview
@@ -148,26 +148,17 @@ M.uienter_tbls[#M.uienter_tbls + 1] = M.qfr_win_maps
 M.cmd_tbls[#M.cmd_tbls + 1] = M.qfr_win_cmds
 M.doc_tbls[#M.doc_tbls + 1] = { rw_str, M.qfr_win_maps, M.qfr_win_cmds }
 
--- MID: Have/create a bespoke version of [q/]q and the like that ignores useopen. It's a nag when
--- trying to scroll through buffers and the open win changes because of that setting
--- This would apply to the ftplugin {} maps as well
--- It could be possible to only apply this logic to {}, but that is weird to reason about, whereas
--- "qfr_ignore_useopen_on_scroll" or something like that is mentally tractable
--- UPDATE: Should be an option to use the current window
--- qfr_quickfix_nav_use_cur_win is long though
--- Can't apply to location lists since they're window bound
-
 -- stylua: ignore
 ---@type QfrMapData[]
 M.qfr_nav_maps = {
-{ nn, "<Plug>(qfr-qf-prev)",  "["..qp,         "Go to the [count] previous quickfix entry. Count is wrapping",      function() rn.q_prev(vim.v.count, {}) end },
-{ nn, "<Plug>(qfr-qf-next)",  "]"..qp,         "Go to the [count] next quickfix entry. Count is wrapping",          function() rn.q_next(vim.v.count, {}) end },
+{ nn, "<Plug>(qfr-qf-prev)",  "["..qp,         "Go to the [count] previous quickfix entry. Count is wrapping",      function() rn.q_prev(vim.v.count) end },
+{ nn, "<Plug>(qfr-qf-next)",  "]"..qp,         "Go to the [count] next quickfix entry. Count is wrapping",          function() rn.q_next(vim.v.count) end },
 { nn, "<Plug>(qfr-qf-rewind)","["..qP,         "Go to the [count] quickfix entry, or the first if no count",        function() rn.q_rewind(vim.v.count) end },
 { nn, "<Plug>(qfr-qf-last)",  "]"..qP,         "Go to the [count] quickfix entry, or the last if no count",         function() rn.q_last(vim.v.count) end },
 { nn, "<Plug>(qfr-qf-pfile)", "[<C-"..qp..">", "Go to the [count] previous quickfix file. Wrap to the last file",   function() rn.q_pfile(vim.v.count) end },
 { nn, "<Plug>(qfr-qf-nfile)", "]<C-"..qp..">", "Go to the [count] next quickfix file. Wrap to the first file",      function() rn.q_nfile(vim.v.count) end },
-{ nn, "<Plug>(qfr-ll-prev)",  "["..lp,         "Go to the [count] previous location list entry. Count is wrapping", function() rn.l_prev(cur_win(), vim.v.count, {}) end },
-{ nn, "<Plug>(qfr-ll-next)",  "]"..lp,         "Go to the [count] next location list entry. Count is wrapping",     function() rn.l_next(cur_win(), vim.v.count, {}) end },
+{ nn, "<Plug>(qfr-ll-prev)",  "["..lp,         "Go to the [count] previous location list entry. Count is wrapping", function() rn.l_prev(cur_win(), vim.v.count) end },
+{ nn, "<Plug>(qfr-ll-next)",  "]"..lp,         "Go to the [count] next location list entry. Count is wrapping",     function() rn.l_next(cur_win(), vim.v.count) end },
 { nn, "<Plug>(qfr-ll-rewind)","["..lP,         "Go to the [count] quickfix entry, or the first if no count",        function() rn.l_rewind(cur_win(), vim.v.count) end },
 { nn, "<Plug>(qfr-ll-last)",  "]"..lP,         "Go to the [count] quickfix entry, or the last if no count",         function() rn.l_last(cur_win(), vim.v.count) end },
 { nn, "<Plug>(qfr-ll-pfile)", "[<C-"..lp..">", "Go to the [count] previous quickfix file. Wrap to the last file",   function() rn.l_pfile(cur_win(), vim.v.count) end },

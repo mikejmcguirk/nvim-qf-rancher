@@ -202,6 +202,8 @@ end
 -- WRAPPING IDX FUNCS --
 ------------------------
 
+-- TODO: The nil returns and nested echoes here are bad. Should be ok/result returns
+
 ---@param src_win integer|nil
 ---@param count integer
 ---@param wrapping_math function
@@ -476,8 +478,6 @@ end
 ---@param always? boolean
 ---@return nil
 function M._do_zzze(win, always)
-    ry._validate_win(win)
-
     if not (vim.g.qfr_auto_center or always) then
         return
     end
@@ -714,22 +714,6 @@ function M._find_ll_origin(qf_id, tabpages)
     end
 
     return nil
-end
-
--- TODO: Deprecate this
----@param win integer
----@param todo function
----@return any
-function M._locwin_check(win, todo)
-    ry._validate_win(win, false)
-
-    local qf_id = fn.getloclist(win, { id = 0 }).id ---@type integer
-    if qf_id == 0 then
-        api.nvim_echo({ { "Current window has no location list", "" } }, false, {})
-        return
-    end
-
-    return todo()
 end
 
 -- TODO: Should propagate msg

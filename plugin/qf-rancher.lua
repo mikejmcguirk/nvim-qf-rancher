@@ -1,3 +1,4 @@
+_G.QF_RANCHER_E42 = "E42: No Errors"
 _G.QF_RANCHER_MAX_HEIGHT = 10
 _G.QF_RANCHER_NOLISTWIN = "Not inside a list window"
 _G.QF_RANCHER_NO_LL = "Window has no location list"
@@ -321,7 +322,6 @@ end
 -- user-facing functions start, rather than at the locals, and then the underline functions
 -- should be after the doc export
 -- TODO: General refactoring strategy:
--- - nav
 -- - util
 -- - tools
 -- - window
@@ -329,6 +329,7 @@ end
 -- - grep
 -- - diags
 -- - filter
+-- - system
 -- - remove output opts
 -- - filetype funcs
 -- - maps file

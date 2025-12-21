@@ -5,99 +5,60 @@ local ry = Qfr_Defer_Require("qf-rancher.types") ---@type qf-rancher.Types
 local api = vim.api
 local fn = vim.fn
 
----@mod Nav Navigate lists
----@tag qf-rancher-nav
----@tag qfr-nav
----@brief [[
----
----@brief ]]
-
---- @class QfRancherNav
-local Nav = {}
-
--- ============
--- == LOCALS ==
--- ============
-
--- MID: These functions are not all that distinct from each other
-
+---@param src_win integer|nil
 ---@param new_idx integer
----@param cmd string
----@param opts table
----@return boolean
-local function goto_list_entry(new_idx, cmd, opts)
-    ry._validate_uint(new_idx)
-    vim.validate("cmd", cmd, "string")
-    vim.validate("opts", opts, "table")
+---@return nil
+local function goto_list_entry(src_win, new_idx)
+    local cmd = src_win and "cc" or "ll"
+    api.nvim_cmd({ cmd = cmd, count = new_idx }, {})
 
-    ---@type boolean, string
-    local ok, result = pcall(api.nvim_cmd, { cmd = cmd, count = new_idx }, {})
-    if ok then
-        ru._do_zzze(api.nvim_get_current_win())
-        return true
-    end
-
-    local msg = result or ("Unknown error displaying list entry " .. new_idx) ---@type string
-    api.nvim_echo({ { msg, "ErrorMsg" } }, true, {})
-    return false
+    local cur_win = api.nvim_get_current_win()
+    ru._do_zzze(cur_win)
 end
 
 ---@param src_win integer|nil
 ---@param count integer
 ---@return nil
 local function goto_specific_idx(src_win, count)
-    ry._validate_win(src_win, true)
-    ry._validate_uint(count)
-
     local size = rt._get_list(src_win, { size = 0 }).size ---@type integer
     if not size or size < 1 then
-        api.nvim_echo({ { "E42: No Errors", "" } }, false, {})
+        api.nvim_echo({ { QF_RANCHER_E42, "" } }, false, {})
         return nil
     end
 
-    local cmd = src_win and "ll" or "cc" ---@type string
     if count > 0 then
-        local adj_count = math.min(count, size) ---@type integer
-        goto_list_entry(adj_count, cmd, {})
+        local adj_count = math.min(count, size)
+        goto_list_entry(src_win, adj_count)
         return
     end
 
-    -- If we're in a list, go to the entry under the cursor
-    local cur_win = src_win or api.nvim_get_current_win() ---@type integer
+    local cur_win = src_win or api.nvim_get_current_win()
     local wintype = fn.win_gettype(cur_win)
-    local in_loclist = type(src_win) == "number" and wintype == "loclist" ---@type boolean
-    local in_qflist = (not src_win) and wintype == "quickfix" ---@type boolean
-    if in_loclist or in_qflist then
-        local row = api.nvim_win_get_cursor(cur_win)[1] ---@type integer
-        local adj_count = math.min(row, size) ---@type integer
-        goto_list_entry(adj_count, cmd, {})
+    local checked_type = src_win and "loclist" or "quickfix"
+    if wintype == checked_type then
+        local row = api.nvim_win_get_cursor(cur_win)[1]
+        local adj_count = math.min(row, size)
+        goto_list_entry(src_win, adj_count)
         return
     end
 
     local cur_idx = rt._get_list(src_win, { idx = 0 }).idx ---@type integer
-    if cur_idx < 1 then
-        return
-    end
-
-    goto_list_entry(cur_idx, cmd, {})
+    goto_list_entry(src_win, cur_idx)
 end
 
 ---@param count integer
 ---@param cmd string
 ---@return nil
 local function bookends(count, cmd)
-    ry._validate_uint(count)
-    vim.validate("cmd", cmd, "string")
-
-    local adj_count = count >= 1 and count or nil ---@type integer|nil
-    ---@type boolean, string
+    local adj_count = count >= 1 and count or nil
     local ok, err = pcall(api.nvim_cmd, { cmd = cmd, count = adj_count }, {})
     if ok then
-        ru._do_zzze(api.nvim_get_current_win())
+        local cur_win = api.nvim_get_current_win()
+        ru._do_zzze(cur_win)
         return
     end
 
-    local msg = err:sub(#"Vim:" + 1) ---@type string
+    local msg = err:sub(#"Vim:" + 1)
     if string.find(err, "E42", 1, true) then
         api.nvim_echo({ { msg, "" } }, false, {})
     else
@@ -111,11 +72,6 @@ end
 ---@param backup_cmd string
 ---@return nil
 local function file_nav_wrap(src_win, count, cmd, backup_cmd)
-    ry._validate_win(src_win, true)
-    ry._validate_uint(count)
-    vim.validate("cmd", cmd, "string")
-    vim.validate("backup_cmd", backup_cmd, "string")
-
     local size = rt._get_list(src_win, { size = 0 }).size ---@type integer
     if not size or size < 1 then
         api.nvim_echo({ { "E42: No Errors", "" } }, false, {})
@@ -124,86 +80,99 @@ local function file_nav_wrap(src_win, count, cmd, backup_cmd)
 
     local adj_count = math.max(count, 1) ---@type integer
 
-    ---@type boolean, string
     local ok, err = pcall(api.nvim_cmd, { cmd = cmd, count = adj_count }, {})
-    local e42 = string.find(err, "E42", 1, true) ---@type integer|nil
-    local e776 = string.find(err, "E776", 1, true) ---@type integer|nil
+    local e42 = string.find(err, "E42", 1, true)
+    local e776 = string.find(err, "E776", 1, true)
     if (not ok) and (e42 or e776) then
         local err_text = err:sub(#"Vim:" + 1)
         api.nvim_echo({ { err_text, "" } }, false, {})
         return
     end
 
-    local e553 = string.find(err, "E553", 1, true) ---@type integer|nil
+    local e553 = string.find(err, "E553", 1, true)
     if (not ok) and e553 then
         ok, err = pcall(api.nvim_cmd, { cmd = backup_cmd }, {})
     end
 
     if not ok then
-        local msg = err and err:sub(#"Vim:" + 1) or "Unknown qf file error" ---@type string
+        local msg = err and err:sub(#"Vim:" + 1) or "Unknown qf file error"
         api.nvim_echo({ { msg, "ErrorMsg" } }, true, {})
         return
     end
 
-    ru._do_zzze(api.nvim_get_current_win())
+    local cur_win = api.nvim_get_current_win()
+    ru._do_zzze(cur_win)
 end
 
+---@mod Nav Navigate lists
+---@tag qf-rancher-nav
+---@tag qfr-nav
 ---@brief [[
----NOTE: All navigation commands will auto-center the buffer view if
----g:qfr_auto_center is true
+---
 ---@brief ]]
 
----@param count integer Wrapping count previous entry to navigate to
----@param opts table Reserved for future use
----@return boolean
-function Nav.q_prev(count, opts)
-    local new_idx = ru._get_idx_wrapping_sub(nil, count) ---@type integer|nil
-    if new_idx then
-        return goto_list_entry(new_idx, "cc", opts)
-    end
+--- @class qf-rancher.Nav
+local Nav = {}
 
-    return false
+---@param count integer Wrapping count previous entry to navigate to
+---@return nil
+function Nav.q_prev(count)
+    ry._validate_uint(count)
+
+    local new_idx = ru._get_idx_wrapping_sub(nil, count)
+    if new_idx then
+        goto_list_entry(nil, new_idx)
+    end
 end
 
 ---@param count integer Wrapping count next entry to navigate to
----@param opts table Reserved for future use
----@return boolean
-function Nav.q_next(count, opts)
-    local new_idx = ru._get_idx_wrapping_add(nil, count) ---@type integer|nil
-    if new_idx then
-        return goto_list_entry(new_idx, "cc", opts)
-    end
+---@return nil
+function Nav.q_next(count)
+    ry._validate_uint(count)
 
-    return false
+    local new_idx = ru._get_idx_wrapping_add(nil, count)
+    if new_idx then
+        goto_list_entry(nil, new_idx)
+    end
 end
 
 ---@param src_win integer Location list window context
 ---@param count integer Wrapping count previous entry to navigate to
----@param opts table Reserved for future use
----@return boolean
-function Nav.l_prev(src_win, count, opts)
-    return ru._locwin_check(src_win, function()
-        local new_idx = ru._get_idx_wrapping_sub(src_win, count) ---@type integer|nil
-        if new_idx then
-            goto_list_entry(new_idx, "ll", opts)
-        end
-    end)
+---@return nil
+function Nav.l_prev(src_win, count)
+    ry._validate_win(src_win)
+    ry._validate_uint(count)
+
+    local qf_id = fn.getloclist(src_win, { id = 0 }).id
+    if qf_id == 0 then
+        api.nvim_echo({ { QF_RANCHER_NO_LL } }, false, {})
+        return
+    end
+
+    local new_idx = ru._get_idx_wrapping_sub(src_win, count)
+    if new_idx then
+        goto_list_entry(src_win, new_idx)
+    end
 end
 
 ---@param src_win integer Location list window context
 ---@param count integer Wrapping count next entry to navigate to
----@param opts table Reserved for future use
----@return boolean
-function Nav.l_next(src_win, count, opts)
-    return ru._locwin_check(src_win, function()
-        local new_idx = ru._get_idx_wrapping_add(src_win, count) ---@type integer|nil
-        if new_idx then
-            goto_list_entry(new_idx, "ll", opts)
-        end
-    end)
-end
+---@return nil
+function Nav.l_next(src_win, count)
+    ry._validate_win(src_win)
+    ry._validate_uint(count)
 
--- GOTO SPECIFIC INDEX --
+    local qf_id = fn.getloclist(src_win, { id = 0 }).id
+    if qf_id == 0 then
+        api.nvim_echo({ { QF_RANCHER_NO_LL } }, false, {})
+        return
+    end
+
+    local new_idx = ru._get_idx_wrapping_add(src_win, count)
+    if new_idx then
+        goto_list_entry(src_win, new_idx)
+    end
+end
 
 -- MID: [Q]Q is a bit awkward for going to a specific index
 
@@ -214,6 +183,7 @@ end
 ---@param count integer Count entry to navigate to
 ---@return nil
 function Nav.q_q(count)
+    ry._validate_uint(count)
     goto_specific_idx(nil, count)
 end
 
@@ -221,22 +191,29 @@ end
 ---@param count integer
 ---@return nil
 function Nav.l_l(src_win, count)
-    ru._locwin_check(src_win, function()
-        goto_specific_idx(src_win, count)
-    end)
-end
+    ry._validate_win(src_win, true)
+    ry._validate_uint(count)
 
--- REWIND/LAST --
+    local qf_id = fn.getloclist(src_win, { id = 0 }).id
+    if qf_id == 0 then
+        api.nvim_echo({ { QF_RANCHER_NO_LL } }, false, {})
+        return
+    end
+
+    goto_specific_idx(src_win, count)
+end
 
 ---@param count integer Entry to navigate to. First if no count
 ---@return nil
 function Nav.q_rewind(count)
+    ry._validate_uint(count)
     bookends(count, "crewind")
 end
 
 ---@param count integer Entry to navigate to. Last if no count
 ---@return nil
 function Nav.q_last(count)
+    ry._validate_uint(count)
     bookends(count, "clast")
 end
 
@@ -244,34 +221,51 @@ end
 ---@param count integer Entry to navigate to. First if no count
 ---@return nil
 function Nav.l_rewind(src_win, count)
-    ru._locwin_check(src_win, function()
-        bookends(count, "lrewind")
-    end)
+    ry._validate_win(src_win)
+    ry._validate_uint(count)
+
+    local qf_id = fn.getloclist(src_win, { id = 0 }).id
+    if qf_id == 0 then
+        api.nvim_echo({ { QF_RANCHER_NO_LL } }, false, {})
+        return
+    end
+
+    bookends(count, "lrewind")
 end
 
 ---@param src_win integer Location list window context
 ---@param count integer Entry to navigate to. Last if no count
 ---@return nil
 function Nav.l_last(src_win, count)
-    ru._locwin_check(src_win, function()
-        bookends(count, "llast")
-    end)
+    ry._validate_win(src_win)
+    ry._validate_uint(count)
+
+    local qf_id = fn.getloclist(src_win, { id = 0 }).id
+    if qf_id == 0 then
+        api.nvim_echo({ { QF_RANCHER_NO_LL } }, false, {})
+        return
+    end
+
+    bookends(count, "llast")
 end
 
--- FILE NAV --
-
+---@brief [[
 ---NOTE: While the p/nfile commands will wrap to the first or last file
 ---when trying to navigate past the end, the count cannot be used to wrap to a
 ---specific entry like with the next/prev commands
+---@brief ]]
+
 ---@param count integer Count previous file to navigate to
 ---@return nil
 function Nav.q_pfile(count)
+    ry._validate_uint(count)
     file_nav_wrap(nil, count, "cpfile", "clast")
 end
 
 ---@param count integer
 ---@return nil
 function Nav.q_nfile(count)
+    ry._validate_uint(count)
     file_nav_wrap(nil, count, "cnfile", "crewind")
 end
 
@@ -279,51 +273,63 @@ end
 ---@param count integer Count previous file to navigate to
 ---@return nil
 function Nav.l_pfile(src_win, count)
-    ru._locwin_check(src_win, function()
-        file_nav_wrap(src_win, count, "lpfile", "llast")
-    end)
+    ry._validate_win(src_win)
+    ry._validate_uint(count)
+
+    local qf_id = fn.getloclist(src_win, { id = 0 }).id
+    if qf_id == 0 then
+        api.nvim_echo({ { QF_RANCHER_NO_LL } }, false, {})
+        return
+    end
+
+    file_nav_wrap(src_win, count, "lpfile", "llast")
 end
 
 ---@param src_win integer Location list window context
 ---@param count integer Count next file to navigate to
 ---@return nil
 function Nav.l_nfile(src_win, count)
-    ru._locwin_check(src_win, function()
-        file_nav_wrap(src_win, count, "lnfile", "lrewind")
-    end)
-end
+    ry._validate_win(src_win)
+    ry._validate_uint(count)
 
--- PREV/NEXT --
+    local qf_id = fn.getloclist(src_win, { id = 0 }).id
+    if qf_id == 0 then
+        api.nvim_echo({ { QF_RANCHER_NO_LL } }, false, {})
+        return
+    end
+
+    file_nav_wrap(src_win, count, "lnfile", "lrewind")
+end
 
 ---Qprev cmd callback. Expects count = 0 in the user_command table
 ---@param cargs vim.api.keyset.create_user_command.command_args
 ---@return nil
 function Nav.q_prev_cmd(cargs)
-    Nav.q_prev(cargs.count, {})
+    Nav.q_prev(cargs.count)
 end
 
 ---Qnext cmd callback. Expects count = 0 in the user_command table
 ---@param cargs vim.api.keyset.create_user_command.command_args
 ---@return nil
 function Nav.q_next_cmd(cargs)
-    Nav.q_next(cargs.count, {})
+    Nav.q_next(cargs.count)
 end
 
 ---Lprev cmd callback. Expects count = 0 in the user_command table
 ---@param cargs vim.api.keyset.create_user_command.command_args
 ---@return nil
 function Nav.l_prev_cmd(cargs)
-    Nav.l_prev(api.nvim_get_current_win(), cargs.count, {})
+    local cur_win = api.nvim_get_current_win()
+    Nav.l_prev(cur_win, cargs.count)
 end
 
 --Lnext cmd callback. Expects count = 0 in the user_command table
 ---@param cargs vim.api.keyset.create_user_command.command_args
 ---@return nil
 function Nav.l_next_cmd(cargs)
-    Nav.l_next(api.nvim_get_current_win(), cargs.count, {})
+    local cur_win = api.nvim_get_current_win()
+    Nav.l_next(cur_win, cargs.count)
 end
-
--- GOTO SPECIFIC INDEX --
 
 ---Qq cmd callback. Expects count = 0 in the user_command table
 ---@param cargs vim.api.keyset.create_user_command.command_args
@@ -336,10 +342,9 @@ end
 ---@param cargs vim.api.keyset.create_user_command.command_args
 ---@return nil
 function Nav.l_l_cmd(cargs)
-    Nav.l_l(api.nvim_get_current_win(), cargs.count)
+    local cur_win = api.nvim_get_current_win()
+    Nav.l_l(cur_win, cargs.count)
 end
-
--- REWIND/LAST --
 
 ---Qrewind cmd callback. Expects count = 0 in the user_command table
 ---@param cargs vim.api.keyset.create_user_command.command_args
@@ -359,22 +364,19 @@ end
 ---@param cargs vim.api.keyset.create_user_command.command_args
 ---@return nil
 function Nav.l_rewind_cmd(cargs)
-    Nav.l_rewind(api.nvim_get_current_win(), cargs.count)
+    local cur_win = api.nvim_get_current_win()
+    Nav.l_rewind(cur_win, cargs.count)
 end
 
 ---Llast cmd callback. Expects count = 0 in the user_command table
 ---@param cargs vim.api.keyset.create_user_command.command_args
 ---@return nil
 function Nav.l_last_cmd(cargs)
-    Nav.l_last(api.nvim_get_current_win(), cargs.count)
+    local cur_win = api.nvim_get_current_win()
+    Nav.l_last(cur_win, cargs.count)
 end
 
--- FILE NAV --
-
 ---Qpfile cmd callback. Expects count = 0 in the user_command table
----NOTE: While the p/nfile commands will wrap to the first or last file
----when trying to navigate past the end, the count cannot be used to wrap to a
----specific entry like with the next/prev commands
 ---@param cargs vim.api.keyset.create_user_command.command_args
 ---@return nil
 function Nav.q_pfile_cmd(cargs)
@@ -392,15 +394,29 @@ end
 ---@param cargs vim.api.keyset.create_user_command.command_args
 ---@return nil
 function Nav.l_pfile_cmd(cargs)
-    Nav.l_pfile(api.nvim_get_current_win(), cargs.count)
+    local cur_win = api.nvim_get_current_win()
+    Nav.l_pfile(cur_win, cargs.count)
 end
 
 ---Lnfile cmd callback. Expects count = 0 in the user_command table
 ---@param cargs vim.api.keyset.create_user_command.command_args
 ---@return nil
 function Nav.l_nfile_cmd(cargs)
-    Nav.l_nfile(api.nvim_get_current_win(), cargs.count)
+    local cur_win = api.nvim_get_current_win()
+    Nav.l_nfile(cur_win, cargs.count)
 end
 
 return Nav
 ---@export Nav
+
+-- MID: The idea has been noted elsewhere, but the list navigation should be re-built from the
+-- ground up. Two important advantages:
+-- - Control over where the file opens. I would like to prevent [q]q from being responsive to
+-- switchbuf.
+-- - The location list functions would allow for more granular control over list/win context
+-- Additionally, I might finally be able to build up some common logic that can be used between
+-- nav, the ftplugin funcs, and system
+
+-- MAYBE: Have a qf_rancher_ignore_useopen_on_scroll option or
+-- qf_rancher_nav_use_cur_win
+-- But would have to think about it in broader context

@@ -99,6 +99,7 @@ end
 function M._add_blank_list(src_win)
     ---@type integer
     local result = src_win and fn.setloclist(src_win, {}, " ") or fn.setqflist({}, " ")
+    -- TODO: This needs to get the proper list nr
     return result
 end
 

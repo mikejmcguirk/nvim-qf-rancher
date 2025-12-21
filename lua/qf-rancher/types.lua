@@ -127,15 +127,6 @@ end
 ---@field fin_winnr? integer
 ---@field skip_winnr? integer
 
----@param opts QfrFindWinInTabOpts
----@return nil
-function Types._validate_find_win_in_tab_opts(opts)
-    vim.validate("opts", opts, "table")
-    Types._validate_uint(opts.buf, true)
-    Types._validate_uint(opts.fin_winnr, true)
-    vim.validate("opts.skip_winnr", opts.skip_winnr, "number", true)
-end
-
 -- ================
 -- == PRIMITIVES ==
 -- ================
@@ -585,6 +576,8 @@ end
 ------------------
 -- SYSTEM TYPES --
 ------------------
+
+-- TODO:  Move this to system and attach it to the system_do function
 
 ---@param system_opts qf-rancher.SystemOpts
 ---@return nil

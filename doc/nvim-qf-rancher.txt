@@ -644,49 +644,42 @@ Navigate lists                                                             *Nav*
                                                                        *qfr-nav*
 
 
-NOTE: All navigation commands will auto-center the buffer view if
-g:qfr_auto_center is true
-
-Nav.q_prev({count}, {opts})                                         *Nav.q_prev*
+Nav.q_prev({count})                                                 *Nav.q_prev*
 
     Parameters: ~
         {count}  (integer) Wrapping count previous entry to navigate to
-        {opts}   (table) Reserved for future use
 
     Returns: ~
-        (boolean)
+        (nil)
 
 
-Nav.q_next({count}, {opts})                                         *Nav.q_next*
+Nav.q_next({count})                                                 *Nav.q_next*
 
     Parameters: ~
         {count}  (integer) Wrapping count next entry to navigate to
-        {opts}   (table) Reserved for future use
 
     Returns: ~
-        (boolean)
+        (nil)
 
 
-Nav.l_prev({src_win}, {count}, {opts})                              *Nav.l_prev*
+Nav.l_prev({src_win}, {count})                                      *Nav.l_prev*
 
     Parameters: ~
         {src_win}  (integer) Location list window context
         {count}    (integer) Wrapping count previous entry to navigate to
-        {opts}     (table) Reserved for future use
 
     Returns: ~
-        (boolean)
+        (nil)
 
 
-Nav.l_next({src_win}, {count}, {opts})                              *Nav.l_next*
+Nav.l_next({src_win}, {count})                                      *Nav.l_next*
 
     Parameters: ~
         {src_win}  (integer) Location list window context
         {count}    (integer) Wrapping count next entry to navigate to
-        {opts}     (table) Reserved for future use
 
     Returns: ~
-        (boolean)
+        (nil)
 
 
 Nav.q_q({count})                                                       *Nav.q_q*
@@ -750,10 +743,11 @@ Nav.l_last({src_win}, {count})                                      *Nav.l_last*
         (nil)
 
 
+NOTE: While the p/nfile commands will wrap to the first or last file
+when trying to navigate past the end, the count cannot be used to wrap to a
+specific entry like with the next/prev commands
+
 Nav.q_pfile({count})                                               *Nav.q_pfile*
-    NOTE: While the p/nfile commands will wrap to the first or last file
-    when trying to navigate past the end, the count cannot be used to wrap to a
-    specific entry like with the next/prev commands
 
     Parameters: ~
         {count}  (integer) Count previous file to navigate to
@@ -891,9 +885,6 @@ Nav.l_last_cmd({cargs})                                         *Nav.l_last_cmd*
 
 Nav.q_pfile_cmd({cargs})                                       *Nav.q_pfile_cmd*
     Qpfile cmd callback. Expects count = 0 in the user_command table
-    NOTE: While the p/nfile commands will wrap to the first or last file
-    when trying to navigate past the end, the count cannot be used to wrap to a
-    specific entry like with the next/prev commands
 
     Parameters: ~
         {cargs}  (vim.api.keyset.create_user_command.command_args)
