@@ -322,7 +322,9 @@ end
 -- user-facing functions start, rather than at the locals, and then the underline functions
 -- should be after the doc export
 -- TODO: General refactoring strategy:
--- - util
+-- NOTE: Anything containing nested echos or bad error reporting needs to be addressed as it's
+-- found. This will mean creating temporary duplicate utils. The originals can be cleaned as
+-- they are fully obsoleted.
 -- - tools
 -- - window
 -- - preview

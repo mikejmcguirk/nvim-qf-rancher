@@ -1,14 +1,11 @@
--- TODO: Rename all the datatypes with namespaces the way Neovim does. Would need to address
--- in my personal config as well
-
----@class qf-rancher.Util
-local M = {}
-
 local rt = Qfr_Defer_Require("qf-rancher.tools") ---@type qf-rancher.Tools
 local ry = Qfr_Defer_Require("qf-rancher.types") ---@type qf-rancher.Types
 
 local api = vim.api
 local fn = vim.fn
+
+---@class qf-rancher.Util
+local M = {}
 
 -- ===============
 -- == CMD UTILS ==
@@ -17,8 +14,6 @@ local fn = vim.fn
 ---@param fargs string[]
 ---@return string|nil
 function M._find_pattern_in_cmd(fargs)
-    ry._validate_list(fargs, { item_type = "string" })
-
     for _, arg in ipairs(fargs) do
         if arg:sub(1, 1) == "/" then
             return arg:sub(2) or ""
@@ -32,10 +27,6 @@ end
 ---@param valid_args string[]
 ---@param default string
 function M._check_cmd_arg(fargs, valid_args, default)
-    ry._validate_list(fargs, { item_type = "string" })
-    ry._validate_list(valid_args, { item_type = "string" })
-    vim.validate("default", default, "string")
-
     for _, arg in ipairs(fargs) do
         if vim.tbl_contains(valid_args, arg) then
             return arg
@@ -48,6 +39,9 @@ end
 -- =================
 -- == INPUT UTILS ==
 -- =================
+
+-- TODO: I have a feeling this gets deprecated, but not sure how filter refactor + second grep
+-- pass go
 
 ---@param input QfrInputType
 ---@return string
@@ -69,14 +63,12 @@ end
 ---@param input QfrInputType
 ---@return QfrInputType
 function M._resolve_input_vimcase(input)
-    ry._validate_input_type(input)
-
     if input ~= "vimcase" then
         return input
     end
 
-    local ic = api.nvim_get_option_value("ic", { scope = "global" })
-    local scs = api.nvim_get_option_value("scs", { scope = "global" })
+    local ic = api.nvim_get_option_value("ic", { scope = "global" }) ---@type boolean
+    local scs = api.nvim_get_option_value("scs", { scope = "global" }) ---@type boolean
 
     if ic and scs then
         return "smartcase"
@@ -89,25 +81,21 @@ function M._resolve_input_vimcase(input)
     return "sensitive"
 end
 
--- MID: This should pass up the echo chunks rather than doing so here
--- - You could then pass up errors if there is a bad mode rather than creating an enter error
---   with vim.validate. But extui might make that irrelevant
--- MID: An empty selection is not an error and should not be treated as such
--- - Issue: Leaving visual mode after a valid selection is handled here. Do we want to do that if
---   the selection is empty?
+-- TODO: This function needs to be re-thought:
+-- - Needs to return ok, result pattern
+-- - An empty selection should return a "" highlight
+-- - It should not handle leaving the visual selection
+-- Current blocker: Would require refactoring callers. They need to come first.
+
 ---@param mode string
 ---@return string|nil
 local function get_visual_pattern(mode)
-    vim.validate("mode", mode, "string")
-    vim.validate("mode", mode, function()
-        return mode == "v" or mode == "V" or mode == "\22"
-    end)
+    local start_pos = fn.getpos(".")
+    local end_pos = fn.getpos("v")
+    local region = fn.getregion(start_pos, end_pos, { type = mode })
 
-    local start_pos = fn.getpos(".") ---@type [integer, integer, integer, integer]
-    local end_pos = fn.getpos("v") ---@type [integer, integer, integer, integer]
-    local region = fn.getregion(start_pos, end_pos, { type = mode }) ---@type string[]
     if #region == 1 then
-        local trimmed = region[1]:gsub("^%s*(.-)%s*$", "%1") ---@type string
+        local trimmed = region[1]:gsub("^%s*(.-)%s*$", "%1")
         if #trimmed > 0 then
             api.nvim_cmd({ cmd = "normal", args = { "\27" }, bang = true }, {})
             return trimmed
@@ -125,12 +113,11 @@ local function get_visual_pattern(mode)
     return nil
 end
 
--- MID: Should be ok, err pattern
+-- TODO: Deprecate, since this should not be a sub function
+
 ---@param prompt string
 ---@return string|nil
 local function get_input(prompt)
-    vim.validate("prompt", prompt, "string")
-
     ---@type boolean, string
     local ok, pattern = pcall(fn.input, { prompt = prompt, cancelreturn = "" })
     if ok then
@@ -147,15 +134,12 @@ local function get_input(prompt)
 end
 
 -- TODO: Deprecate
+
 ---@param prompt string
 ---@param input_pattern string|nil
 ---@param input_type QfrInputType
 ---@return string|nil
 function M._resolve_pattern(prompt, input_pattern, input_type)
-    vim.validate("prompt", prompt, "string")
-    vim.validate("input_pattern", input_pattern, "string", true)
-    ry._validate_input_type(input_type)
-
     if input_pattern then
         return input_pattern
     end
@@ -178,45 +162,77 @@ end
 
 ---@param prompt string
 ---@param case QfrCase
----@param regex boolean
----@return string|nil
-function M._get_input(prompt, case, regex)
-    local pattern = get_input(prompt) ---@type string|nil
-    if not pattern then
-        return nil
+---@return boolean, string, string|nil
+function M._get_input(prompt, case)
+    local ok, pattern = pcall(fn.input, { prompt = prompt, cancelreturn = "" })
+    if not ok then
+        if pattern == "Keyboard interrupt" then
+            return false, pattern, ""
+        end
+
+        local err = pattern or "Unknown error getting input"
+        return false, err, "ErrorMsg"
     end
 
     if case == "sensitive" then
-        return pattern
+        return true, pattern, nil
     end
 
-    local lower_pattern = string.lower(pattern) ---@type string
+    local lower_pattern = string.lower(pattern)
     if case == "smartcase" and pattern ~= lower_pattern then
-        return pattern
+        return true, pattern, nil
     end
 
-    return lower_pattern
+    return true, lower_pattern, nil
 end
 
 ------------------------
 -- WRAPPING IDX FUNCS --
 ------------------------
 
--- TODO: The nil returns and nested echoes here are bad. Should be ok/result returns
+---@param src_win integer|nil
+---@param count integer
+---@param wrapping_math fun(x: integer, y: integer, min: integer, max: integer): integer
+---@return boolean, integer|string, nil|string
+local function get_wrapped_math(src_win, count, wrapping_math)
+    local count1 = math.max(count, 1)
+    ---@type { idx: integer, nr: integer, size: integer }
+    local list_info = rt._get_list(src_win, { nr = 0, idx = 0, size = 0 })
+    if list_info.size < 1 then
+        return false, QF_RANCHER_E42, ""
+    end
+
+    local new_idx = wrapping_math(list_info.idx, count1, 1, list_info.size)
+    return true, new_idx, nil
+end
+
+-- TODO: Consider renaming these after the old ones are deprecated
+
+---@param src_win integer|nil
+---@param count integer
+---@return boolean, integer|string, nil|string
+function M._get_wrapping_add(src_win, count)
+    return get_wrapped_math(src_win, count, M._wrapping_add)
+end
+
+---@param src_win integer|nil
+---@param count integer
+---@return boolean, integer|string, nil|string
+function M._get_wrapping_sub(src_win, count)
+    return get_wrapped_math(src_win, count, M._wrapping_sub)
+end
+
+-- TODO: Deprecate
 
 ---@param src_win integer|nil
 ---@param count integer
 ---@param wrapping_math function
 ---@return integer|nil
 local function get_wrapping_idx(src_win, count, wrapping_math)
-    ry._validate_win(src_win, true)
-    ry._validate_uint(count)
-    vim.validate("arithmetic", wrapping_math, "callable")
-
     local count1 = math.max(count, 1) ---@type integer
     local size = rt._get_list(src_win, { nr = 0, size = 0 }).size ---@type integer
     if size < 1 then
-        api.nvim_echo({ { "E42: No Errors", "" } }, false, {})
+        api.nvim_echo({ { QF_RANCHER_E42, "" } }, false, {})
         return nil
     end
 
@@ -266,16 +282,12 @@ end
 -- LIST IDX GETTER FUNCS --
 ---------------------------
 
--- TODO: These functions are bad because they mash up the idx finding and the item getting. Need
--- to be de-composed down
+-- TODO: Deprecate
 
 ---@param src_win integer|nil
 ---@param idx integer
 ---@return vim.quickfix.entry|nil, integer|nil
 local function get_item(src_win, idx)
-    ry._validate_win(src_win, true)
-    ry._validate_uint(idx)
-
     ---@type vim.quickfix.entry[]
     local items = rt._get_list(src_win, { nr = 0, idx = idx, items = true }).items
     if #items < 1 then
@@ -355,15 +367,15 @@ end
 ---@param cur_pos {[1]: integer, [2]: integer}
 ---@return nil
 function M._protected_set_cursor(win, cur_pos)
-    local buf = api.nvim_win_get_buf(win) ---@type integer
+    local buf = api.nvim_win_get_buf(win)
 
-    local cursor_row = math.max(cur_pos[1], 1) ---@type integer
-    local line_count = api.nvim_buf_line_count(buf) ---@type integer
-    local row = math.min(cursor_row, line_count) ---@type integer
+    local cursor_row = math.max(cur_pos[1], 1)
+    local line_count = api.nvim_buf_line_count(buf)
+    local row = math.min(cursor_row, line_count)
 
-    local set_line = api.nvim_buf_get_lines(buf, row - 1, row, false)[1] ---@type string
-    local set_line_len_0 = math.max(#set_line - 1, 0) ---@type integer
-    local col = math.min(cur_pos[2], set_line_len_0) ---@type integer
+    local set_line = api.nvim_buf_get_lines(buf, row - 1, row, false)[1]
+    local set_line_len_0 = math.max(#set_line - 1, 0)
+    local col = math.min(cur_pos[2], set_line_len_0)
 
     api.nvim_win_set_cursor(win, { row, col })
 end
@@ -395,9 +407,6 @@ end
 ---@param win integer
 ---@return nil
 --- See :h help-buffer-options
---- NOTE: While the source is based on help buffers and their options, Vim's help model can be more
---- accurately understood as creating help *windows*. Thus, options are set at Window rather than
---- local scope. And this function should not be called for bufs/wins expected to be used normally
 local function prep_help_buf(buf, win)
     api.nvim_set_option_value("bin", false, { buf = buf })
     api.nvim_set_option_value("bl", false, { buf = buf })
@@ -405,17 +414,19 @@ local function prep_help_buf(buf, win)
     api.nvim_set_option_value("ma", false, { buf = buf })
     api.nvim_set_option_value("ts", 8, { buf = buf })
 
-    api.nvim_set_option_value("arabic", false, { win = win })
-    api.nvim_set_option_value("crb", false, { win = win })
-    api.nvim_set_option_value("diff", false, { win = win })
-    api.nvim_set_option_value("fen", false, { win = win })
-    api.nvim_set_option_value("fdm", "manual", { win = win })
-    api.nvim_set_option_value("list", false, { win = win })
-    api.nvim_set_option_value("nu", false, { win = win })
-    api.nvim_set_option_value("rl", false, { win = win })
-    api.nvim_set_option_value("rnu", false, { win = win })
-    api.nvim_set_option_value("scb", false, { win = win })
-    api.nvim_set_option_value("spell", false, { win = win })
+    api.nvim_win_call(win, function()
+        api.nvim_set_option_value("arabic", false, { scope = "local" })
+        api.nvim_set_option_value("crb", false, { scope = "local" })
+        api.nvim_set_option_value("diff", false, { scope = "local" })
+        api.nvim_set_option_value("fen", false, { scope = "local" })
+        api.nvim_set_option_value("fdm", "manual", { scope = "local" })
+        api.nvim_set_option_value("list", false, { scope = "local" })
+        api.nvim_set_option_value("nu", false, { scope = "local" })
+        api.nvim_set_option_value("rl", false, { scope = "local" })
+        api.nvim_set_option_value("rnu", false, { scope = "local" })
+        api.nvim_set_option_value("scb", false, { scope = "local" })
+        api.nvim_set_option_value("spell", false, { scope = "local" })
+    end)
 
     api.nvim_set_option_value("bt", "help", { buf = buf })
     -- NOTE: Do not manually set filetype. Causes ftplugin files to work improperly
@@ -430,7 +441,7 @@ function M._open_item(item, win, opts)
         return false
     end
 
-    local already_open = api.nvim_win_get_buf(win) == buf ---@type boolean
+    local already_open = api.nvim_win_get_buf(win) == buf
     if not already_open then
         if opts.buftype == "help" then
             prep_help_buf(buf, win)
@@ -499,30 +510,27 @@ end
 ---@param line string
 ---@return boolean, integer, integer
 function M._vcol_to_byte_bounds(vcol, line)
-    ry._validate_uint(vcol)
-    vim.validate("line", line, "string")
-
     if vcol == 0 or #line <= 1 then
         return true, 0, 0
     end
 
-    local max_vcol = fn.strdisplaywidth(line) ---@type integer
+    local max_vcol = fn.strdisplaywidth(line)
     if vcol > max_vcol then
         return false, 0, 0
     end
 
     local charlen = fn.strcharlen(line) ---@type integer
     for char_idx = 0, charlen - 1 do
-        local start_byte = fn.byteidx(line, char_idx) ---@type integer
+        local start_byte = fn.byteidx(line, char_idx)
         if start_byte == -1 then
             return false, 0, 0
         end
 
         local char = fn.strcharpart(line, char_idx, 1, true) ---@type string
-        local fin_byte = start_byte + #char - 1 ---@type integer
+        local fin_byte = start_byte + #char - 1
 
-        local test_str = line:sub(1, fin_byte + 1) ---@type string
-        local test_vcol = fn.strdisplaywidth(test_str) ---@type integer
+        local test_str = line:sub(1, fin_byte + 1)
+        local test_vcol = fn.strdisplaywidth(test_str)
         if test_vcol >= vcol then
             return true, start_byte, fin_byte
         end
@@ -535,10 +543,7 @@ end
 ---@param line string
 ---@return integer
 function M._vcol_to_end_col_(vcol, line)
-    ry._validate_uint(vcol) ---@type qf-rancher.Types
-    vim.validate("line", line, "string")
-
-    local ok, _, fin_byte = M._vcol_to_byte_bounds(vcol, line) ---@type boolean, integer
+    local ok, _, fin_byte = M._vcol_to_byte_bounds(vcol, line)
     if ok then
         return math.min(fin_byte + 1, #line)
     else
@@ -546,14 +551,12 @@ function M._vcol_to_end_col_(vcol, line)
     end
 end
 
--- NOTE: Handle all validation here with built-ins to avoid looping code
-
 ---@param item_lnum integer
 ---@param item_col integer
----@return {[1]:integer, [2]:integer}
+---@return { [1]:integer, [2]:integer }
 function M._qf_pos_to_cur_pos(item_lnum, item_col)
-    local row = math.max(item_lnum, 1) ---@type integer
-    local col = item_col - 1 ---@type integer
+    local row = math.max(item_lnum, 1)
+    local col = item_col - 1
     col = math.max(col, 0)
 
     return { row, col }
@@ -588,12 +591,8 @@ end
 ---@return qf-rancher.util.FindLoclistWinOpts
 local function resolve_find_ll_win_opts(opts)
     opts = opts and vim.deepcopy(opts, true) or {}
-    vim.validate("opts", opts, "table")
 
     opts.tabpages = opts.tabpages or { api.nvim_get_current_tabpage() }
-    ry._validate_list(opts.tabpages, { item_type = "number" })
-    ry._validate_win(opts.src_win, true)
-    ry._validate_uint(opts.qf_id, true)
 
     -- If neither src_win nor qf_id are provided, allow both to be nil so that any window with
     -- wintype == "loclist" is valid
@@ -740,22 +739,24 @@ function M._is_valid_loclist_win(win)
     return false
 end
 
--- TODO: Looking through the rest of the files, didn't see a lot of use for this. Maybe ditch this.
--- Not sure yet.
-
 ---@param silent boolean
----@param msg string|nil
----@param hl string|nil
+---@param msg any
+---@param hl any
 ---@return nil
 function M._echo(silent, msg, hl)
     if silent then
         return
     end
 
-    msg = msg or ""
-    hl = hl or ""
-    local history = hl == "ErrorMsg" or hl == "WarningMsg" ---@type boolean
+    if type(msg) ~= "string" then
+        msg = ""
+    end
 
+    if type(hl) ~= "string" then
+        hl = ""
+    end
+
+    local history = hl == "ErrorMsg" or hl == "WarningMsg" ---@type boolean
     api.nvim_echo({ { msg, hl } }, history, {})
 end
 

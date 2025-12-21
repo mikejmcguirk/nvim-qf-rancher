@@ -177,14 +177,14 @@ end
 ---@param regex boolean
 ---@param grepprg string
 ---@param name string
----@return string|nil
+---@return boolean, string, string|nil
 local function get_pattern_from_prompt(case, regex, grepprg, name)
     local display_input_type = get_display_input_type(case, regex) ---@type string
     local which_grep = "[" .. grepprg .. "] " .. name .. " Grep " ---@type string
     local prompt = which_grep .. "(" .. display_input_type .. "): " ---@type string
 
-    local pattern = ru._get_input(prompt, case, regex) ---@type string|nil
-    return pattern
+    local ok, pattern, hl = ru._get_input(prompt, case)
+    return ok, pattern, hl
 end
 
 ---@alias QfrGrepLocsFunc fun():string[]
@@ -262,11 +262,13 @@ function Grep.grep(src_win, action, what, grep_opts, system_opts)
         if short_mode == "v" or short_mode == "V" or short_mode == "\22" then
             pattern = ru._get_visual_pattern(short_mode)
         else
-            pattern = get_pattern_from_prompt(case, regex, grepprg, grep_opts.name)
-        end
-
-        if not pattern then
-            return
+            local ok, input, hl = get_pattern_from_prompt(case, regex, grepprg, grep_opts.name)
+            if ok then
+                pattern = input
+            else
+                ru._echo(false, input, hl)
+                return
+            end
         end
     end
 

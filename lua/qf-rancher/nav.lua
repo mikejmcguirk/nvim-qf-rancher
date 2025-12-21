@@ -9,7 +9,7 @@ local fn = vim.fn
 ---@param new_idx integer
 ---@return nil
 local function goto_list_entry(src_win, new_idx)
-    local cmd = src_win and "cc" or "ll"
+    local cmd = src_win and "ll" or "cc"
     api.nvim_cmd({ cmd = cmd, count = new_idx }, {})
 
     local cur_win = api.nvim_get_current_win()
@@ -119,10 +119,13 @@ local Nav = {}
 function Nav.q_prev(count)
     ry._validate_uint(count)
 
-    local new_idx = ru._get_idx_wrapping_sub(nil, count)
-    if new_idx then
-        goto_list_entry(nil, new_idx)
+    local ok, new_idx, hl = ru._get_wrapping_sub(nil, count)
+    if not ok or type(new_idx) ~= "number" then
+        ru._echo(false, new_idx, hl)
+        return
     end
+
+    goto_list_entry(nil, new_idx)
 end
 
 ---@param count integer Wrapping count next entry to navigate to
@@ -130,10 +133,13 @@ end
 function Nav.q_next(count)
     ry._validate_uint(count)
 
-    local new_idx = ru._get_idx_wrapping_add(nil, count)
-    if new_idx then
-        goto_list_entry(nil, new_idx)
+    local ok, new_idx, hl = ru._get_wrapping_add(nil, count)
+    if not ok or type(new_idx) ~= "number" then
+        ru._echo(false, new_idx, hl)
+        return
     end
+
+    goto_list_entry(nil, new_idx)
 end
 
 ---@param src_win integer Location list window context
@@ -149,10 +155,13 @@ function Nav.l_prev(src_win, count)
         return
     end
 
-    local new_idx = ru._get_idx_wrapping_sub(src_win, count)
-    if new_idx then
-        goto_list_entry(src_win, new_idx)
+    local ok, new_idx, hl = ru._get_wrapping_sub(src_win, count)
+    if not ok or type(new_idx) ~= "number" then
+        ru._echo(false, new_idx, hl)
+        return
     end
+
+    goto_list_entry(src_win, new_idx)
 end
 
 ---@param src_win integer Location list window context
@@ -168,10 +177,13 @@ function Nav.l_next(src_win, count)
         return
     end
 
-    local new_idx = ru._get_idx_wrapping_add(src_win, count)
-    if new_idx then
-        goto_list_entry(src_win, new_idx)
+    local ok, new_idx, hl = ru._get_wrapping_add(src_win, count)
+    if not ok or type(new_idx) ~= "number" then
+        ru._echo(false, new_idx, hl)
+        return
     end
+
+    goto_list_entry(src_win, new_idx)
 end
 
 -- MID: [Q]Q is a bit awkward for going to a specific index

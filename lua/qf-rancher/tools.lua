@@ -1,4 +1,3 @@
-local ry = Qfr_Defer_Require("qf-rancher.types") ---@type qf-rancher.Types
 local ru = Qfr_Defer_Require("qf-rancher.util") ---@type qf-rancher.Util
 
 -- local api = vim.api
@@ -11,9 +10,6 @@ local M = {}
 ---@param title string
 ---@return integer|nil
 function M._find_list_with_title(src_win, title)
-    ry._validate_win(src_win, true)
-    vim.validate("title", title, "string")
-
     local max_nr = M._get_list(src_win, { nr = "$" }).nr ---@type integer
     for i = max_nr, 1, -1 do
         if M._get_list(src_win, { nr = i, title = 0 }).title == title then
@@ -28,9 +24,6 @@ end
 ---@param nr integer|"$"|nil
 ---@return integer|"$"
 local function resolve_list_nr(src_win, nr)
-    ry._validate_win(src_win, true)
-    ry._validate_list_nr(nr, true)
-
     if not nr then
         return 0
     end
@@ -48,9 +41,6 @@ end
 ---@param nr integer|"$"
 ---@return integer
 local function get_result(src_win, nr)
-    ry._validate_win(src_win, true)
-    ry._validate_list_nr(nr)
-
     if nr == 0 then
         return M._get_list(src_win, { nr = 0 }).nr
     end
@@ -69,10 +59,6 @@ end
 ---@param what qf-rancher.What
 ---@return integer
 function M._set_list(src_win, action, what)
-    ry._validate_win(src_win, true)
-    ry._validate_action(action)
-    ry._validate_what(what)
-
     local what_set = vim.deepcopy(what, true) ---@type qf-rancher.What
     what_set.nr = resolve_list_nr(src_win, what_set.nr)
     local idx = what_set.idx or 1
