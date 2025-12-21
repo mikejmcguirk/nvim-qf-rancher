@@ -1,7 +1,7 @@
-local ra = Qfr_Defer_Require("qf-rancher.stack") ---@type QfrStack
-local rt = Qfr_Defer_Require("qf-rancher.tools") ---@type QfrTools
-local ru = Qfr_Defer_Require("qf-rancher.util") ---@type QfrUtil
-local ry = Qfr_Defer_Require("qf-rancher.types") ---@type QfrTypes
+local ra = Qfr_Defer_Require("qf-rancher.stack") ---@type qf-rancher.Stack
+local rt = Qfr_Defer_Require("qf-rancher.tools") ---@type qf-rancher.Tools
+local ru = Qfr_Defer_Require("qf-rancher.util") ---@type qf-rancher.Util
+local ry = Qfr_Defer_Require("qf-rancher.types") ---@type qf-rancher.Types
 local rw = Qfr_Defer_Require("qf-rancher.window") ---@type qf-rancher.Window
 
 local api = vim.api
@@ -14,9 +14,10 @@ local fn = vim.fn
 ---
 ---@brief ]]
 
---- @class QfrFilter
+--- @class qf-rancher.Filter
 local Filter = {}
 
+-- TODO: Since keep is used in hot loops, keep it as a straight var rather than an opt
 -- TODO: This is a bad one because, in addition to converting over the params, I have to move over
 -- the input types to the new case/regex separation system
 -- TODO: Similar thing to grep where filter_opts should just be a flat table
@@ -78,7 +79,7 @@ local function filter_wrapper(filter_info, keep, input_opts, output_opts)
         return predicate(t, keep, { pattern = pattern, regex = regex })
     end, what_ret.items) ---@type vim.quickfix.entry[]
 
-    local what_set = rt._what_ret_to_set(what_ret) ---@type QfrWhat
+    local what_set = rt._what_ret_to_set(what_ret) ---@type qf-rancher.What
     what_set.nr = output_opts.what.nr
     local dest_nr = rt._set_list(src_win, output_opts.action, what_set) ---@type integer
     if dest_nr > 0 and vim.g.qfr_auto_open_changes then
@@ -397,7 +398,7 @@ local function filter_cmd(cargs, src_win)
     local pattern = ru._find_pattern_in_cmd(fargs) ---@type string|nil
     local input_opts = { input_type = input_type, pattern = pattern } ---@type QfrInputOpts
 
-    ---@type QfrAction
+    ---@type qf-rancher.types.Action
     local action = ru._check_cmd_arg(fargs, ry._actions, "u")
     ---@type QfrOutputOpts
     local output_opts = { src_win = src_win, action = action, what = { nr = cargs.count } }

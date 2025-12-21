@@ -1,9 +1,9 @@
 local api = vim.api
 local fn = vim.fn
 
-local rt = Qfr_Defer_Require("qf-rancher.tools") ---@type QfrTools
-local ru = Qfr_Defer_Require("qf-rancher.util") ---@type QfrUtil
-local ry = Qfr_Defer_Require("qf-rancher.types") ---@type QfrTypes
+local rt = Qfr_Defer_Require("qf-rancher.tools") ---@type qf-rancher.Tools
+local ru = Qfr_Defer_Require("qf-rancher.util") ---@type qf-rancher.Util
+local ry = Qfr_Defer_Require("qf-rancher.types") ---@type qf-rancher.Types
 local rw = Qfr_Defer_Require("qf-rancher.window") ---@type qf-rancher.Window
 
 --- @class QfRancherFiletypeFuncs
@@ -16,7 +16,7 @@ function M._del_one_list_item()
     local list_win = api.nvim_get_current_win() ---@type integer
     local wintype = fn.win_gettype(list_win)
     if not (wintype == "quickfix" or wintype == "loclist") then
-        api.nvim_echo({ { "Not inside a list window", "" } }, false, {})
+        api.nvim_echo({ { QF_RANCHER_NOLISTWIN, "" } }, false, {})
         return
     end
 
@@ -40,7 +40,7 @@ function M._visual_del()
     local list_win = api.nvim_get_current_win() ---@type integer
     local wintype = fn.win_gettype(list_win)
     if not (wintype == "quickfix" or wintype == "loclist") then
-        api.nvim_echo({ { "Not inside a list window", "" } }, false, {})
+        api.nvim_echo({ { QF_RANCHER_NOLISTWIN, "" } }, false, {})
         return
     end
 
@@ -102,7 +102,7 @@ local function handle_orphan(list_win, dest_win, finish)
         return
     end
 
-    local stack = rt._get_stack(list_win) ---@type QfrWhat[]
+    local stack = rt._get_stack(list_win) ---@type qf-rancher.What[]
     ru._with_checked_spk(function()
         ru._pwin_close(list_win, true)
     end)
@@ -640,7 +640,7 @@ end
 ---@param dest_bt string
 ---@param split QfrSplitType
 ---@param finish QfrFinishMethod
----@return QfrBufOpenOpts
+---@return qf-rancher.types.BufOpenOpts
 local function get_open_opts(dest_bt, split, finish)
     return { buftype = dest_bt, clearjumps = split ~= "none", focus = finish == "focusWin" }
 end
@@ -833,7 +833,7 @@ local function open_list_item(dir, split, finish)
     local list_win = api.nvim_get_current_win() ---@type integer
     local wintype = fn.win_gettype(list_win)
     if not (wintype == "quickfix" or wintype == "loclist") then
-        api.nvim_echo({ { "Not inside a list window", "" } }, false, {})
+        api.nvim_echo({ { QF_RANCHER_NOLISTWIN, "" } }, false, {})
         return
     end
 
@@ -846,7 +846,7 @@ local function open_list_item(dir, split, finish)
     end
 
     if not (item.bufnr and api.nvim_buf_is_valid(item.bufnr)) then
-        api.nvim_echo({ { "Item does not contain a valid bufnr" } }, true, { error = true })
+        api.nvim_echo({ { "Item does not contain a valid bufnr", "ErrorMsg" } }, true, {})
         return
     end
 

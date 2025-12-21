@@ -1,9 +1,9 @@
-local ls = Qfr_Defer_Require("qf-rancher.lib.sort") ---@type QfrLibSort
-local ra = Qfr_Defer_Require("qf-rancher.stack") ---@type QfrStack
-local rt = Qfr_Defer_Require("qf-rancher.tools") ---@type QfrTools
-local ru = Qfr_Defer_Require("qf-rancher.util") ---@type QfrUtil
+local ls = Qfr_Defer_Require("qf-rancher.lib.sort") ---@type qf-rancher.lib.Sort
+local ra = Qfr_Defer_Require("qf-rancher.stack") ---@type qf-rancher.Stack
+local rt = Qfr_Defer_Require("qf-rancher.tools") ---@type qf-rancher.Tools
+local ru = Qfr_Defer_Require("qf-rancher.util") ---@type qf-rancher.Util
 local rw = Qfr_Defer_Require("qf-rancher.window") ---@type qf-rancher.Window
-local ry = Qfr_Defer_Require("qf-rancher.types") ---@type QfrTypes
+local ry = Qfr_Defer_Require("qf-rancher.types") ---@type qf-rancher.Types
 
 local api = vim.api
 
@@ -14,7 +14,7 @@ local api = vim.api
 ---
 ---@brief ]]
 
---- @class QfrSystem
+--- @class qf-rancher.System
 local System = {}
 
 local default_timeout = 2000 ---@type integer
@@ -105,9 +105,9 @@ end
 
 ---@param obj vim.SystemCompleted
 ---@param src_win integer|nil
----@param action QfrAction
----@param what QfrWhat
----@param system_opts QfrSystemOpts
+---@param action qf-rancher.types.Action
+---@param what qf-rancher.What
+---@param system_opts qf-rancher.SystemOpts
 local function set_output_to_list(obj, src_win, action, what, system_opts)
     if not (obj.code and obj.code == 0) then
         local code_str = obj.code and "Exit code: " .. obj.code or "" ---@type string
@@ -115,7 +115,7 @@ local function set_output_to_list(obj, src_win, action, what, system_opts)
         local err = is_err and "Error: " .. obj.stderr or "" ---@type string
         local msg = code_str .. " " .. err ---@type string
 
-        api.nvim_echo({ { msg, "ErrorMsg" } }, true, { err = true })
+        api.nvim_echo({ { msg, "ErrorMsg" } }, true, {})
         return
     end
 
@@ -154,7 +154,7 @@ local function set_output_to_list(obj, src_win, action, what, system_opts)
         end
     end
 
-    ---@type QfrWhat
+    ---@type qf-rancher.What
     local what_set = vim.tbl_deep_extend("force", what, { items = lines_dict.items })
     local dest_nr = rt._set_list(src_win, action, what_set) ---@type integer
     if dest_nr < 0 then
@@ -194,12 +194,12 @@ end
 ---@param cmd_parts string[] Command to execute
 ---@param src_win integer|nil Location list window nr, or nil to set to
 ---the quickfix list
----@param action QfrAction See |setqflist-action|
----@param what QfrWhat See |setqflist-what|
----@param system_opts QfrSystemOpts See |qfr-system-opts|
+---@param action qf-rancher.types.Action See |setqflist-action|
+---@param what qf-rancher.What See |setqflist-what|
+---@param system_opts qf-rancher.SystemOpts See |qfr-system-opts|
 ---@return nil
 function System.system_do(cmd_parts, src_win, action, what, system_opts)
-    ry._validate_list(cmd_parts, { type = "string" })
+    ry._validate_list(cmd_parts, { item_type = "string" })
     ry._validate_win(src_win, true)
     ry._validate_action(action)
     ry._validate_what(what)

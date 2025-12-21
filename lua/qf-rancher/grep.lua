@@ -1,11 +1,11 @@
 -- Escaping test line from From vim-grepper
 -- ..ad\\f40+$':-# @=,!;%^&&*()_{}/ /4304\'""?`9$343%$ ^adfadf[ad)[(
 
-local gl = Qfr_Defer_Require("qf-rancher.lib.grep_locs") ---@type QfrLibGrepLocs
-local re = Qfr_Defer_Require("qf-rancher.system") ---@type QfrSystem
-local rt = Qfr_Defer_Require("qf-rancher.tools") ---@type QfrTools
-local ru = Qfr_Defer_Require("qf-rancher.util") ---@type QfrUtil
-local ry = Qfr_Defer_Require("qf-rancher.types") ---@type QfrTypes
+local gl = Qfr_Defer_Require("qf-rancher.lib.grep_locs") ---@type qf-rancher.lib.GrepLocs
+local re = Qfr_Defer_Require("qf-rancher.system") ---@type qf-rancher.System
+local rt = Qfr_Defer_Require("qf-rancher.tools") ---@type qf-rancher.Tools
+local ru = Qfr_Defer_Require("qf-rancher.util") ---@type qf-rancher.Util
+local ry = Qfr_Defer_Require("qf-rancher.types") ---@type qf-rancher.Types
 
 local api = vim.api
 local fn = vim.fn
@@ -17,7 +17,7 @@ local fn = vim.fn
 ---
 ---@brief ]]
 
---- @class QfrGrep
+--- @class qf-rancher.Grep
 local Grep = {}
 
 local base_parts = {
@@ -108,7 +108,7 @@ local function validate_grep_opts(grep_opts)
         return
     elseif type(grep_opts.locations) == "table" then
         ---@diagnostic disable-next-line: param-type-mismatch
-        ry._validate_list(grep_opts.locations, { type = "string" })
+        ry._validate_list(grep_opts.locations, { item_type = "string" })
     else
         vim.validate("grep_opts.locations", grep_opts.locations, "function")
     end
@@ -229,10 +229,10 @@ end
 ---This command uses the |qfr-system| module to run the grep and print
 ---results
 ---@param src_win integer|nil Location list window context. Nil for qflist
----@param action QfrAction See |setqflist-action|
----@param what QfrWhat See |setqflist-what|
+---@param action qf-rancher.types.Action See |setqflist-action|
+---@param what qf-rancher.What See |setqflist-what|
 ---@param grep_opts QfrGrepOpts See |QfrGrepOpts|
----@param system_opts QfrSystemOpts See |QfrSystemOpts|
+---@param system_opts qf-rancher.SystemOpts See |QfrSystemOpts|
 ---@return nil
 function Grep.grep(src_win, action, what, grep_opts, system_opts)
     ry._validate_win(src_win, true)
@@ -279,7 +279,7 @@ function Grep.grep(src_win, action, what, grep_opts, system_opts)
         return
     end
 
-    local sys_opts = vim.deepcopy(system_opts, true) ---@type QfrSystemOpts
+    local sys_opts = vim.deepcopy(system_opts, true) ---@type qf-rancher.SystemOpts
     local base_cmd = table.concat(base_parts[grepprg], " ") ---@type string
     what.title = grep_opts.name .. " " .. base_cmd .. "  " .. pattern
 
@@ -296,7 +296,7 @@ end
 
 ---@class QfrGrepInfo
 ---@field grep_opts QfrGrepOpts See |QfrGrepOpts|
----@field sys_opts QfrSystemOpts See |QfrSystemOpts|
+---@field sys_opts qf-rancher.SystemOpts See |QfrSystemOpts|
 
 ---Greps available to the Qgrep and Lgrep cmds. The string table key can be
 ---used as an argument to specify the grep type. This table is public, and
@@ -319,7 +319,7 @@ local function grep_cmd(src_win, cargs)
     cargs = cargs or {}
     local fargs = cargs.fargs ---@type string[]
 
-    local action = ru._check_cmd_arg(fargs, ry._actions, " ") ---@type QfrAction
+    local action = ru._check_cmd_arg(fargs, ry._actions, " ") ---@type qf-rancher.types.Action
 
     local grep_names = vim.tbl_keys(Grep.greps) ---@type string[]
     assert(#grep_names > 1, "No grep commands available")
@@ -342,7 +342,7 @@ local function grep_cmd(src_win, cargs)
         grep_opts.case = input_type
     end
 
-    local sys_opts = grep_info.sys_opts ---@type QfrSystemOpts
+    local sys_opts = grep_info.sys_opts ---@type qf-rancher.SystemOpts
     ---@type "sync"|"async"
     local sync_str = ru._check_cmd_arg(fargs, ry._sync_opts, ry._default_sync_opt)
     local sync = sync_str == "sync" and true or false ---@type boolean

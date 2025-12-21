@@ -1,10 +1,10 @@
-local ry = Qfr_Defer_Require("qf-rancher.types") ---@type QfrTypes
-local ru = Qfr_Defer_Require("qf-rancher.util") ---@type QfrUtil
+local ry = Qfr_Defer_Require("qf-rancher.types") ---@type qf-rancher.Types
+local ru = Qfr_Defer_Require("qf-rancher.util") ---@type qf-rancher.Util
 
 -- local api = vim.api
 local fn = vim.fn
 
----@class QfrTools
+---@class qf-rancher.Tools
 local M = {}
 
 ---@param src_win integer|nil
@@ -65,15 +65,15 @@ local function get_result(src_win, nr)
 end
 
 ---@param src_win integer|nil
----@param action QfrAction
----@param what QfrWhat
+---@param action qf-rancher.types.Action
+---@param what qf-rancher.What
 ---@return integer
 function M._set_list(src_win, action, what)
     ry._validate_win(src_win, true)
     ry._validate_action(action)
     ry._validate_what(what)
 
-    local what_set = vim.deepcopy(what, true) ---@type QfrWhat
+    local what_set = vim.deepcopy(what, true) ---@type qf-rancher.What
     what_set.nr = resolve_list_nr(src_win, what_set.nr)
     local idx = what_set.idx or 1
 
@@ -117,7 +117,7 @@ function M._clear_list(src_win, list_nr)
 
     local nr = resolve_list_nr(src_win, list_nr) ---@type integer|"$"
 
-    ---@type QfrWhat
+    ---@type qf-rancher.What
     local what = { nr = nr, context = {}, items = {}, quickfixtextfunc = "", title = "" }
     local result = src_win and fn.setloclist(src_win, {}, "r", what) or fn.setqflist({}, "r", what)
     return result == -1 and result or get_result(src_win, nr)
@@ -141,7 +141,7 @@ function M._get_list(src_win, what)
 end
 
 ---@param src_win integer|nil
----@param stack QfrWhat[]
+---@param stack qf-rancher.What[]
 ---@return nil
 function M._set_stack(src_win, stack)
     if vim.g.qfr_debug_assertions then
@@ -167,7 +167,7 @@ end
 ---@param what_ret table
 ---@return table
 function M._what_ret_to_set(what_ret)
-    local what_set = {} ---@type QfrWhat
+    local what_set = {} ---@type qf-rancher.What
 
     what_set.context = type(what_ret.context) == "table" and what_ret.context or nil
     what_set.idx = type(what_ret.idx) == "number" and what_ret.idx or nil
@@ -188,7 +188,7 @@ function M._what_ret_to_set(what_ret)
 end
 
 ---@param src_win integer
----@return QfrWhat[]
+---@return qf-rancher.What[]
 function M._get_stack(src_win)
     if vim.g.qfr_debug_assertions then
         ry._validate_win(src_win, true)
@@ -202,7 +202,7 @@ function M._get_stack(src_win)
 
     for i = 1, max_nr do
         local what_ret = M._get_list(src_win, { nr = i, all = true }) ---@type table
-        local what_set = M._what_ret_to_set(what_ret) ---@type QfrWhat
+        local what_set = M._what_ret_to_set(what_ret) ---@type qf-rancher.What
         what_set.nr = i
         stack[#stack + 1] = what_set
     end

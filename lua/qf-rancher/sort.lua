@@ -1,8 +1,8 @@
-local lib = Qfr_Defer_Require("qf-rancher.lib.sort") ---@type QfrLibSort
-local ra = Qfr_Defer_Require("qf-rancher.stack") ---@type QfrStack
-local rt = Qfr_Defer_Require("qf-rancher.tools") ---@type QfrTools
-local ru = Qfr_Defer_Require("qf-rancher.util") ---@type QfrUtil
-local ry = Qfr_Defer_Require("qf-rancher.types") ---@type QfrTypes
+local lib = Qfr_Defer_Require("qf-rancher.lib.sort") ---@type qf-rancher.lib.Sort
+local ra = Qfr_Defer_Require("qf-rancher.stack") ---@type qf-rancher.Stack
+local rt = Qfr_Defer_Require("qf-rancher.tools") ---@type qf-rancher.Tools
+local ru = Qfr_Defer_Require("qf-rancher.util") ---@type qf-rancher.Util
+local ry = Qfr_Defer_Require("qf-rancher.types") ---@type qf-rancher.Types
 local rw = Qfr_Defer_Require("qf-rancher.window") ---@type qf-rancher.Window
 
 local api = vim.api
@@ -14,7 +14,7 @@ local api = vim.api
 ---
 ---@brief ]]
 
---- @class QfRancherSort
+--- @class qf-rancher.Sort
 local Sort = {}
 
 -- LOW: It would be neat if a what table were passed in instead of just the nr, but I would have to
@@ -26,11 +26,11 @@ local Sort = {}
 ---- vim.qflist.item (first item to sort)
 ---- vim.qflist.item (second item to sort)
 ---Return: Boolean
----@alias QfrSortPredicate fun(vim.qflist.item, vim.qflist.item): boolean
+---@alias qf-rancher.sort.Predicate fun(vim.qflist.item, vim.qflist.item): boolean
 
----@param pred QfrSortPredicate A function to sort the list items
+---@param pred qf-rancher.sort.Predicate A function to sort the list items
 ---@param src_win integer|nil Optional location list window context
----@param action QfrAction What action to take when setting the list
+---@param action qf-rancher.types.Action What action to take when setting the list
 ---@param nr integer|'$' Which list nr to operate on
 ---@return nil
 function Sort.sort(pred, src_win, action, nr)
@@ -49,13 +49,12 @@ function Sort.sort(pred, src_win, action, nr)
         return
     end
 
-    local what_set = rt._what_ret_to_set(what_ret) ---@type QfrWhat
+    local what_set = rt._what_ret_to_set(what_ret)
     table.sort(what_set.items, pred)
     what_set.nr = nr
 
-    local dest_nr = rt._set_list(src_win, action, what_set) ---@type integer
+    local dest_nr = rt._set_list(src_win, action, what_set)
     if dest_nr > 0 and vim.g.qfr_auto_open_changes then
-        ---@type integer, integer, string|nil
         local cur_nr, nr_after, _ = ra._goto_history(src_win, dest_nr, { silent = true })
         if cur_nr ~= nr_after and vim.g.qfr_auto_list_height then
             ra._resize_after_change(src_win)
@@ -73,15 +72,15 @@ end
 
 ---@tag qf-rancher-sort-info
 ---@tag qfr-sort-info
----@class QfrSortInfo
----@field asc QfrSortPredicate Predicate for asc Sort.sorts
----@field desc QfrSortPredicate Predicate for desc Sort.sorts
+---@class qf-rancher.sort.Info
+---@field asc qf-rancher.sort.Predicate Predicate for asc Sort.sorts
+---@field desc qf-rancher.sort.Predicate Predicate for desc Sort.sorts
 
 ---Sorts available to the Qsort and Lsort cmds. The string table key can be
 ---fed to those cmds as an argument to use the sorts. Because this table is
 ---public, sorts can be directly added or removed
 ---Pre-built sorts are available in "qf-rancher.lib.sort"
----@type table<string, QfrSortInfo>
+---@type table<string, qf-rancher.sort.Info>
 Sort.sorts = {
     fname = { asc = lib.sort_fname_asc, desc = lib.sort_fname_desc },
     fname_diag = { asc = lib.sort_fname_diag_asc, desc = lib.sort_fname_diag_desc },
@@ -98,7 +97,7 @@ Sort.sorts = {
 local function sort_cmd(src_win, cargs)
     local sort_names = vim.tbl_keys(Sort.sorts) ---@type string[]
     if #sort_names < 1 then
-        api.nvim_echo({ { "No sorts available" } }, true, { err = true })
+        api.nvim_echo({ { "No sorts available" } }, true, {})
         return
     end
 
@@ -106,7 +105,8 @@ local function sort_cmd(src_win, cargs)
     local default_sort = vim.tbl_contains(sort_names, "fname") and "fname" or sort_names[1]
     local sort_name = ru._check_cmd_arg(cargs.fargs, sort_names, default_sort) ---@type string
     local dir = cargs.bang and "desc" or "asc" ---@type QfrSortDir
-    local action = ru._check_cmd_arg(cargs.fargs, ry._actions, "u") ---@type QfrAction
+    ---@type qf-rancher.types.Action
+    local action = ru._check_cmd_arg(cargs.fargs, ry._actions, "u")
 
     Sort.sort(Sort.sorts[sort_name][dir], src_win, action, cargs.count)
 end

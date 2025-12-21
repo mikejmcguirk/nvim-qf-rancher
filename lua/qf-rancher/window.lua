@@ -1,6 +1,5 @@
-local rt = Qfr_Defer_Require("qf-rancher.tools") ---@type QfrTools
-local ru = Qfr_Defer_Require("qf-rancher.util") ---@type QfrUtil
-local ry = Qfr_Defer_Require("qf-rancher.types") ---@type QfrTypes
+local ru = Qfr_Defer_Require("qf-rancher.util") ---@type qf-rancher.Util
+local ry = Qfr_Defer_Require("qf-rancher.types") ---@type qf-rancher.Types
 
 local api = vim.api
 local fn = vim.fn
@@ -19,6 +18,7 @@ local function resolve_height_for_list(src_win, height)
         return QF_RANCHER_MAX_HEIGHT
     end
 
+    local rt = require("qf-rancher.tools")
     local size = rt._get_list(src_win, { nr = 0, size = 0 }).size ---@type integer
     return size == 0 and 1 or math.min(size, QF_RANCHER_MAX_HEIGHT)
 end

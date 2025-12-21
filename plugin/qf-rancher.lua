@@ -1,4 +1,5 @@
 _G.QF_RANCHER_MAX_HEIGHT = 10
+_G.QF_RANCHER_NOLISTWIN = "Not inside a list window"
 _G.QF_RANCHER_NO_LL = "Window has no location list"
 
 ---https://github.com/tjdevries/lazy-require.nvim/blob/master/lua/lazy-require.lua
@@ -319,9 +320,7 @@ if vim.g.qfr_set_default_cmds then
     end
 end
 
--- TODO: Replace all echoes with the new interface, this would probably also mean changing
--- some error reporting. If something would be too big a refactor, mark it to do later
--- TODO: Rename all classes based on the new naming system
+-- TODO: More thoroughly rename types once we actually know what we're going forward with
 -- TODO: Check all TODO comments and make sure they are not connected to functions or exported
 -- definitions. Lua_Ls includes them in hover info
 -- TODO: Organize the modules so that the actual exported module tables start where the

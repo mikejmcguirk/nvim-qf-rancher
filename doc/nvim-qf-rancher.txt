@@ -1010,7 +1010,7 @@ View and edit the list stack                                             *Stack*
                                                                      *qfr-stack*
 
 
-qfr.stack.GotoHistoryOpts                            *qfr.stack.GotoHistoryOpts*
+qf-rancher.stack.GotoHistoryOpts              *qf-rancher.stack.GotoHistoryOpts*
 
     Fields: ~
         {silent}  (boolean) Suppress messages
@@ -1021,7 +1021,7 @@ Stack.q_older({count}, {opts?})                                  *Stack.q_older*
 
     Parameters: ~
         {count}  (integer) Wrapping count previous list to go to. Minimum 1
-        {opts?}  (qfr.stack.GotoHistoryOpts) See |qfr.stack.GotoHistoryOpts|
+        {opts?}  (qf-rancher.stack.GotoHistoryOpts) See |qfr.stack.GotoHistoryOpts|
 
     Returns: ~
         (nil)
@@ -1032,7 +1032,7 @@ Stack.q_newer({count}, {opts?})                                  *Stack.q_newer*
 
     Parameters: ~
         {count}  (integer) Wrapping count next list to go to. Minimum 1
-        {opts?}  (qfr.stack.GotoHistoryOpts) See |qfr.stack.GotoHistoryOpts|
+        {opts?}  (qf-rancher.stack.GotoHistoryOpts) See |qfr.stack.GotoHistoryOpts|
 
     Returns: ~
         (nil)
@@ -1040,12 +1040,11 @@ Stack.q_newer({count}, {opts?})                                  *Stack.q_newer*
 
                                                                  *Stack.l_older*
 Stack.l_older({src_win}, {count}, {opts?})
-    If g:qfr_auto_list_height is true, the list will automatically resize
 
     Parameters: ~
         {src_win}  (integer) Location list window context
         {count}    (integer) Wrapping count previous list to go to. Minimum 1
-        {opts?}    (qfr.stack.GotoHistoryOpts) See |qfr.stack.GotoHistoryOpts|
+        {opts?}    (qf-rancher.stack.GotoHistoryOpts) See |qfr.stack.GotoHistoryOpts|
 
     Returns: ~
         (nil)
@@ -1053,25 +1052,23 @@ Stack.l_older({src_win}, {count}, {opts?})
 
                                                                  *Stack.l_newer*
 Stack.l_newer({src_win}, {count}, {opts?})
-    If g:qfr_auto_list_height is true, the list will automatically resize
 
     Parameters: ~
         {src_win}  (integer) Location list window context
         {count}    (integer) Wrapping count next list to go to. Minimum 1
-        {opts?}    (qfr.stack.GotoHistoryOpts) See |qfr.stack.GotoHistoryOpts|
+        {opts?}    (qf-rancher.stack.GotoHistoryOpts) See |qfr.stack.GotoHistoryOpts|
 
     Returns: ~
         (nil)
 
 
 Stack.q_history({count}, {opts?})                              *Stack.q_history*
-    If g:qfr_auto_list_height is true, the list will automatically resize
 
     Parameters: ~
         {count}  (integer|nil) List number to go to, nil to display the whole
                  stack. A count of 0 shows the current list number (difference
                  from core behavior)
-        {opts?}  (qfr.stack.GotoHistoryOpts) See |qfr.stack.GotoHistoryOpts|
+        {opts?}  (qf-rancher.stack.GotoHistoryOpts) See |qfr.stack.GotoHistoryOpts|
 
     Returns: ~
         (nil)
@@ -1079,14 +1076,13 @@ Stack.q_history({count}, {opts?})                              *Stack.q_history*
 
                                                                *Stack.l_history*
 Stack.l_history({src_win}, {count}, {opts?})
-    If g:qfr_auto_list_height is true, the list will automatically resize
 
     Parameters: ~
         {src_win}  (integer) Location list window context
         {count}    (integer|nil) List number to go to, nil to display the
                    whole stack. A count of 0 shows the current list number
                    (difference from core behavior)
-        {opts?}    (qfr.stack.GotoHistoryOpts) See |qfr.stack.GotoHistoryOpts|
+        {opts?}    (qf-rancher.stack.GotoHistoryOpts) See |qfr.stack.GotoHistoryOpts|
 
     Returns: ~
         (nil)
@@ -1413,10 +1409,10 @@ Grep.grep({src_win}, {action}, {what}, {grep_opts}, {system_opts})
 
     Parameters: ~
         {src_win}      (integer|nil) Location list window context. Nil for qflist
-        {action}       (QfrAction) See |setqflist-action|
-        {what}         (QfrWhat) See |setqflist-what|
+        {action}       (qf-rancher.types.Action) See |setqflist-action|
+        {what}         (qf-rancher.What) See |setqflist-what|
         {grep_opts}    (QfrGrepOpts) See |QfrGrepOpts|
-        {system_opts}  (QfrSystemOpts) See |QfrSystemOpts|
+        {system_opts}  (qf-rancher.SystemOpts) See |QfrSystemOpts|
 
     Returns: ~
         (nil)
@@ -1426,7 +1422,7 @@ QfrGrepInfo                                                        *QfrGrepInfo*
 
     Fields: ~
         {grep_opts}  (QfrGrepOpts) See |QfrGrepOpts|
-        {sys_opts}   (QfrSystemOpts) See |QfrSystemOpts|
+        {sys_opts}   (qf-rancher.SystemOpts) See |QfrSystemOpts|
 
 
 The callbacks to assign the Qgrep and Lgrep commands are below. They expect
@@ -1535,27 +1531,31 @@ Sends diags to the qf list                                                *Diag*
                                                                *qfr-diagnostics*
 
 
-QfrDiagOpts                                                        *QfrDiagOpts*
+qf-rancher.diag.DiagOpts                              *qf-rancher.diag.DiagOpts*
 
     Fields: ~
-        {disp_func?}  (QfrDiagDispFunc) List entry conversion function
+        {disp_func?}  (qf-rancher.diag.DisplayFunc)
+                      List entry conversion function
         {top?}        (boolean) If true, only show top severity
         {getopts?}    (vim.diagnostic.GetOpts) See |vim.diagnostic.Getopts|
 
 
                                                             *Diag.diags_to_list*
 Diag.diags_to_list({diag_opts}, {output_opts})
+
     Convert diagnostics into list entries
+
     In line with Neovim's default, the list title will be "Diagnostics"
+
     If g:qfr_reuse_title is true, output_opts.action is " ", and a list with
     the title "Diagnostics" already exists, it will be re-used
+
     If a query is made for all diagnostics in a scope, and no results return,
     the "Diagnostics" list will be automatically cleared
-    If g:qfr_auto_open_changes is true, the results will be automatically
-    opened
+
 
     Parameters: ~
-        {diag_opts}    (QfrDiagOpts)
+        {diag_opts}    (qf-rancher.diag.DiagOpts)
         {output_opts}  (QfrOutputOpts) See |qfr-output-opts|
 
     Returns: ~
@@ -1893,7 +1893,7 @@ Sort list items                                                           *Sort*
 
                                                      *qf-rancher-sort-predicate*
                                                             *qfr-sort-predicate*
-QfrSortPredicate                                              *QfrSortPredicate*
+qf-rancher.sort.Predicate                            *qf-rancher.sort.Predicate*
     Parameters:
     - vim.qflist.item (first item to sort)
     - vim.qflist.item (second item to sort)
@@ -1907,9 +1907,9 @@ QfrSortPredicate                                              *QfrSortPredicate*
 Sort.sort({pred}, {src_win}, {action}, {nr})
 
     Parameters: ~
-        {pred}     (QfrSortPredicate) A function to sort the list items
+        {pred}     (qf-rancher.sort.Predicate) A function to sort the list items
         {src_win}  (integer|nil) Optional location list window context
-        {action}   (QfrAction) What action to take when setting the list
+        {action}   (qf-rancher.types.Action) What action to take when setting the list
         {nr}       (integer|"$") Which list nr to operate on
 
     Returns: ~
@@ -1918,11 +1918,11 @@ Sort.sort({pred}, {src_win}, {action}, {nr})
 
                                                           *qf-rancher-sort-info*
                                                                  *qfr-sort-info*
-QfrSortInfo                                                        *QfrSortInfo*
+qf-rancher.sort.Info                                      *qf-rancher.sort.Info*
 
     Fields: ~
-        {asc}   (QfrSortPredicate) Predicate for asc Sort.sorts
-        {desc}  (QfrSortPredicate) Predicate for desc Sort.sorts
+        {asc}   (qf-rancher.sort.Predicate) Predicate for asc Sort.sorts
+        {desc}  (qf-rancher.sort.Predicate) Predicate for desc Sort.sorts
 
 
 Sort.sorts                                                          *Sort.sorts*
@@ -1932,7 +1932,7 @@ Sort.sorts                                                          *Sort.sorts*
     Pre-built sorts are available in "qf-rancher.lib.sort"
 
     Type: ~
-        (table<string,QfrSortInfo>)
+        (table<string,qf-rancher.sort.Info>)
 
 
 QfrSortDir                                                          *QfrSortDir*
@@ -1987,9 +1987,9 @@ System.system_do({cmd_parts}, {src_win}, {action}, {what}, {system_opts})
         {cmd_parts}    (string[]) Command to execute
         {src_win}      (integer|nil) Location list window nr, or nil to set to
                        the quickfix list
-        {action}       (QfrAction) See |setqflist-action|
-        {what}         (QfrWhat) See |setqflist-what|
-        {system_opts}  (QfrSystemOpts) See |qfr-system-opts|
+        {action}       (qf-rancher.types.Action) See |setqflist-action|
+        {what}         (qf-rancher.What) See |setqflist-what|
+        {system_opts}  (qf-rancher.SystemOpts) See |qfr-system-opts|
 
     Returns: ~
         (nil)
@@ -2085,7 +2085,7 @@ QfrInputOpts                                                      *QfrInputOpts*
 
                                                         *qf-rancher-system-opts*
                                                                *qfr-system-opts*
-QfrSystemOpts                                                    *QfrSystemOpts*
+qf-rancher.SystemOpts                                    *qf-rancher.SystemOpts*
 
     Fields: ~
         {list_item_type?}  (string) Usually blank. "\1" for help buffers
@@ -2103,8 +2103,8 @@ QfrOutputOpts                                                    *QfrOutputOpts*
         {list_item_type?}  (string) Usually blank. "\1" for help buffers
         {sort_func?}       (function) A function from the sort module
         {src_win}          (integer|nil) Loclist win context. Quickfix if nil
-        {action}           (QfrAction) See |setqflist-action|
-        {what}             (QfrWhat) See |setqflist-what|
+        {action}           (qf-rancher.types.Action) See |setqflist-action|
+        {what}             (qf-rancher.What) See |setqflist-what|
 
 
 vim:tw=78:ts=8:noet:ft=help:norl:

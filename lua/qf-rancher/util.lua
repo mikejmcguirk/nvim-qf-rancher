@@ -1,11 +1,11 @@
 -- TODO: Rename all the datatypes with namespaces the way Neovim does. Would need to address
 -- in my personal config as well
 
----@class QfrUtil
+---@class qf-rancher.Util
 local M = {}
 
-local rt = Qfr_Defer_Require("qf-rancher.tools") ---@type QfrTools
-local ry = Qfr_Defer_Require("qf-rancher.types") ---@type QfrTypes
+local rt = Qfr_Defer_Require("qf-rancher.tools") ---@type qf-rancher.Tools
+local ry = Qfr_Defer_Require("qf-rancher.types") ---@type qf-rancher.Types
 
 local api = vim.api
 local fn = vim.fn
@@ -17,7 +17,7 @@ local fn = vim.fn
 ---@param fargs string[]
 ---@return string|nil
 function M._find_pattern_in_cmd(fargs)
-    ry._validate_list(fargs, { type = "string" })
+    ry._validate_list(fargs, { item_type = "string" })
 
     for _, arg in ipairs(fargs) do
         if arg:sub(1, 1) == "/" then
@@ -32,8 +32,8 @@ end
 ---@param valid_args string[]
 ---@param default string
 function M._check_cmd_arg(fargs, valid_args, default)
-    ry._validate_list(fargs, { type = "string" })
-    ry._validate_list(valid_args, { type = "string" })
+    ry._validate_list(fargs, { item_type = "string" })
+    ry._validate_list(valid_args, { item_type = "string" })
     vim.validate("default", default, "string")
 
     for _, arg in ipairs(fargs) do
@@ -121,7 +121,7 @@ local function get_visual_pattern(mode)
         end
     end
 
-    api.nvim_echo({ { "get_visual_pattern: Empty selection", "" } }, false, {})
+    api.nvim_echo({ { "get_visual_pattern: Empty selection" } }, false, {})
     return nil
 end
 
@@ -142,7 +142,7 @@ local function get_input(prompt)
     end
 
     local chunk = { (pattern or "Unknown error getting input"), "ErrorMsg" } ---@type string[]
-    api.nvim_echo({ chunk }, true, { err = true })
+    api.nvim_echo({ chunk }, true, {})
     return nil
 end
 
@@ -291,7 +291,7 @@ local function get_item(src_win, idx)
         return item, idx
     end
 
-    api.nvim_echo({ { "List item bufnr is invalid", "ErrorMsg" } }, true, { err = true })
+    api.nvim_echo({ { "List item bufnr is invalid", "ErrorMsg" } }, true, {})
     return nil, nil
 end
 
@@ -436,7 +436,7 @@ local function prep_help_buf(buf, win)
 end
 
 ---@param item vim.quickfix.entry
----@param opts QfrBufOpenOpts
+---@param opts qf-rancher.types.BufOpenOpts
 ---@return boolean
 function M._open_item(item, win, opts)
     if vim.g.qfr_debug_assertions then
@@ -557,7 +557,7 @@ end
 ---@param line string
 ---@return integer
 function M._vcol_to_end_col_(vcol, line)
-    ry._validate_uint(vcol) ---@type QfrTypes
+    ry._validate_uint(vcol) ---@type qf-rancher.Types
     vim.validate("line", line, "string")
 
     local ok, _, fin_byte = M._vcol_to_byte_bounds(vcol, line) ---@type boolean, integer
@@ -613,7 +613,7 @@ local function resolve_find_ll_win_opts(opts)
     vim.validate("opts", opts, "table")
 
     opts.tabpages = opts.tabpages or { api.nvim_get_current_tabpage() }
-    ry._validate_list(opts.tabpages, { type = "number" })
+    ry._validate_list(opts.tabpages, { item_type = "number" })
     ry._validate_win(opts.src_win, true)
     ry._validate_uint(opts.qf_id, true)
 
@@ -672,7 +672,7 @@ end
 ---@return integer|nil
 function M._find_qf_win(tabpages)
     tabpages = tabpages or { api.nvim_get_current_tabpage() }
-    ry._validate_list(tabpages, { type = "number" })
+    ry._validate_list(tabpages, { item_type = "number" })
 
     for _, tabpage in ipairs(tabpages) do
         local wins = api.nvim_tabpage_list_wins(tabpage) ---@type integer[]
@@ -691,7 +691,7 @@ end
 ---@return integer[]
 function M._find_qf_wins(tabpages)
     tabpages = tabpages or { api.nvim_get_current_tabpage() }
-    ry._validate_list(tabpages, { type = "number" })
+    ry._validate_list(tabpages, { item_type = "number" })
 
     local qf_wins = {} ---@type integer[]
     for _, tabpage in ipairs(tabpages) do
@@ -774,17 +774,13 @@ function M._is_valid_loclist_win(win)
 
     ---@type string
     local text = "Window " .. win .. " with type " .. wintype .. " cannot contain a location list"
-    api.nvim_echo({ { text, "ErrorMsg" } }, true, { err = true })
+    api.nvim_echo({ { text, "ErrorMsg" } }, true, {})
     return false
 end
 
--- TODO: Move all error echoes to here.
--- - Standardizes error propagation
--- - Reduce boilerplate handling silent opts
--- - Outlines resolution of echo args
---   - Including nil resolution
--- - In partiular, this allows the hl to function implicitly as an Error code, providing a
--- common method for parsing error output
+-- TODO: Looking through the rest of the files, didn't see a lot of use for this. Maybe ditch this.
+-- Not sure yet.
+
 ---@param silent boolean
 ---@param msg string|nil
 ---@param hl string|nil

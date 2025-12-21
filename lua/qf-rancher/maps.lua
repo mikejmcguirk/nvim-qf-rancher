@@ -14,13 +14,13 @@ local function maps_defer_require(path)
 end
 
 local ra_str = "stack" ---@type string
-local ra = maps_defer_require("qf-rancher." .. ra_str) ---@type QfrStack
+local ra = maps_defer_require("qf-rancher." .. ra_str) ---@type qf-rancher.Stack
 local rd_str = "diagnostic" ---@type string
 local rd = maps_defer_require("qf-rancher." .. rd_str) ---@type QfRancherDiagnostics
 local rf_str = "filter" ---@type string
-local rf = maps_defer_require("qf-rancher." .. rf_str) ---@type QfrFilter
+local rf = maps_defer_require("qf-rancher." .. rf_str) ---@type qf-rancher.Filter
 local rg_str = "grep" ---@type string
-local rg = maps_defer_require("qf-rancher." .. rg_str) ---@type QfrGrep
+local rg = maps_defer_require("qf-rancher." .. rg_str) ---@type qf-rancher.Grep
 local ri = maps_defer_require("qf-rancher.filetype-funcs") ---@type QfRancherFiletypeFuncs
 local rn_str = "nav" ---@type string
 local rn = maps_defer_require("qf-rancher." .. rn_str) ---@type QfRancherNav
@@ -28,7 +28,7 @@ local rw_str = "window" ---@type string
 local rw = maps_defer_require("qf-rancher." .. rw_str) ---@type qf-rancher.Window
 local rr = maps_defer_require("qf-rancher.preview") ---@type QfRancherPreview
 local rs_str = "sort" ---@type string
-local rs = maps_defer_require("qf-rancher." .. rs_str) ---@type QfRancherSort
+local rs = maps_defer_require("qf-rancher." .. rs_str) ---@type qf-rancher.Sort
 
 local nn = { "n" } ---@type string[]
 local xx = { "x" } ---@type string[]
@@ -59,7 +59,7 @@ local function cur_win()
     return vim.api.nvim_get_current_win()
 end
 
----@param action QfrAction
+---@param action qf-rancher.types.Action
 ---@param src_win integer|nil
 ---@return QfrOutputOpts
 local function get_output_opts(src_win, action)
@@ -255,7 +255,7 @@ M.qfr_ftplugin_maps = {
 M.plug_tbls[#M.plug_tbls + 1] = M.qfr_ftplugin_maps
 M.doc_tbls[#M.doc_tbls + 1] = { "qf", M.qfr_ftplugin_maps, {} }
 
-local gl = maps_defer_require("qf-rancher.lib.grep_locs") ---@type QfrLibGrepLocs
+local gl = maps_defer_require("qf-rancher.lib.grep_locs") ---@type qf-rancher.lib.GrepLocs
 
 -- stylua: ignore
 local cwd_grep = function() return { name = "CWD" } end

@@ -1,6 +1,6 @@
-local rt = Qfr_Defer_Require("qf-rancher.tools") ---@type QfrTools
-local ru = Qfr_Defer_Require("qf-rancher.util") ---@type QfrUtil
-local ry = Qfr_Defer_Require("qf-rancher.types") ---@type QfrTypes
+local rt = Qfr_Defer_Require("qf-rancher.tools") ---@type qf-rancher.Tools
+local ru = Qfr_Defer_Require("qf-rancher.util") ---@type qf-rancher.Util
+local ry = Qfr_Defer_Require("qf-rancher.types") ---@type qf-rancher.Types
 
 local api = vim.api
 local fn = vim.fn
@@ -38,7 +38,7 @@ local function goto_list_entry(new_idx, cmd, opts)
     end
 
     local msg = result or ("Unknown error displaying list entry " .. new_idx) ---@type string
-    api.nvim_echo({ { msg, "ErrorMsg" } }, true, { err = true })
+    api.nvim_echo({ { msg, "ErrorMsg" } }, true, {})
     return false
 end
 
@@ -101,7 +101,7 @@ local function bookends(count, cmd)
     if string.find(err, "E42", 1, true) then
         api.nvim_echo({ { msg, "" } }, false, {})
     else
-        api.nvim_echo({ { msg, "ErrorMsg" } }, true, { err = true })
+        api.nvim_echo({ { msg, "ErrorMsg" } }, true, {})
     end
 end
 
@@ -129,7 +129,8 @@ local function file_nav_wrap(src_win, count, cmd, backup_cmd)
     local e42 = string.find(err, "E42", 1, true) ---@type integer|nil
     local e776 = string.find(err, "E776", 1, true) ---@type integer|nil
     if (not ok) and (e42 or e776) then
-        api.nvim_echo({ { err:sub(#"Vim:" + 1), "" } }, false, {})
+        local err_text = err:sub(#"Vim:" + 1)
+        api.nvim_echo({ { err_text, "" } }, false, {})
         return
     end
 
@@ -140,7 +141,7 @@ local function file_nav_wrap(src_win, count, cmd, backup_cmd)
 
     if not ok then
         local msg = err and err:sub(#"Vim:" + 1) or "Unknown qf file error" ---@type string
-        api.nvim_echo({ { msg, "ErrorMsg" } }, true, { err = true })
+        api.nvim_echo({ { msg, "ErrorMsg" } }, true, {})
         return
     end
 

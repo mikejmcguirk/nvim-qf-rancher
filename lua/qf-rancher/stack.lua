@@ -1,12 +1,12 @@
 local api = vim.api
 local fn = vim.fn
 
-local rt = Qfr_Defer_Require("qf-rancher.tools") ---@type QfrTools
-local ru = Qfr_Defer_Require("qf-rancher.util") ---@type QfrUtil
+local rt = Qfr_Defer_Require("qf-rancher.tools") ---@type qf-rancher.Tools
+local ru = Qfr_Defer_Require("qf-rancher.util") ---@type qf-rancher.Util
 local rw = Qfr_Defer_Require("qf-rancher.window") ---@type qf-rancher.Window
-local ry = Qfr_Defer_Require("qf-rancher.types") ---@type QfrTypes
+local ry = Qfr_Defer_Require("qf-rancher.types") ---@type qf-rancher.Types
 
----@param opts? qfr.stack.GotoHistoryOpts
+---@param opts? qf-rancher.stack.GotoHistoryOpts
 ---@return nil
 local function validate_history_opts(opts)
     if type(opts) == "nil" then
@@ -20,7 +20,7 @@ end
 ---Does not perform input cleansing or validation
 ---@param src_win integer|nil
 ---@param count integer|nil
----@param opts qfr.stack.GotoHistoryOpts
+---@param opts qf-rancher.stack.GotoHistoryOpts
 ---@return integer
 local function run_history(src_win, count, opts)
     ---@diagnostic disable-next-line: missing-fields
@@ -41,7 +41,7 @@ end
 
 ---@param src_win integer|nil
 ---@param count integer|nil
----@param opts? qfr.stack.GotoHistoryOpts
+---@param opts? qf-rancher.stack.GotoHistoryOpts
 ---@return integer, integer, string|nil
 local function goto_history(src_win, count, opts)
     opts = opts or {}
@@ -71,7 +71,7 @@ end
 
 ---@param src_win integer|nil
 ---@param count integer
----@param opts qfr.stack.GotoHistoryOpts
+---@param opts qf-rancher.stack.GotoHistoryOpts
 ---@return integer, integer, string|nil
 local function goto_prev(src_win, count, opts)
     ry._validate_win(src_win, true)
@@ -93,7 +93,7 @@ end
 
 ---@param src_win integer|nil
 ---@param count integer
----@param opts? qfr.stack.GotoHistoryOpts
+---@param opts? qf-rancher.stack.GotoHistoryOpts
 ---@return integer, integer, string|nil
 local function goto_next(src_win, count, opts)
     opts = opts or {}
@@ -121,17 +121,17 @@ end
 ---
 ---@brief ]]
 
---- @class QfrStack
+--- @class qf-rancher.Stack
 local Stack = {}
 
 -- NOGO: Keep this as an opt. It's flexible if I need to add things later
---
----@class qfr.stack.GotoHistoryOpts
+
+---@class qf-rancher.stack.GotoHistoryOpts
 ---@field silent boolean Suppress messages
 
 ---If g:qfr_auto_list_height is true, the list will automatically resize
 ---@param count integer Wrapping count previous list to go to. Minimum 1
----@param opts? qfr.stack.GotoHistoryOpts See |qfr.stack.GotoHistoryOpts|
+---@param opts? qf-rancher.stack.GotoHistoryOpts See |qfr.stack.GotoHistoryOpts|
 ---@return nil
 function Stack.q_older(count, opts)
     opts = opts or {}
@@ -156,7 +156,7 @@ end
 
 ---If g:qfr_auto_list_height is true, the list will automatically resize
 ---@param count integer Wrapping count next list to go to. Minimum 1
----@param opts? qfr.stack.GotoHistoryOpts See |qfr.stack.GotoHistoryOpts|
+---@param opts? qf-rancher.stack.GotoHistoryOpts See |qfr.stack.GotoHistoryOpts|
 ---@return nil
 function Stack.q_newer(count, opts)
     opts = opts or {}
@@ -179,10 +179,9 @@ function Stack.q_newer(count, opts)
     end
 end
 
----If g:qfr_auto_list_height is true, the list will automatically resize
 ---@param src_win integer Location list window context
 ---@param count integer Wrapping count previous list to go to. Minimum 1
----@param opts? qfr.stack.GotoHistoryOpts See |qfr.stack.GotoHistoryOpts|
+---@param opts? qf-rancher.stack.GotoHistoryOpts See |qfr.stack.GotoHistoryOpts|
 ---@return nil
 function Stack.l_older(src_win, count, opts)
     opts = opts or {}
@@ -211,10 +210,9 @@ function Stack.l_older(src_win, count, opts)
     end
 end
 
----If g:qfr_auto_list_height is true, the list will automatically resize
 ---@param src_win integer Location list window context
 ---@param count integer Wrapping count next list to go to. Minimum 1
----@param opts? qfr.stack.GotoHistoryOpts See |qfr.stack.GotoHistoryOpts|
+---@param opts? qf-rancher.stack.GotoHistoryOpts See |qfr.stack.GotoHistoryOpts|
 ---@return nil
 function Stack.l_newer(src_win, count, opts)
     opts = opts or {}
@@ -243,11 +241,10 @@ function Stack.l_newer(src_win, count, opts)
     end
 end
 
----If g:qfr_auto_list_height is true, the list will automatically resize
 ---@param count integer|nil List number to go to, nil to display the whole
 ---stack. A count of 0 shows the current list number (difference
 ---from core behavior)
----@param opts? qfr.stack.GotoHistoryOpts See |qfr.stack.GotoHistoryOpts|
+---@param opts? qf-rancher.stack.GotoHistoryOpts See |qfr.stack.GotoHistoryOpts|
 ---@return nil
 function Stack.q_history(count, opts)
     opts = opts or {}
@@ -270,12 +267,11 @@ function Stack.q_history(count, opts)
     end
 end
 
----If g:qfr_auto_list_height is true, the list will automatically resize
 ---@param src_win integer Location list window context
 ---@param count integer|nil List number to go to, nil to display the
 ---whole stack. A count of 0 shows the current list number
 ---(difference from core behavior)
----@param opts? qfr.stack.GotoHistoryOpts See |qfr.stack.GotoHistoryOpts|
+---@param opts? qf-rancher.stack.GotoHistoryOpts See |qfr.stack.GotoHistoryOpts|
 ---@return nil
 function Stack.l_history(src_win, count, opts)
     opts = opts or {}
@@ -333,7 +329,7 @@ function Stack.l_clear(src_win, count)
 
     local qf_id = fn.getloclist(src_win, { id = 0 }).id ---@type integer
     if qf_id == 0 then
-        api.nvim_echo({ { "Window has no location list" } }, false, {})
+        api.nvim_echo({ { QF_RANCHER_NO_LL } }, false, {})
         return
     end
 
@@ -361,7 +357,7 @@ end
 
 -- MAYBE: At least as far as I know, it's not possible for a qf_id to be duplicated in multiple
 -- loclist windows, so avoiding doing anything to handle that case until I see a way to produce it
---
+
 ---Clear a loclist stack. If g:qfr_close_on_stack_clear is true, close
 ---the location list window
 ---NOTE: When a location list stack is freed but the window is not closed,
@@ -377,7 +373,7 @@ function Stack.l_clear_all(src_win)
     local wintype = fn.win_gettype(src_win)
     local qf_id = fn.getloclist(src_win, { id = 0 }).id ---@type integer
     if qf_id == 0 and wintype ~= "loclist" then
-        api.nvim_echo({ { "Window has no location list" } }, false, {})
+        api.nvim_echo({ { QF_RANCHER_NO_LL } }, false, {})
         return
     end
 
@@ -495,9 +491,10 @@ end
 -- MAYBE: Just put the actual goto_history code in here
 -- NOGO: Because this is an internal function: resizing, list opening, and window focus
 -- should be handled by callers. Don't put that stuff here
+
 ---@param src_win integer|nil
 ---@param count integer|nil
----@param opts? qfr.stack.GotoHistoryOpts See |qfr.stack.GotoHistoryOpts|
+---@param opts? qf-rancher.stack.GotoHistoryOpts See |qfr.stack.GotoHistoryOpts|
 ---@return integer, integer, string|nil
 function Stack._goto_history(src_win, count, opts)
     return goto_history(src_win, count, opts)

@@ -1,5 +1,5 @@
-local ru = Qfr_Defer_Require("qf-rancher.util") ---@type QfrUtil
-local ry = Qfr_Defer_Require("qf-rancher.types") ---@type QfrTypes
+local ru = Qfr_Defer_Require("qf-rancher.util") ---@type qf-rancher.Util
+local ry = Qfr_Defer_Require("qf-rancher.types") ---@type qf-rancher.Types
 
 local api = vim.api
 local fn = vim.fn
@@ -665,7 +665,7 @@ local function create_preview_buf_from_lines(item_buf, lines)
     -- Do not assert that item_buf is valid since a buf can be wiped after the list is created
     if vim.g.qfr_debug_assertions then
         ry._validate_uint(item_buf)
-        ry._validate_list(lines, { type = "string" })
+        ry._validate_list(lines, { item_type = "string" })
     end
 
     local preview_buf = api.nvim_create_buf(false, true) ---@type integer

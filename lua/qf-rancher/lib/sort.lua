@@ -1,7 +1,7 @@
 local api = vim.api
-local ry = Qfr_Defer_Require("qf-rancher.types") ---@type QfrTypes
+local ry = Qfr_Defer_Require("qf-rancher.types") ---@type qf-rancher.Types
 
----@class QfrLibSort
+---@class qf-rancher.lib.Sort
 local M = {}
 
 -- MID: Which works better, the strategy pattern here or how filter does it?
@@ -261,61 +261,61 @@ end
 ---the type |QfrSortPredicate|
 ---@brief ]]
 
----@type QfrSortPredicate
+---@type qf-rancher.sort.Predicate
 ---Sort by filename asc. Break ties with line and column numbers
 function M.sort_fname_asc(a, b)
     return sort_fname(a, b, check_asc)
 end
 
----@type QfrSortPredicate
+---@type qf-rancher.sort.Predicate
 ---Sort by filename desc. Break ties with line and column numbers
 function M.sort_fname_desc(a, b)
     return sort_fname(a, b, check_desc)
 end
 
----@type QfrSortPredicate
+---@type qf-rancher.sort.Predicate
 ---Sort by text asc
 function M.sort_text_asc(a, b)
     return sort_text(a, b, check_asc)
 end
 
----@type QfrSortPredicate
+---@type qf-rancher.sort.Predicate
 ---Sort by text desc
 function M.sort_text_desc(a, b)
     return sort_text(a, b, check_desc)
 end
 
----@type QfrSortPredicate
+---@type qf-rancher.sort.Predicate
 ---Sort by list item type asc
 function M.sort_type_asc(a, b)
     return sort_type(a, b, check_asc)
 end
 
----@type QfrSortPredicate
+---@type qf-rancher.sort.Predicate
 ---Sort by list item type desc
 function M.sort_type_desc(a, b)
     return sort_type(a, b, check_desc)
 end
 
----@type QfrSortPredicate
+---@type qf-rancher.sort.Predicate
 ---Sort by filename asc, break ties by diagnostic severity
 function M.sort_fname_diag_asc(a, b)
     return sort_diag_fname(a, b, check_asc)
 end
 
----@type QfrSortPredicate
+---@type qf-rancher.sort.Predicate
 ---Sort by filename desc, break ties by diagnostic severity
 function M.sort_fname_diag_desc(a, b)
     return sort_diag_fname(a, b, check_desc)
 end
 
----@type QfrSortPredicate
+---@type qf-rancher.sort.Predicate
 ---Sort by diagnostic severity asc
 function M.sort_severity_asc(a, b)
     return sort_severity(a, b, check_asc)
 end
 
----@type QfrSortPredicate
+---@type qf-rancher.sort.Predicate
 ---Sort by diagnostic severity desc
 function M.sort_severity_desc(a, b)
     return sort_severity(a, b, check_desc)

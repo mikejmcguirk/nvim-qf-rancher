@@ -1,7 +1,7 @@
 local api = vim.api
 local fn = vim.fn
 
---- @class QfrLibGrepLocs
+--- @class qf-rancher.lib.GrepLocs
 local Locs = {}
 
 -- LOW: Trivial, but why can't I use uv.cwd here?
@@ -19,7 +19,7 @@ function Locs.get_help_dirs()
         return doc_files
     end
 
-    api.nvim_echo({ { "No doc files found", "ErrorMsg" } }, true, { err = true })
+    api.nvim_echo({ { "No doc files found", "ErrorMsg" } }, true, {})
     return nil
 end
 
@@ -66,7 +66,7 @@ function Locs.get_cur_buf()
     local buf = api.nvim_get_current_buf() ---@type integer
     local bl = api.nvim_get_option_value("bl", { buf = buf })
     if not bl then
-        api.nvim_echo({ { "Cur buf is not listed", "" } }, false, {})
+        api.nvim_echo({ { "Current buf is not listed", "" } }, false, {})
         return nil
     end
 

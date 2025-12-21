@@ -7,8 +7,10 @@
 ---
 ---@brief ]]
 
---- @class QfrTypes
+--- @class qf-rancher.Types
 local Types = {}
+
+-- TODO: This should be deprecated
 
 ---@tag qf-rancher-input-type
 ---@tag qfr-input-type
@@ -33,7 +35,7 @@ local Types = {}
 
 ---@tag qf-rancher-system-opts
 ---@tag qfr-system-opts
----@class QfrSystemOpts
+---@class qf-rancher.SystemOpts
 ---@field list_item_type? string Usually blank. "\1" for help buffers
 ---@field sort_func? function A function from the sort module
 ---@field sync? boolean Run the operation syncrhonously
@@ -41,7 +43,7 @@ local Types = {}
 ---Default 2000 (sync and async)
 ---@field timeout? integer
 
--- MID: This should eventually be removed
+-- TODO: This should eventually be removed
 
 ---@tag qf-rancher-output-opts
 ---@tag qfr-output-opts
@@ -49,8 +51,8 @@ local Types = {}
 ---@field list_item_type? string Usually blank. "\1" for help buffers
 ---@field sort_func? function A function from the sort module
 ---@field src_win integer|nil Loclist win context. Quickfix if nil
----@field action QfrAction See |setqflist-action|
----@field what QfrWhat See |setqflist-what|
+---@field action qf-rancher.types.Action See |setqflist-action|
+---@field what qf-rancher.What See |setqflist-what|
 
 ---@export Types
 
@@ -85,11 +87,11 @@ end
 
 -- LOW: Create validations for the get and ret what tables
 
----@class QfrWhat : vim.fn.setqflist.what
+---@class qf-rancher.What : vim.fn.setqflist.what
 ---@field quickfixtextfunc? function|string
 ---@field user_data? any
 
----@param what QfrWhat
+---@param what qf-rancher.What
 ---@return nil
 function Types._validate_what(what)
     vim.validate("what", what, "table")
@@ -105,7 +107,7 @@ function Types._validate_what(what)
         end
     end
 
-    Types._validate_list(what.lines, { optional = true, type = "string" })
+    Types._validate_list(what.lines, { optional = true, item_type = "string" })
 
     vim.validate("what.nr", what.nr, { "number", "string" }, true)
     if type(what.nr) == "number" then
@@ -123,7 +125,7 @@ function Types._validate_what(what)
     vim.validate("what.title", what.title, "string", true)
 end
 
--- LOW: Add validation for win config
+-- TODO: Deprecate this
 
 ---@class QfrFindWinInTabOpts
 ---@field buf? integer
@@ -224,33 +226,24 @@ function Types._validate_buf(buf, optional)
     end
 end
 
----@class QfrValidateListOpts
+-- LOW: Type should be able to take a function as a validator
+
+---@class qf-rancher.types.ValidateListOpts
 ---@field len? integer
 ---@field optional? boolean
----@field type? string
+---@field item_type? string
 
----@param opts QfrValidateListOpts
+---@param opts qf-rancher.types.ValidateListOpts
 ---@return nil
 local function validate_validate_list_opts(opts)
     vim.validate("opts", opts, "table")
     Types._validate_uint(opts.len, true)
     vim.validate("opts.optional", opts.optional, "boolean", true)
-    vim.validate("opts.type", opts.type, "string", true)
+    vim.validate("opts.item_type", opts.item_type, "string", true)
 end
-
----@param tabnr integer
-function Types._validate_tabnr(tabnr)
-    Types._validate_uint(tabnr)
-    vim.validate("tabnr", tabnr, function()
-        return tabnr <= vim.fn.tabpagenr("$")
-    end)
-end
-
--- MID: Type conflicts with the built-in type function
--- LOW: This should be able to take a function as a validator
 
 ---@param list table
----@param opts QfrValidateListOpts
+---@param opts qf-rancher.types.ValidateListOpts
 ---@return nil
 function Types._validate_list(list, opts)
     validate_validate_list_opts(opts)
@@ -266,23 +259,23 @@ function Types._validate_list(list, opts)
         end, "List length must be " .. opts.len)
     end
 
-    if opts.type and vim.g.qfr_debug_assertions then
+    if opts.item_type and vim.g.qfr_debug_assertions then
         vim.validate("list", list, function()
             for _, value in ipairs(list) do
-                if type(value) ~= opts.type then
+                if type(value) ~= opts.item_type then
                     return false
                 end
             end
 
             return true
-        end, "List values must be type " .. opts.type)
+        end, "List values must be type " .. opts.item_type)
     end
 end
 
 ---@param cur_pos {[1]: integer, [2]: integer}
 ---@return nil
 function Types._validate_cur_pos(cur_pos)
-    Types._validate_list(cur_pos, { len = 2, type = "number" })
+    Types._validate_list(cur_pos, { len = 2, item_type = "number" })
 
     Types._validate_uint(cur_pos[1])
     vim.validate("row", cur_pos[1], function()
@@ -412,7 +405,7 @@ function Types._validate_border(border)
             return vim.tbl_contains(valid_borders, border)
         end)
     elseif type(border) == "table" then
-        Types._validate_list(border, { len = 8, type = "string" })
+        Types._validate_list(border, { len = 8, item_type = "string" })
     end
 end
 
@@ -440,11 +433,11 @@ end
 -- == CUSTOM TYPES -- GENERAL ==
 -- =============================
 
----@alias QfrAction "a"|"f"|"r"|"u"|" "
+---@alias qf-rancher.types.Action "a"|"f"|"r"|"u"|" "
 
 Types._actions = { "a", "f", "r", "u", " " } ---@type string[]
 
----@param action QfrAction
+---@param action qf-rancher.types.Action
 ---@return nil
 function Types._validate_action(action)
     vim.validate("action", action, "string")
@@ -516,7 +509,7 @@ end
 ---@field src_win? integer
 ---@field qf_id? integer
 
----@class QfrBufOpenOpts
+---@class qf-rancher.types.BufOpenOpts
 ---@field buftype? string
 ---@field clearjumps? boolean
 ---@field focus? boolean
@@ -524,7 +517,7 @@ end
 ---@field skip_zzze? boolean
 ---@field win? integer
 
----@param opts QfrBufOpenOpts
+---@param opts qf-rancher.types.BufOpenOpts
 ---@return nil
 function Types._validate_open_buf_opts(opts)
     vim.validate("opts", opts, "table")
@@ -540,9 +533,9 @@ end
 -- == CUSTOM TYPES - DIAG ==
 -- =========================
 
----@alias QfrDiagDispFunc fun(vim.Diagnostic):vim.quickfix.entry
+---@alias qf-rancher.diag.DisplayFunc fun(vim.Diagnostic):vim.quickfix.entry
 
----@param diag_opts QfrDiagOpts
+---@param diag_opts qf-rancher.diag.DiagOpts
 ---@return nil
 function Types._validate_diag_opts(diag_opts)
     vim.validate("diag_opts", diag_opts, "table")
@@ -586,7 +579,7 @@ function Types._validate_diag_getopts(diag_getopts, optional)
     end
     ---@diagnostic disable-next-line: param-type-mismatch
     if type(ns) == "table" then
-        Types._validate_list(ns, { type = "number" })
+        Types._validate_list(ns, { item_type = "number" })
     end
 
     Types._validate_uint(diag_getopts.lnum, true)
@@ -597,7 +590,7 @@ function Types._validate_diag_getopts(diag_getopts, optional)
         Types._validate_diag_severity(diag_getopts.severity)
     elseif vim.islist(diag_getopts.severity) then
         ---@diagnostic disable-next-line: param-type-mismatch
-        Types._validate_list(diag_getopts.severity, { type = "number" })
+        Types._validate_list(diag_getopts.severity, { item_type = "number" })
     elseif type(diag_getopts.severity) == "table" then
         Types._validate_diag_severity(diag_getopts.severity.min, true)
         Types._validate_diag_severity(diag_getopts.severity.max, true)
@@ -623,15 +616,6 @@ end
 -- ================
 -- == OPEN TYPES ==
 -- ================
-
----@param open_opts QfrListOpenOpts
----@return nil
-function Types._validate_open_opts(open_opts)
-    vim.validate("open_opts", open_opts, "table")
-    vim.validate("open_opts.height", open_opts.height, "number", true)
-    vim.validate("open_opts.keep_win", open_opts.keep_win, "boolean", true)
-    vim.validate("open_opts.nop_if_open", open_opts.nop_if_open, "boolean", true)
-end
 
 ---@alias QfrGetItemFunc fun(integer?):vim.quickfix.entry|nil, integer|nil
 
@@ -664,7 +648,7 @@ end
 -- SYSTEM TYPES --
 ------------------
 
----@param system_opts QfrSystemOpts
+---@param system_opts qf-rancher.SystemOpts
 ---@return nil
 function Types._validate_system_opts(system_opts)
     vim.validate("system_opts", system_opts, "table")
