@@ -237,21 +237,24 @@ function Diag.diags_to_list(diag_opts, output_opts)
     }) ---@type qf-rancher.types.What
 
     local dest_nr = rt._set_list(src_win, output_opts.action, what_set) ---@type integer
-    if dest_nr > 0 and vim.g.qfr_auto_open_changes then
-        ---@type integer, integer, string|nil
-        local cur_nr, nr_after, _ = ra._goto_history(src_win, dest_nr, { silent = true })
-        if cur_nr ~= nr_after and vim.g.qfr_auto_list_height then
-            ra._resize_after_change(src_win)
-        end
-
-        rw._open_list(src_win, {
-            close_others = true,
-            silent = true,
-            on_list = function(list_win, _)
-                api.nvim_set_current_win(list_win)
-            end,
-        })
+    if dest_nr < 1 then
+        api.nvim_echo({ { "Unable to set list", "ErrorMsg" } }, true, {})
+        return
     end
+
+    if not vim.g.qfr_auto_open_changes then
+        return
+    end
+
+    local _, _, _ = ra._goto_history(src_win, dest_nr, { silent = true })
+    rw._open_list(src_win, {
+        close_others = true,
+        silent = true,
+        on_list = function(list_win, _)
+            api.nvim_set_current_win(list_win)
+            rw._resize_list_win(list_win)
+        end,
+    })
 end
 
 -- ===============

@@ -73,9 +73,19 @@ local function goto_history(src_win, count, opts)
         return 0, 0, "No entries"
     end
 
-    local adj_count = count and math.min(count, max_list_nr) or nil
     local cur_list_nr = rt._get_list(src_win, { nr = 0 }).nr ---@type integer
-    ---@type integer|nil
+    if opts.silent then
+        local zero_count = type(count) == "number" and count == 0
+        local nocount = zero_count or type(count) == "nil"
+        local same_count = count == cur_list_nr
+        if nocount or same_count then
+            return cur_list_nr, cur_list_nr, nil
+        end
+    end
+
+    -- Because the default behavior treats 0 the same as 1, but we want to treat 0 as curent
+    -- list, correct here
+    local adj_count = count and math.min(count, max_list_nr) or nil
     local fix_count = (function()
         if (not adj_count) or adj_count > 0 then
             return adj_count

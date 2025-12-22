@@ -874,11 +874,8 @@ end
 return Preview
 ---@export Preview
 
--- =============
--- == CREDITS ==
--- =============
-
--- https://github.com/r0nsha/qfpreview.nvim
+-- TODO: Get rid of the preview g:vars and use opts to control the preview win behavior. Works
+-- here because there's only one preview keymap.
 
 -- MID: If the file has to be read fresh, that should be handled async
 -- - Study Lua co-routines, built-in async lib, and lewis's async lib

@@ -384,9 +384,6 @@ end
 return Grep
 ---@export Grep
 
--- TODO: If I grep with the window open to one height, and a bunch of results come in, then the
--- list does not resize. I assume this is an upstream stack issue.
-
 -- MID: Visual mode should be handled in its own functions. But other stuff should settle in first
 -- MID: Check if grepprg is executable once and cache the result. Run the check if checkhealth is
 -- run. Realistically, that status won't change while vim is open

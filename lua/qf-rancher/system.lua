@@ -110,6 +110,7 @@ end
 ---@param system_opts qf-rancher.SystemOpts
 local function set_output_to_list(obj, src_win, action, what, system_opts)
     if not (obj.code and obj.code == 0) then
+        -- TODO: This can be outlined
         local code_str = obj.code and "Exit code: " .. obj.code or "" ---@type string
         local is_err = obj.stderr and #obj.stderr > 0 ---@type boolean?
         local err = is_err and "Error: " .. obj.stderr or "" ---@type string
@@ -140,6 +141,7 @@ local function set_output_to_list(obj, src_win, action, what, system_opts)
         return
     end
 
+    -- TODO: This can be outlined
     system_opts.sort_func = system_opts.sort_func or ls.sort_fname_asc
     table.sort(lines_dict.items, system_opts.sort_func)
     if system_opts.list_item_type then
@@ -158,38 +160,34 @@ local function set_output_to_list(obj, src_win, action, what, system_opts)
         end
     end
 
-    ---@type qf-rancher.types.What
     local what_set = vim.tbl_deep_extend("force", what, { items = lines_dict.items })
     local dest_nr = rt._set_list(src_win, action, what_set) ---@type integer
-    if dest_nr < 0 then
+    if dest_nr < 1 then
         api.nvim_echo({ { "Unable to set list", "ErrorMsg" } }, true, {})
         return
     end
 
     if src_win and orig_src_win ~= src_win then
-        -- MID: Set so that lopen has proper window context
+        -- Set so that lopen has proper window context
         api.nvim_set_current_win(src_win)
     end
 
     if vim.g.qfr_auto_open_changes then
-        ---@type integer, integer, string|nil
-        local cur_nr, nr_after, _ = ra._goto_history(src_win, dest_nr, { silent = true })
-        if cur_nr ~= nr_after and vim.g.qfr_auto_list_height then
-            ra._resize_after_change(src_win)
-        end
-
+        local _, _, _ = ra._goto_history(src_win, dest_nr, { silent = true })
         rw._open_list(src_win, {
             close_others = true,
             silent = true,
             on_list = function(list_win, _)
                 api.nvim_set_current_win(list_win)
+                rw._resize_list_win(list_win)
             end,
         })
     end
 
+    -- TODO: Consider outlining this
     if src_win and orig_src_win ~= src_win then
-        local first_item = what_set.items[1] ---@type vim.quickfix.entry
-        local dest_bt = system_opts.list_item_type == "\1" and "help" or "" ---@type string
+        local first_item = what_set.items[1]
+        local dest_bt = system_opts.list_item_type == "\1" and "help" or ""
         ru._open_item(first_item, src_win, { buftype = dest_bt, clearjumps = true, focus = true })
     end
 end
