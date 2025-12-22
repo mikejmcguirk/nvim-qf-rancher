@@ -1,5 +1,3 @@
-local ru = Qfr_Defer_Require("qf-rancher.util") ---@type qf-rancher.Util
-
 -- local api = vim.api
 local fn = vim.fn
 
@@ -11,9 +9,19 @@ local M = {}
 ---@return integer|nil
 function M._find_list_with_title(src_win, title)
     local max_nr = M._get_list(src_win, { nr = "$" }).nr ---@type integer
-    for i = max_nr, 1, -1 do
-        if M._get_list(src_win, { nr = i, title = 0 }).title == title then
-            return i
+    if src_win then
+        for i = max_nr, 1, -1 do
+            local title_i = fn.getloclist(src_win, { nr = i, title = 0 }).title ---@type string
+            if title_i == title then
+                return i
+            end
+        end
+    else
+        for i = max_nr, 1, -1 do
+            local title_i = fn.getqflist({ nr = i, title = 0 }).title ---@type string
+            if title_i == title then
+                return i
+            end
         end
     end
 
@@ -33,60 +41,69 @@ local function resolve_list_nr(src_win, nr)
     end
 
     local max_nr = M._get_list(src_win, { nr = "$" }).nr ---@type integer
-    ---@diagnostic disable-next-line: param-type-mismatch, return-type-mismatch
     return math.min(nr, max_nr)
 end
 
+-- NOTE: You can do something like vim.fn.setqflist({}) and no action will be passed. But, at
+-- least for now, the tools interface requires an action to be passed, so we do not account for
+-- nil action here.
+
 ---@param src_win integer|nil
 ---@param nr integer|"$"
+---@param action qf-rancher.types.Action
 ---@return integer
-local function get_result(src_win, nr)
-    if nr == 0 then
-        return M._get_list(src_win, { nr = 0 }).nr
+local function get_result(src_win, nr, action)
+    if action == "f" then
+        return 0
     end
 
-    local max_nr = M._get_list(src_win, { nr = "$" }).nr
-    if nr == "$" then
+    local max_nr = M._get_list(src_win, { nr = "$" }).nr ---@type integer
+    if type(nr) == "string" or action == " " then
         return max_nr
     end
 
-    assert(type(nr) == "number")
+    if nr == 0 then
+        local cur_nr = M._get_list(src_win, { nr = 0 }).nr ---@type integer
+        return cur_nr
+    end
+
     return math.min(nr, max_nr)
 end
 
 ---@param src_win integer|nil
 ---@param action qf-rancher.types.Action
----@param what qf-rancher.What
+---@param what qf-rancher.types.What
 ---@return integer
 function M._set_list(src_win, action, what)
-    local what_set = vim.deepcopy(what, true) ---@type qf-rancher.What
+    local what_set = vim.deepcopy(what, true)
     what_set.nr = resolve_list_nr(src_win, what_set.nr)
-    local idx = what_set.idx or 1
 
-    if what_set.items or what_set.lines then
-        local items_len = what_set.items and #what_set.items or 0
-        local lines_len = what_set.lines and #what_set.lines or 0
-        local new_len = items_len + lines_len
-        what_set.idx = new_len > 0 and math.min(idx, new_len) or nil
-    else
-        local cur_size = M._get_list(src_win, { nr = what_set.nr, size = 0 }).size ---@type integer
-        what_set.idx = math.min(idx, cur_size)
+    if what_set.idx then
+        if what_set.items or what_set.lines then
+            local items_len = what_set.items and #what_set.items or 0
+            local lines_len = what_set.lines and #what_set.lines or 0
+            local new_len = items_len + lines_len
+
+            local new_idx = new_len > 0 and math.min(what_set.idx, new_len) or nil
+            what_set.idx = new_idx
+        else
+            ---@type integer
+            local cur_size = M._get_list(src_win, { nr = what_set.nr, size = 0 }).size
+            local new_idx = math.min(what_set.idx, cur_size)
+            what_set.idx = new_idx
+        end
     end
 
     ---@type integer
     local result = src_win and fn.setloclist(src_win, {}, action, what_set)
         or fn.setqflist({}, action, what_set)
 
-    return result == -1 and result or get_result(src_win, what_set.nr)
-end
+    if result == -1 then
+        return result
+    end
 
----@param src_win integer|nil
----@return integer
-function M._add_blank_list(src_win)
-    ---@type integer
-    local result = src_win and fn.setloclist(src_win, {}, " ") or fn.setqflist({}, " ")
-    -- TODO: This needs to get the proper list nr
-    return result
+    local set_nr = get_result(src_win, what_set.nr, action)
+    return set_nr
 end
 
 ---@param src_win integer|nil
@@ -95,10 +112,20 @@ end
 function M._clear_list(src_win, list_nr)
     local nr = resolve_list_nr(src_win, list_nr) ---@type integer|"$"
 
-    ---@type qf-rancher.What
+    ---@type qf-rancher.types.What
     local what = { nr = nr, context = {}, items = {}, quickfixtextfunc = "", title = "" }
-    local result = src_win and fn.setloclist(src_win, {}, "r", what) or fn.setqflist({}, "r", what)
-    return result == -1 and result or get_result(src_win, nr)
+    local action = "r" ---@type qf-rancher.types.Action
+
+    ---@type integer
+    local result = src_win and fn.setloclist(src_win, {}, action, what)
+        or fn.setqflist({}, action, what)
+
+    if result == -1 then
+        return result
+    end
+
+    local set_nr = get_result(src_win, what.nr, action)
+    return set_nr
 end
 
 ---@param src_win integer|nil
@@ -114,23 +141,35 @@ function M._get_list(src_win, what)
 end
 
 ---@param src_win integer|nil
----@param stack qf-rancher.What[]
----@return nil
+---@param stack qf-rancher.types.What[]
+---@return boolean, string|nil, string|nil
 function M._set_stack(src_win, stack)
-    if src_win and not ru._is_valid_loclist_win(src_win) then
-        return
+    local ru = require("qf-rancher.util")
+
+    if src_win then
+        local ok, msg, hl = ru._is_valid_loclist_win(src_win)
+        if not ok then
+            return ok, msg, hl
+        end
+
+        fn.setloclist(src_win, {}, "f")
+        for _, what in ipairs(stack) do
+            fn.setloclist(src_win, {}, " ", what)
+        end
+    else
+        fn.setqflist({}, "f")
+        for _, what in ipairs(stack) do
+            fn.setqflist({}, " ", what)
+        end
     end
 
-    M._set_list(src_win, "f", {})
-    for _, what in ipairs(stack) do
-        M._set_list(src_win, " ", what)
-    end
+    return true, nil, nil
 end
 
 ---@param what_ret table
----@return table
+---@return qf-rancher.types.What
 function M._what_ret_to_set(what_ret)
-    local what_set = {} ---@type qf-rancher.What
+    local what_set = {} ---@type qf-rancher.types.What
 
     what_set.context = type(what_ret.context) == "table" and what_ret.context or nil
     what_set.idx = type(what_ret.idx) == "number" and what_ret.idx or nil
@@ -151,7 +190,7 @@ function M._what_ret_to_set(what_ret)
 end
 
 ---@param src_win integer
----@return qf-rancher.What[]
+---@return qf-rancher.types.What[]
 function M._get_stack(src_win)
     local stack = {} ---@type table
     local max_nr = M._get_list(src_win, { nr = "$" }).nr ---@type integer
@@ -159,11 +198,20 @@ function M._get_stack(src_win)
         return stack
     end
 
-    for i = 1, max_nr do
-        local what_ret = M._get_list(src_win, { nr = i, all = true }) ---@type table
-        local what_set = M._what_ret_to_set(what_ret) ---@type qf-rancher.What
-        what_set.nr = i
-        stack[#stack + 1] = what_set
+    if src_win then
+        for i = 1, max_nr do
+            local what_ret = fn.getloclist(src_win, { nr = i, all = true }) ---@type table
+            local what_set = M._what_ret_to_set(what_ret)
+            what_set.nr = i
+            stack[#stack + 1] = what_set
+        end
+    else
+        for i = 1, max_nr do
+            local what_ret = fn.getqflist({ nr = i, all = true }) ---@type table
+            local what_set = M._what_ret_to_set(what_ret)
+            what_set.nr = i
+            stack[#stack + 1] = what_set
+        end
     end
 
     return stack
@@ -171,15 +219,14 @@ end
 
 return M
 
--- LOW: It would be cool to have a free_stack_if_nolist g:var that automatically frees the stack if
--- all lists are empty. But I don't know what you tie it to. QuickfixCmdPost? Individual Rancher
--- functions? I feel like it would be inconsistent.
-
 -- MAYBE: Ideas for list manipulation:
 -- - Insert new lists in the middle, shifting lists below down and out
 -- - Swap lists
 -- - Copy lists
 -- - Consolidate lists (remove blank gaps)
+-- - For the various ideas - v:count1 would be one list and the current list would be the other.
+-- I think you would use current list as source and count as target, so that way you could do
+-- something like 10<leader>q{copy hotkey} to copy the current list to the end of the stack
 -- - Move between loclist and qflist
 -- - Merge and de-dupe lists
 --   - Particular issue: The underlying file data might have changed
@@ -189,3 +236,6 @@ return M
 --   with the default behavior
 -- Problem 1: Making these behaviors interface with the defaults
 -- Problem 2: More keymaps/interfaces/complexity for unknown use cases
+
+-- FUTURE: If there's ever any type of quickfixchanged autocmd, add a g:var to automatically free
+-- the stack if all lists have zero items

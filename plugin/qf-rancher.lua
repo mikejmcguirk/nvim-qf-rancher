@@ -315,7 +315,6 @@ if vim.g.qfr_set_default_cmds then
     end
 end
 
--- TODO: More thoroughly rename types once we actually know what we're going forward with
 -- TODO: Check all TODO comments and make sure they are not connected to functions or exported
 -- definitions. Lua_Ls includes them in hover info
 -- TODO: Organize the modules so that the actual exported module tables start where the
@@ -325,7 +324,6 @@ end
 -- NOTE: Anything containing nested echos or bad error reporting needs to be addressed as it's
 -- found. This will mean creating temporary duplicate utils. The originals can be cleaned as
 -- they are fully obsoleted.
--- - tools
 -- - window
 -- - preview
 -- - grep
@@ -334,6 +332,10 @@ end
 -- - system
 -- - remove output opts
 -- - filetype funcs
+-- - types
+--   - more thorough renaming
+--   - obsolete unneeded ones
+-- - recheck for bad utils
 -- - maps file
 
 -- MID: Publish Qfitems as diagnostics

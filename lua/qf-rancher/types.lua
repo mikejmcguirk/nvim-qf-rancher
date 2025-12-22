@@ -52,7 +52,7 @@ local Types = {}
 ---@field sort_func? function A function from the sort module
 ---@field src_win integer|nil Loclist win context. Quickfix if nil
 ---@field action qf-rancher.types.Action See |setqflist-action|
----@field what qf-rancher.What See |setqflist-what|
+---@field what qf-rancher.types.What See |setqflist-what|
 
 ---@export Types
 
@@ -82,16 +82,14 @@ function Types._validate_list_nr(nr, optional)
     end
 end
 
--- PR: The built-in what annotation does not contain the user_data field
--- PR: The built-in annotation does not allow string values for quickfixtextfunc
-
 -- LOW: Create validations for the get and ret what tables
 
----@class qf-rancher.What : vim.fn.setqflist.what
----@field quickfixtextfunc? function|string
+-- PR: The built-in what annotation does not contain the user_data field
+
+---@class qf-rancher.types.What : vim.fn.setqflist.what
 ---@field user_data? any
 
----@param what qf-rancher.What
+---@param what qf-rancher.types.What
 ---@return nil
 function Types._validate_what(what)
     vim.validate("what", what, "table")
@@ -116,7 +114,7 @@ function Types._validate_what(what)
         end)
     end
 
-    vim.validate("what.quickfixtextfunc", what.quickfixtextfunc, "callable", true)
+    vim.validate("what.quickfixtextfunc", what.quickfixtextfunc, { "callable", "string" }, true)
     vim.validate("what.title", what.title, "string", true)
 end
 

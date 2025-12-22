@@ -715,28 +715,16 @@ function M._find_ll_origin(qf_id, tabpages)
     return nil
 end
 
--- TODO: Should propagate msg
--- MID: Error should not be printed here
--- MID: Why would this function be able to accept a nil win at all? Feels like something the
--- caller should handle
-
 ---@param win integer
----@return boolean
+---@return boolean, string|nil, string|nil
 function M._is_valid_loclist_win(win)
-    ry._validate_win(win, true)
-    if not win then
-        return false
-    end
-
     local wintype = fn.win_gettype(win)
     if wintype == "" or wintype == "loclist" then
-        return true
+        return true, nil, nil
     end
 
-    ---@type string
     local text = "Window " .. win .. " with type " .. wintype .. " cannot contain a location list"
-    api.nvim_echo({ { text, "ErrorMsg" } }, true, {})
-    return false
+    return false, text, ""
 end
 
 ---@param silent boolean

@@ -179,9 +179,9 @@ end
 ---@param name string
 ---@return boolean, string, string|nil
 local function get_pattern_from_prompt(case, regex, grepprg, name)
-    local display_input_type = get_display_input_type(case, regex) ---@type string
-    local which_grep = "[" .. grepprg .. "] " .. name .. " Grep " ---@type string
-    local prompt = which_grep .. "(" .. display_input_type .. "): " ---@type string
+    local display_input_type = get_display_input_type(case, regex)
+    local which_grep = "[" .. grepprg .. "] " .. name .. " Grep "
+    local prompt = which_grep .. "(" .. display_input_type .. "): "
 
     local ok, pattern, hl = ru._get_input(prompt, case)
     return ok, pattern, hl
@@ -226,7 +226,7 @@ end
 ---results
 ---@param src_win integer|nil Location list window context. Nil for qflist
 ---@param action qf-rancher.types.Action See |setqflist-action|
----@param what qf-rancher.What See |setqflist-what|
+---@param what qf-rancher.types.What See |setqflist-what|
 ---@param grep_opts QfrGrepOpts See |QfrGrepOpts|
 ---@param system_opts qf-rancher.SystemOpts See |QfrSystemOpts|
 ---@return nil
@@ -237,8 +237,12 @@ function Grep.grep(src_win, action, what, grep_opts, system_opts)
     validate_grep_opts(grep_opts)
     ry._validate_system_opts(system_opts)
 
-    if src_win and not ru._is_valid_loclist_win(src_win) then
-        return
+    if src_win then
+        local ok, msg, hl = ru._is_valid_loclist_win(src_win)
+        if not ok then
+            api.nvim_echo({ { msg, hl } }, false, {})
+            return
+        end
     end
 
     local grepprg = vim.g.qfr_grepprg ---@type string
@@ -379,6 +383,9 @@ end
 
 return Grep
 ---@export Grep
+
+-- TODO: If I grep with the window open to one height, and a bunch of results come in, then the
+-- list does not resize. I assume this is an upstream stack issue.
 
 -- MID: Visual mode should be handled in its own functions. But other stuff should settle in first
 -- MID: Check if grepprg is executable once and cache the result. Run the check if checkhealth is

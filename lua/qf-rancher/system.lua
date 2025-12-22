@@ -106,7 +106,7 @@ end
 ---@param obj vim.SystemCompleted
 ---@param src_win integer|nil
 ---@param action qf-rancher.types.Action
----@param what qf-rancher.What
+---@param what qf-rancher.types.What
 ---@param system_opts qf-rancher.SystemOpts
 local function set_output_to_list(obj, src_win, action, what, system_opts)
     if not (obj.code and obj.code == 0) then
@@ -119,8 +119,12 @@ local function set_output_to_list(obj, src_win, action, what, system_opts)
         return
     end
 
-    if src_win and not ru._is_valid_loclist_win(src_win) then
-        return
+    if src_win then
+        local ok, msg, hl = ru._is_valid_loclist_win(src_win)
+        if not ok then
+            api.nvim_echo({ { msg, hl } }, false, {})
+            return
+        end
     end
 
     local stdout = obj.stdout or "" ---@type string
@@ -154,7 +158,7 @@ local function set_output_to_list(obj, src_win, action, what, system_opts)
         end
     end
 
-    ---@type qf-rancher.What
+    ---@type qf-rancher.types.What
     local what_set = vim.tbl_deep_extend("force", what, { items = lines_dict.items })
     local dest_nr = rt._set_list(src_win, action, what_set) ---@type integer
     if dest_nr < 0 then
@@ -195,7 +199,7 @@ end
 ---@param src_win integer|nil Location list window nr, or nil to set to
 ---the quickfix list
 ---@param action qf-rancher.types.Action See |setqflist-action|
----@param what qf-rancher.What See |setqflist-what|
+---@param what qf-rancher.types.What See |setqflist-what|
 ---@param system_opts qf-rancher.SystemOpts See |qfr-system-opts|
 ---@return nil
 function System.system_do(cmd_parts, src_win, action, what, system_opts)

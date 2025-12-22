@@ -169,8 +169,12 @@ function Diag.diags_to_list(diag_opts, output_opts)
     output_opts = vim.deepcopy(output_opts, true)
 
     local src_win = output_opts.src_win ---@type integer|nil
-    if src_win and not ru._is_valid_loclist_win(src_win) then
-        return
+    if src_win then
+        local ok, msg, hl = ru._is_valid_loclist_win(src_win)
+        if not ok then
+            api.nvim_echo({ { msg, hl } }, false, {})
+            return
+        end
     end
 
     local title = "Diagnostics" ---@type string
@@ -230,7 +234,7 @@ function Diag.diags_to_list(diag_opts, output_opts)
     local what_set = vim.tbl_deep_extend("force", output_opts.what, {
         items = converted_diags,
         title = title,
-    }) ---@type qf-rancher.What
+    }) ---@type qf-rancher.types.What
 
     local dest_nr = rt._set_list(src_win, output_opts.action, what_set) ---@type integer
     if dest_nr > 0 and vim.g.qfr_auto_open_changes then

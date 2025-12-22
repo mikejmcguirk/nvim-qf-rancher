@@ -991,6 +991,9 @@ View and edit the list stack                                             *Stack*
                                                                      *qfr-stack*
 
 
+NOTE: Unlike the built-in commands, the location list stack functions will
+be called in the provided window context
+
 qf-rancher.stack.GotoHistoryOpts              *qf-rancher.stack.GotoHistoryOpts*
 
     Fields: ~
@@ -1088,8 +1091,6 @@ Stack.l_clear({src_win}, {count})                                *Stack.l_clear*
 
     Clear a location list.
 
-    Called in src_win context
-
 
     Parameters: ~
         {src_win}  (integer) Location list window context
@@ -1110,8 +1111,6 @@ Stack.q_clear_all()                                          *Stack.q_clear_all*
 Stack.l_clear_all({src_win})                                 *Stack.l_clear_all*
     Clear a loclist stack. If g:qfr_close_on_stack_clear is true, close
     the location list window
-
-    Called in src_win context.
 
     NOTE: When a location list stack is freed but the window is not closed,
     the qf_id of the location list window is set to zero. When this function
@@ -1217,13 +1216,6 @@ Stack.l_clear_cmd({cargs})                                   *Stack.l_clear_cmd*
     Returns: ~
         (nil)
 
-
-IMPLEMENTATION DETAIL:
-
-The history, prev, and next commands all use chistory/lhistory under the
-hood. For l_history, l_prev, and l_next, rancher uses nvim_win_call to match
-lhistory to the src_win context. The default maps and cmds all use the
-current win for src_win
 
 ==============================================================================
 Qfr Ftplugin controls                             *qf-rancher-ftplugin-controls*
@@ -1401,7 +1393,7 @@ Grep.grep({src_win}, {action}, {what}, {grep_opts}, {system_opts})
     Parameters: ~
         {src_win}      (integer|nil) Location list window context. Nil for qflist
         {action}       (qf-rancher.types.Action) See |setqflist-action|
-        {what}         (qf-rancher.What) See |setqflist-what|
+        {what}         (qf-rancher.types.What) See |setqflist-what|
         {grep_opts}    (QfrGrepOpts) See |QfrGrepOpts|
         {system_opts}  (qf-rancher.SystemOpts) See |QfrSystemOpts|
 
@@ -1979,7 +1971,7 @@ System.system_do({cmd_parts}, {src_win}, {action}, {what}, {system_opts})
         {src_win}      (integer|nil) Location list window nr, or nil to set to
                        the quickfix list
         {action}       (qf-rancher.types.Action) See |setqflist-action|
-        {what}         (qf-rancher.What) See |setqflist-what|
+        {what}         (qf-rancher.types.What) See |setqflist-what|
         {system_opts}  (qf-rancher.SystemOpts) See |qfr-system-opts|
 
     Returns: ~
@@ -2095,7 +2087,7 @@ QfrOutputOpts                                                    *QfrOutputOpts*
         {sort_func?}       (function) A function from the sort module
         {src_win}          (integer|nil) Loclist win context. Quickfix if nil
         {action}           (qf-rancher.types.Action) See |setqflist-action|
-        {what}             (qf-rancher.What) See |setqflist-what|
+        {what}             (qf-rancher.types.What) See |setqflist-what|
 
 
 vim:tw=78:ts=8:noet:ft=help:norl:

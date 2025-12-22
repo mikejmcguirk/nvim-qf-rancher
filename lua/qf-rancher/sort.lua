@@ -39,8 +39,12 @@ function Sort.sort(pred, src_win, action, nr)
     ry._validate_action(action)
     ry._validate_list_nr(nr)
 
-    if src_win and not ru._is_valid_loclist_win(src_win) then
-        return
+    if src_win then
+        local ok, msg, hl = ru._is_valid_loclist_win(src_win)
+        if not ok then
+            api.nvim_echo({ { msg, hl } }, false, {})
+            return
+        end
     end
 
     local what_ret = rt._get_list(src_win, { nr = nr, all = true }) ---@type table

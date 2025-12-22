@@ -96,12 +96,15 @@ local function handle_orphan(list_win, dest_win, finish)
         return
     end
 
-    local stack = rt._get_stack(list_win) ---@type qf-rancher.What[]
+    local stack = rt._get_stack(list_win) ---@type qf-rancher.types.What[]
     ru._with_checked_spk(function()
         ru._pwin_close(list_win, true)
     end)
 
-    rt._set_stack(dest_win, stack)
+    local ok, _, _ = rt._set_stack(dest_win, stack)
+    if not ok then
+        return
+    end
 
     -- open_ll_win uses :lopen, so must set win for proper context
     api.nvim_set_current_win(dest_win)

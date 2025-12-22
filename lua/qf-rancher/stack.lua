@@ -8,13 +8,25 @@ local ry = Qfr_Defer_Require("qf-rancher.types") ---@type qf-rancher.Types
 
 ---@param src_win integer|nil
 ---@return nil
-local function resize_after_stack_change(src_win)
+local function resize_after_change(src_win)
     if src_win then
         local tabpage = api.nvim_win_get_tabpage(src_win)
         rw._resize_ll_wins({ src_win = src_win, tabpages = { tabpage } })
     else
         local tabpages = api.nvim_list_tabpages()
         rw._resize_qf_wins(tabpages)
+    end
+end
+
+local function list_clear(src_win, count)
+    local result = rt._clear_list(src_win, count)
+    if result == -1 then
+        return
+    end
+
+    local cur_nr = rt._get_list(src_win, { nr = 0 }).nr ---@type integer
+    if (result == cur_nr) and vim.g.qfr_auto_list_height then
+        resize_after_change(src_win)
     end
 end
 
@@ -113,7 +125,7 @@ local function resolve_goto(src_win, cur_nr, nr_after, msg, silent)
     end
 
     if cur_nr ~= nr_after and vim.g.qfr_auto_list_height then
-        resize_after_stack_change(src_win)
+        resize_after_change(src_win)
     end
 end
 
@@ -158,6 +170,11 @@ end
 ---@tag qfr-stack
 ---@brief [[
 ---
+---@brief ]]
+
+---@brief [[
+---NOTE: Unlike the built-in commands, the location list stack functions will
+---be called in the provided window context
 ---@brief ]]
 
 --- @class qf-rancher.Stack
@@ -280,22 +297,11 @@ end
 ---@return nil
 function Stack.q_clear(count)
     ry._validate_uint(count)
-
-    local result = rt._clear_list(nil, count)
-    if result == -1 then
-        return
-    end
-
-    local cur_list_nr = fn.getqflist({ nr = 0 }).nr ---@type integer
-    if (result == cur_list_nr) and vim.g.qfr_auto_list_height then
-        Stack._resize_after_change()
-    end
+    list_clear(nil, count)
 end
 
 ---
 ---Clear a location list.
----
----Called in src_win context
 ---
 ---@param src_win integer Location list window context
 ---@param count integer List number to clear. 0 for current
@@ -310,15 +316,7 @@ function Stack.l_clear(src_win, count)
         return
     end
 
-    local result = rt._clear_list(src_win, count)
-    if result == -1 then
-        return
-    end
-
-    local cur_list_nr = fn.getloclist(src_win, { nr = 0 }).nr ---@type integer
-    if (result == cur_list_nr) and vim.g.qfr_auto_list_height then
-        Stack._resize_after_change(src_win)
-    end
+    list_clear(src_win, count)
 end
 
 ---Clear the quickfix stack. If g:qfr_close_on_stack_clear is true, close
@@ -337,8 +335,6 @@ end
 
 ---Clear a loclist stack. If g:qfr_close_on_stack_clear is true, close
 ---the location list window
----
----Called in src_win context.
 ---
 ---NOTE: When a location list stack is freed but the window is not closed,
 ---the qf_id of the location list window is set to zero. When this function
@@ -458,15 +454,6 @@ function Stack.l_clear_cmd(cargs)
     Stack.l_clear(cur_win, cargs.count)
 end
 
----@brief [[
----IMPLEMENTATION DETAIL:
----
----The history, prev, and next commands all use chistory/lhistory under the
----hood. For l_history, l_prev, and l_next, rancher uses nvim_win_call to match
----lhistory to the src_win context. The default maps and cmds all use the
----current win for src_win
----@brief ]]
-
 ---@export Stack
 
 ---@param src_win integer|nil
@@ -480,7 +467,7 @@ end
 ---@param src_win integer|nil
 ---@return nil
 function Stack._resize_after_change(src_win)
-    resize_after_stack_change(src_win)
+    resize_after_change(src_win)
 end
 
 return Stack

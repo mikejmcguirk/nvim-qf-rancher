@@ -35,8 +35,12 @@ local function filter_wrapper(filter_info, keep, input_opts, output_opts)
     ry._validate_output_opts(output_opts)
 
     local src_win = output_opts.src_win ---@type integer|nil
-    if src_win and not ru._is_valid_loclist_win(src_win) then
-        return
+    if src_win then
+        local ok, msg, hl = ru._is_valid_loclist_win(src_win)
+        if not ok then
+            api.nvim_echo({ { msg, hl } }, false, {})
+            return
+        end
     end
 
     local what_ret = rt._get_list(src_win, { nr = output_opts.what.nr, all = true }) ---@type table
@@ -79,7 +83,7 @@ local function filter_wrapper(filter_info, keep, input_opts, output_opts)
         return predicate(t, keep, { pattern = pattern, regex = regex })
     end, what_ret.items) ---@type vim.quickfix.entry[]
 
-    local what_set = rt._what_ret_to_set(what_ret) ---@type qf-rancher.What
+    local what_set = rt._what_ret_to_set(what_ret) ---@type qf-rancher.types.What
     what_set.nr = output_opts.what.nr
     local dest_nr = rt._set_list(src_win, output_opts.action, what_set) ---@type integer
     if dest_nr > 0 and vim.g.qfr_auto_open_changes then
