@@ -126,8 +126,8 @@ local function populate_grep_opts(grep_opts)
     grep_opts.locations = grep_opts.locations or gl.get_cwd
 end
 
----@param case QfrCase
----@return QfrCase
+---@param case qf-rancher.types.Case
+---@return qf-rancher.types.Case
 local function resolve_case(case)
     if case ~= "vimcase" then
         return case
@@ -156,7 +156,7 @@ local function resolve_grep_opts(grep_opts)
 end
 
 -- MID: Eventually put this into utils
----@param case QfrCase
+---@param case qf-rancher.types.Case
 ---@param regex boolean
 ---@return string
 local function get_display_input_type(case, regex)
@@ -173,7 +173,7 @@ local function get_display_input_type(case, regex)
     end
 end
 
----@param case QfrCase
+---@param case qf-rancher.types.Case
 ---@param regex boolean
 ---@param grepprg string
 ---@param name string
@@ -193,7 +193,7 @@ end
 -- MID: The case typedoc runs over the edge
 
 ---@class QfrGrepOpts
----@field case? QfrCase "insensitive"|"sensitive"|"smartcase"|"vimcase"
+---@field case? qf-rancher.types.Case "insensitive"|"sensitive"|"smartcase"|"vimcase"
 ---A string list or a function
 ---returning a string list to provide locations to grep to.
 ---Pre-built location functions are available in
@@ -235,7 +235,7 @@ function Grep.grep(src_win, action, what, grep_opts, system_opts)
     ry._validate_action(action)
     ry._validate_what(what)
     validate_grep_opts(grep_opts)
-    ry._validate_system_opts(system_opts)
+    re._validate_system_opts(system_opts)
 
     if src_win then
         local ok, msg, hl = ru._is_valid_loclist_win(src_win)
@@ -256,7 +256,7 @@ function Grep.grep(src_win, action, what, grep_opts, system_opts)
     resolve_grep_opts(grep_opts)
 
     local pattern = grep_opts.pattern ---@type string|nil
-    local case = grep_opts.case ---@type QfrCase
+    local case = grep_opts.case ---@type qf-rancher.types.Case
     local regex = grep_opts.regex ---@type boolean
     local locations = grep_opts.locations --[[@as string[]]
 
@@ -293,7 +293,7 @@ function Grep.grep(src_win, action, what, grep_opts, system_opts)
         end
     end
 
-    re.system_do(grep_parts, src_win, action, what, sys_opts)
+    re._system_do(grep_parts, src_win, action, what, sys_opts)
 end
 
 ---@class QfrGrepInfo

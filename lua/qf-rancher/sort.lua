@@ -17,11 +17,9 @@ local api = vim.api
 --- @class qf-rancher.Sort
 local Sort = {}
 
--- LOW: It would be neat if a what table were passed in instead of just the nr, but I would have to
--- think through how to merge the old list into the what table
-
 ---@tag qf-rancher-sort-predicate
 ---@tag qfr-sort-predicate
+---
 ---Parameters:
 ---- vim.qflist.item (first item to sort)
 ---- vim.qflist.item (second item to sort)
@@ -30,7 +28,11 @@ local Sort = {}
 
 ---@param pred qf-rancher.sort.Predicate A function to sort the list items
 ---@param src_win integer|nil Optional location list window context
----@param action qf-rancher.types.Action What action to take when setting the list
+---
+---@param action qf-rancher.types.Action
+---
+---What action to take when setting the list
+---
 ---@param nr integer|'$' Which list nr to operate on
 ---@return nil
 function Sort.sort(pred, src_win, action, nr)
@@ -146,6 +148,6 @@ Sort.l_sort = function(cargs)
     sort_cmd(api.nvim_get_current_win(), cargs)
 end
 
----@export Sort
-
 return Sort
+
+---@export Sort

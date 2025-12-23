@@ -888,7 +888,7 @@ end
 ---
 ---@field package _title? string|[string,string|integer?][]
 
----Open the preview window. Does nothing if the preview window isn't already
+---Open the preview window. Does nothing if the preview window is already
 ---open
 ---
 ---If opts.border is not provided, winborder will be used if it is not "". If

@@ -1328,7 +1328,7 @@ QfrGrepLocsFunc                                                *QfrGrepLocsFunc*
 QfrGrepOpts                                                        *QfrGrepOpts*
 
     Fields: ~
-        {case?}       (QfrCase) "insensitive"|"sensitive"|"smartcase"|"vimcase"
+        {case?}       (qf-rancher.types.Case) "insensitive"|"sensitive"|"smartcase"|"vimcase"
         {locations?}  (string[]|QfrGrepLocsFunc) A string list or a function
                       returning a string list to provide locations to grep to.
                       Pre-built location functions are available in
@@ -1848,6 +1848,7 @@ Sort list items                                                           *Sort*
                                                      *qf-rancher-sort-predicate*
                                                             *qfr-sort-predicate*
 qf-rancher.sort.Predicate                            *qf-rancher.sort.Predicate*
+
     Parameters:
     - vim.qflist.item (first item to sort)
     - vim.qflist.item (second item to sort)
@@ -1863,7 +1864,10 @@ Sort.sort({pred}, {src_win}, {action}, {nr})
     Parameters: ~
         {pred}     (qf-rancher.sort.Predicate) A function to sort the list items
         {src_win}  (integer|nil) Optional location list window context
-        {action}   (qf-rancher.types.Action) What action to take when setting the list
+
+        {action}   (qf-rancher.types.Action)
+                   What action to take when setting the list
+
         {nr}       (integer|"$") Which list nr to operate on
 
     Returns: ~
@@ -1933,6 +1937,16 @@ Send system cmd results to the list                                     *System*
                                                                     *qfr-system*
 
 
+qf-rancher.SystemOpts                                    *qf-rancher.SystemOpts*
+
+    Fields: ~
+        {list_item_type?}  (string) Usually blank. "\1" for help buffers
+        {sort_func?}       (function) A function from the sort module
+        {sync?}            (boolean) Run the operation syncrhonously
+        {timeout?}         (integer) How long to wait.
+                           Default 2000 (sync and async)
+
+
                                                               *System.system_do*
 System.system_do({cmd_parts}, {src_win}, {action}, {what}, {system_opts})
     Run a system command and send the results to a list
@@ -1943,7 +1957,7 @@ System.system_do({cmd_parts}, {src_win}, {action}, {what}, {system_opts})
                        the quickfix list
         {action}       (qf-rancher.types.Action) See |setqflist-action|
         {what}         (qf-rancher.types.What) See |setqflist-what|
-        {system_opts}  (qf-rancher.SystemOpts) See |qfr-system-opts|
+        {system_opts}  (qf-rancher.SystemOpts) See |qf-rancher.SystemOpts|
 
     Returns: ~
         (nil)
@@ -1981,7 +1995,7 @@ qf-rancher.preview.OpenOpts                        *qf-rancher.preview.OpenOpts*
 
 
 Preview.open_preview_win({opts?})                     *Preview.open_preview_win*
-    Open the preview window. Does nothing if the preview window isn't already
+    Open the preview window. Does nothing if the preview window is already
     open
 
     If opts.border is not provided, winborder will be used if it is not "". If
@@ -2026,55 +2040,29 @@ API Types                                                                *Types*
                                                                  *qfr-api-types*
 
 
-                                                         *qf-rancher-input-type*
-                                                                *qfr-input-type*
-QfrInputType                                                      *QfrInputType*
-    - "insensitive" will always treat the input as case insensitive
-    - "regex" will use a regex search. The type of regex is cmd dependent
-    - "sensitive" provides a case sensitive search
-    - "smartcase" will be case insensitive only if the serach is all lowercase
-    - "vimcase" respect the 'ignorecase' and 'smartcase' options
-
-    Variants: ~
-        ("insensitive")
-        ("regex")
-        ("sensitive")
-        ("smartcase")
-        ("vimcase")
-
-
-                                                         *qf-rancher-input-opts*
-                                                                *qfr-input-opts*
-QfrInputOpts                                                      *QfrInputOpts*
+                                                         *qf-rancher.types.What*
+qf-rancher.types.What : vim.fn.setqflist.what
 
     Fields: ~
-        {input_type}  (QfrInputType)
-        {prompt?}     (string) User prompt for entering pattern
-        {pattern?}    (string) The search pattern for the function
+        {user_data?}  (any)
 
 
-                                                        *qf-rancher-system-opts*
-                                                               *qfr-system-opts*
-qf-rancher.SystemOpts                                    *qf-rancher.SystemOpts*
+qf-rancher.types.Border                                *qf-rancher.types.Border*
 
-    Fields: ~
-        {list_item_type?}  (string) Usually blank. "\1" for help buffers
-        {sort_func?}       (function) A function from the sort module
-        {sync?}            (boolean) Run the operation syncrhonously
-        {timeout?}         (integer) How long to wait.
-                           Default 2000 (sync and async)
+    Type: ~
+        ""|"bold"|"double"|"none"|"rounded"|"shadow"|"single"|"solid"
 
 
-                                                        *qf-rancher-output-opts*
-                                                               *qfr-output-opts*
-QfrOutputOpts                                                    *QfrOutputOpts*
+qf-rancher.types.Action                                *qf-rancher.types.Action*
 
-    Fields: ~
-        {list_item_type?}  (string) Usually blank. "\1" for help buffers
-        {sort_func?}       (function) A function from the sort module
-        {src_win}          (integer|nil) Loclist win context. Quickfix if nil
-        {action}           (qf-rancher.types.Action) See |setqflist-action|
-        {what}             (qf-rancher.types.What) See |setqflist-what|
+    Type: ~
+        "a"|"f"|"r"|"u"|" "
+
+
+qf-rancher.types.Case                                    *qf-rancher.types.Case*
+
+    Type: ~
+        "insensitive"|"sensitive"|"smartcase"|"vimcase"
 
 
 vim:tw=78:ts=8:noet:ft=help:norl:

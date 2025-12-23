@@ -1,5 +1,3 @@
-local ls = Qfr_Defer_Require("qf-rancher.lib.sort") ---@type qf-rancher.lib.Sort
-local ra = Qfr_Defer_Require("qf-rancher.stack") ---@type qf-rancher.Stack
 local rt = Qfr_Defer_Require("qf-rancher.tools") ---@type qf-rancher.Tools
 local ru = Qfr_Defer_Require("qf-rancher.util") ---@type qf-rancher.Util
 local rw = Qfr_Defer_Require("qf-rancher.window") ---@type qf-rancher.Window
@@ -7,19 +5,10 @@ local ry = Qfr_Defer_Require("qf-rancher.types") ---@type qf-rancher.Types
 
 local api = vim.api
 
----@mod System Send system cmd results to the list
----@tag qf-rancher-system
----@tag qfr-system
----@brief [[
----
----@brief ]]
-
---- @class qf-rancher.System
-local System = {}
-
 local DEFAULT_TIMEOUT = 2000
 
 -- MID: Find the common composable pieces here with the ftplugin file and merge them together
+
 ---@param tabpage integer
 ---@return integer[]
 local function get_numbered_wins_ordered(tabpage)
@@ -58,6 +47,7 @@ local function get_numbered_wins_ordered(tabpage)
 end
 
 -- MID: Probably gets merged with the code in the ft funcs
+
 ---@return integer
 local function create_scratch_buf()
     local buf = api.nvim_create_buf(false, true)
@@ -74,24 +64,24 @@ end
 ---@param src_win integer
 ---@return integer
 local function get_lhelp_win(src_win)
-    local src_buf = api.nvim_win_get_buf(src_win) ---@type integer
-    local src_bt = api.nvim_get_option_value("bt", { buf = src_buf }) ---@type string
+    local src_buf = api.nvim_win_get_buf(src_win)
+    local src_bt = api.nvim_get_option_value("bt", { buf = src_buf })
     if src_bt == "help" then
         return src_win
     end
 
-    local wins = get_numbered_wins_ordered(0) ---@type integer[]
+    local wins = get_numbered_wins_ordered(0)
     for _, win in ipairs(wins) do
         if win ~= src_win then
-            local buf = api.nvim_win_get_buf(win) ---@type integer
-            local bt = api.nvim_get_option_value("bt", { buf = buf }) ---@type string
+            local buf = api.nvim_win_get_buf(win)
+            local bt = api.nvim_get_option_value("bt", { buf = buf })
             if bt == "help" then
                 return win
             end
         end
     end
 
-    local scratch_buf = create_scratch_buf() ---@type integer
+    local scratch_buf = create_scratch_buf()
     -- MID: Not sure why I wouldn't just do this in the ft-funcs
     -- MAYBE: I have this on split below because it's how the default works, but, will change if
     -- I don't like it
@@ -111,9 +101,9 @@ end
 local function set_output_to_list(obj, src_win, action, what, system_opts)
     if not (obj.code and obj.code == 0) then
         -- TODO: This can be outlined
-        local code_str = obj.code and "Exit code: " .. obj.code or "" ---@type string
-        local is_err = obj.stderr and #obj.stderr > 0 ---@type boolean?
-        local err = is_err and "Error: " .. obj.stderr or "" ---@type string
+        local code_str = obj.code and "Exit code: " .. obj.code or ""
+        local is_err = obj.stderr and #obj.stderr > 0
+        local err = is_err and "Error: " .. obj.stderr or ""
         local msg = code_str .. " " .. err ---@type string
 
         api.nvim_echo({ { msg, "ErrorMsg" } }, true, {})
@@ -128,8 +118,8 @@ local function set_output_to_list(obj, src_win, action, what, system_opts)
         end
     end
 
-    local stdout = obj.stdout or "" ---@type string
-    local lines = vim.split(stdout, "\n", { trimempty = true }) ---@type string[]
+    local stdout = obj.stdout or ""
+    local lines = vim.split(stdout, "\n", { trimempty = true })
     if #lines == 0 then
         api.nvim_echo({ { "No output" } }, false, {})
         return
@@ -142,6 +132,7 @@ local function set_output_to_list(obj, src_win, action, what, system_opts)
     end
 
     -- TODO: This can be outlined
+    local ls = require("qf-rancher.lib.sort")
     system_opts.sort_func = system_opts.sort_func or ls.sort_fname_asc
     table.sort(lines_dict.items, system_opts.sort_func)
     if system_opts.list_item_type then
@@ -150,9 +141,10 @@ local function set_output_to_list(obj, src_win, action, what, system_opts)
         end
     end
 
-    local orig_src_win = src_win ---@type integer|nil
+    local orig_src_win = src_win
     if src_win and system_opts.list_item_type == "\1" then
         src_win = get_lhelp_win(src_win)
+        -- TODO: Doesn't set_list do this?
         if type(what.nr) == "number" then
             local max_nr = rt._get_list(src_win, { nr = "$" }).nr ---@type integer
             ---@diagnostic disable-next-line: param-type-mismatch
@@ -173,6 +165,7 @@ local function set_output_to_list(obj, src_win, action, what, system_opts)
     end
 
     if vim.g.qfr_auto_open_changes then
+        local ra = require("qf-rancher.stack")
         local _, _, _ = ra._goto_history(src_win, dest_nr, { silent = true })
         rw._open_list(src_win, {
             close_others = true,
@@ -192,25 +185,16 @@ local function set_output_to_list(obj, src_win, action, what, system_opts)
     end
 end
 
----Run a system command and send the results to a list
----@param cmd_parts string[] Command to execute
----@param src_win integer|nil Location list window nr, or nil to set to
----the quickfix list
----@param action qf-rancher.types.Action See |setqflist-action|
----@param what qf-rancher.types.What See |setqflist-what|
----@param system_opts qf-rancher.SystemOpts See |qfr-system-opts|
+---@param cmd_parts string[]
+---@param src_win integer|nil
+---@param action qf-rancher.types.Action
+---@param what qf-rancher.types.What
+---@param system_opts qf-rancher.SystemOpts
 ---@return nil
-function System.system_do(cmd_parts, src_win, action, what, system_opts)
-    ry._validate_list(cmd_parts, { item_type = "string" })
-    ry._validate_win(src_win, true)
-    ry._validate_action(action)
-    ry._validate_what(what)
-    ry._validate_system_opts(system_opts)
-
-    local timeout = system_opts.timeout or DEFAULT_TIMEOUT ---@type integer
+local function system_do(cmd_parts, src_win, action, what, system_opts)
+    local timeout = system_opts.timeout or DEFAULT_TIMEOUT
     local vim_system_opts = { text = true, timeout = timeout } ---@type vim.SystemOpts
     if system_opts.sync then
-        ---@type vim.SystemCompleted
         local obj = vim.system(cmd_parts, vim_system_opts):wait(timeout)
         set_output_to_list(obj, src_win, action, what, system_opts)
     else
@@ -222,5 +206,64 @@ function System.system_do(cmd_parts, src_win, action, what, system_opts)
     end
 end
 
-return System
+---@mod System Send system cmd results to the list
+---@tag qf-rancher-system
+---@tag qfr-system
+---@brief [[
+---
+---@brief ]]
+
+--- @class qf-rancher.System
+local System = {}
+
+---@class qf-rancher.SystemOpts
+---@field list_item_type? string Usually blank. "\1" for help buffers
+---@field sort_func? function A function from the sort module
+---@field sync? boolean Run the operation syncrhonously
+---How long to wait.
+---Default 2000 (sync and async)
+---@field timeout? integer
+
+---Run a system command and send the results to a list
+---@param cmd_parts string[] Command to execute
+---@param src_win integer|nil Location list window nr, or nil to set to
+---the quickfix list
+---@param action qf-rancher.types.Action See |setqflist-action|
+---@param what qf-rancher.types.What See |setqflist-what|
+---@param system_opts qf-rancher.SystemOpts See |qf-rancher.SystemOpts|
+---@return nil
+function System.system_do(cmd_parts, src_win, action, what, system_opts)
+    ry._validate_list(cmd_parts, { item_type = "string" })
+    ry._validate_win(src_win, true)
+    ry._validate_action(action)
+    ry._validate_what(what)
+    System._validate_system_opts(system_opts)
+
+    system_do(cmd_parts, src_win, action, what, system_opts)
+end
+
 ---@export System
+
+---@param system_opts qf-rancher.SystemOpts
+---@return nil
+function System._validate_system_opts(system_opts)
+    vim.validate("system_opts", system_opts, "table")
+
+    ry._validate_list_item_type(system_opts.list_item_type, true)
+    -- MID: Should this be a function? Are there other callables that should be a function?
+    vim.validate("sort_func", system_opts.sort_func, "callable", true)
+    vim.validate("system_opts.sync", system_opts.sync, "boolean", true)
+    vim.validate("system_opts.timeout", system_opts.timeout, "number", true)
+end
+
+---@param cmd_parts string[]
+---@param src_win integer|nil
+---@param action qf-rancher.types.Action
+---@param what qf-rancher.types.What
+---@param system_opts qf-rancher.SystemOpts
+---@return nil
+function System._system_do(cmd_parts, src_win, action, what, system_opts)
+    system_do(cmd_parts, src_win, action, what, system_opts)
+end
+
+return System

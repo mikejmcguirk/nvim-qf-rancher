@@ -10,84 +10,21 @@
 --- @class qf-rancher.Types
 local Types = {}
 
--- TODO: This should be deprecated
-
----@tag qf-rancher-input-type
----@tag qfr-input-type
----- "insensitive" will always treat the input as case insensitive
----- "regex" will use a regex search. The type of regex is cmd dependent
----- "sensitive" provides a case sensitive search
----- "smartcase" will be case insensitive only if the serach is all lowercase
----- "vimcase" respect the 'ignorecase' and 'smartcase' options
----@alias QfrInputType
----| 'insensitive'
----| 'regex'
----| 'sensitive'
----| 'smartcase'
----| 'vimcase'
-
----@tag qf-rancher-input-opts
----@tag qfr-input-opts
----@class QfrInputOpts
----@field input_type QfrInputType
----@field prompt? string User prompt for entering pattern
----@field pattern? string The search pattern for the function
-
----@tag qf-rancher-system-opts
----@tag qfr-system-opts
----@class qf-rancher.SystemOpts
----@field list_item_type? string Usually blank. "\1" for help buffers
----@field sort_func? function A function from the sort module
----@field sync? boolean Run the operation syncrhonously
----How long to wait.
----Default 2000 (sync and async)
----@field timeout? integer
-
--- TODO: This should eventually be removed
-
----@tag qf-rancher-output-opts
----@tag qfr-output-opts
----@class QfrOutputOpts
----@field list_item_type? string Usually blank. "\1" for help buffers
----@field sort_func? function A function from the sort module
----@field src_win integer|nil Loclist win context. Quickfix if nil
----@field action qf-rancher.types.Action See |setqflist-action|
----@field what qf-rancher.types.What See |setqflist-what|
-
----@export Types
-
--- =======================
--- == SEMI-CUSTOM TYPES ==
--- =======================
-
--- MID: Triple check the source that the max is 10 and add that validation here. Would need to be
--- sure not to put it anywhere with an unchecked user count
--- MID: Should underline scope functions validate internals?
-
----@param nr? integer|"$"
----@param optional? boolean
----@return nil
-function Types._validate_list_nr(nr, optional)
-    vim.validate("optional", optional, "boolean", true)
-    vim.validate("nr", nr, { "number", "string" }, optional)
-
-    if type(nr) == "number" then
-        Types._validate_uint(nr)
-    end
-
-    if type(nr) == "string" then
-        vim.validate("nr", nr, function()
-            return nr == "$"
-        end)
-    end
-end
-
 -- LOW: Create validations for the get and ret what tables
-
 -- PR: The built-in what annotation does not contain the user_data field
 
 ---@class qf-rancher.types.What : vim.fn.setqflist.what
 ---@field user_data? any
+
+---@alias qf-rancher.types.Border ''|'bold'|'double'|'none'|'rounded'|'shadow'|'single'|'solid'
+
+---@alias qf-rancher.types.Action 'a'|'f'|'r'|'u'|' '
+
+---@alias qf-rancher.types.Case 'insensitive'|'sensitive'|'smartcase'|'vimcase'
+
+-- TODO:  Move this to system and attach it to the system_do function
+
+---@export Types
 
 ---@param what qf-rancher.types.What
 ---@return nil
@@ -116,6 +53,89 @@ function Types._validate_what(what)
 
     vim.validate("what.quickfixtextfunc", what.quickfixtextfunc, { "callable", "string" }, true)
     vim.validate("what.title", what.title, "string", true)
+end
+
+---@type string[]
+local valid_borders = { "", "bold", "double", "none", "rounded", "shadow", "single", "solid" }
+
+---@param border qf-rancher.types.Border|string[]
+---@param optional? boolean
+---@return nil
+function Types._validate_border(border, optional)
+    if optional and type(border) == "nil" then
+        return
+    end
+
+    vim.validate("border", border, { "string", "table" })
+    if type(border) == "string" then
+        vim.validate("border", border, function()
+            return vim.tbl_contains(valid_borders, border)
+        end)
+    elseif type(border) == "table" then
+        Types._validate_list(border, { len = 8, item_type = "string" })
+    end
+end
+
+-- TODO: This should be deprecated
+
+---@tag qf-rancher-input-type
+---@tag qfr-input-type
+---- "insensitive" will always treat the input as case insensitive
+---- "regex" will use a regex search. The type of regex is cmd dependent
+---- "sensitive" provides a case sensitive search
+---- "smartcase" will be case insensitive only if the serach is all lowercase
+---- "vimcase" respect the 'ignorecase' and 'smartcase' options
+---@alias QfrInputType
+---| 'insensitive'
+---| 'regex'
+---| 'sensitive'
+---| 'smartcase'
+---| 'vimcase'
+
+-- TODO: Deprecate
+
+---@tag qf-rancher-input-opts
+---@tag qfr-input-opts
+---@class QfrInputOpts
+---@field input_type QfrInputType
+---@field prompt? string User prompt for entering pattern
+---@field pattern? string The search pattern for the function
+
+-- TODO: This should eventually be removed
+
+---@tag qf-rancher-output-opts
+---@tag qfr-output-opts
+---@class QfrOutputOpts
+---@field list_item_type? string Usually blank. "\1" for help buffers
+---@field sort_func? function A function from the sort module
+---@field src_win integer|nil Loclist win context. Quickfix if nil
+---@field action qf-rancher.types.Action See |setqflist-action|
+---@field what qf-rancher.types.What See |setqflist-what|
+
+-- =======================
+-- == SEMI-CUSTOM TYPES ==
+-- =======================
+
+-- MID: Triple check the source that the max is 10 and add that validation here. Would need to be
+-- sure not to put it anywhere with an unchecked user count
+-- MID: Should underline scope functions validate internals?
+
+---@param nr? integer|"$"
+---@param optional? boolean
+---@return nil
+function Types._validate_list_nr(nr, optional)
+    vim.validate("optional", optional, "boolean", true)
+    vim.validate("nr", nr, { "number", "string" }, optional)
+
+    if type(nr) == "number" then
+        Types._validate_uint(nr)
+    end
+
+    if type(nr) == "string" then
+        vim.validate("nr", nr, function()
+            return nr == "$"
+        end)
+    end
 end
 
 -- TODO: Deprecate this
@@ -237,7 +257,6 @@ end
 ---@param optional? boolean
 ---@return nil
 function Types._validate_list_item_type(item_type, optional)
-    vim.validate("optional", optional, "boolean", true)
     if optional and type(item_type) == "nil" then
         return
     end
@@ -282,40 +301,7 @@ Types._severity_unmap = {
     H = vim.diagnostic.severity.HINT,
 }
 
----@alias qf-rancher.types.Border
----|""
----|"bold"
----|"double"
----|"none"
----|"rounded"
----|"shadow"
----|"single"
----|"solid"
-
----@type string[]
-local valid_borders = { "", "bold", "double", "none", "rounded", "shadow", "single", "solid" }
-
----@param border qf-rancher.types.Border|string[]
----@param optional? boolean
----@return nil
-function Types._validate_border(border, optional)
-    if optional and type(border) == "nil" then
-        return
-    end
-
-    vim.validate("border", border, { "string", "table" })
-    if type(border) == "string" then
-        vim.validate("border", border, function()
-            return vim.tbl_contains(valid_borders, border)
-        end)
-    elseif type(border) == "table" then
-        Types._validate_list(border, { len = 8, item_type = "string" })
-    end
-end
-
----@alias QfrTitlePos "left"|"center"|"right"
-
----@param pos QfrTitlePos
+---@param pos "left"|"center"|"right"
 ---@param optional? boolean
 ---@return nil
 function Types._validate_title_pos(pos, optional)
@@ -344,8 +330,6 @@ function Types._validate_title(title, optional)
         end
     end
 end
-
----@alias qf-rancher.types.Action "a"|"f"|"r"|"u"|" "
 
 Types._actions = { "a", "f", "r", "u", " " } ---@type string[]
 
@@ -387,11 +371,9 @@ function Types._validate_input_type(input)
     end, "Input type " .. input .. " is not valid")
 end
 
----@alias QfrCase "insensitive"|"sensitive"|"smartcase"|"vimcase"
-
 local cases = { "insensitive", "sensitive", "smartcase", "vimcase" }
 
----@param case QfrCase|nil
+---@param case qf-rancher.types.Case|nil
 ---@param optional boolean?
 ---@return nil
 function Types._validate_case(case, optional)
@@ -537,25 +519,13 @@ end
 -- SYSTEM TYPES --
 ------------------
 
--- TODO:  Move this to system and attach it to the system_do function
-
----@param system_opts qf-rancher.SystemOpts
----@return nil
-function Types._validate_system_opts(system_opts)
-    vim.validate("system_opts", system_opts, "table")
-
-    Types._validate_list_item_type(system_opts.list_item_type, true)
-    -- MID: Should this be a function? Are there other callables that should be a function?
-    vim.validate("sort_func", system_opts.sort_func, "callable", true)
-    vim.validate("system_opts.sync", system_opts.sync, "boolean", true)
-    vim.validate("system_opts.timeout", system_opts.timeout, "number", true)
-end
-
 Types._sync_opts = { "sync", "async" }
 Types._default_sync_opt = "async"
 
 return Types
 
 -- TODO: Stuff that's only used in one module needs to be moved to the module it's used in
+-- TODO: Once broader refactoring is done, move the stuff that needs to be documented into the
+-- public doc area.
 
 -- LOW: Create a type and validation for getqflist returns

@@ -161,7 +161,7 @@ function M._get_visual_pattern(short_mode)
 end
 
 ---@param prompt string
----@param case QfrCase
+---@param case qf-rancher.types.Case
 ---@return boolean, string, string|nil
 function M._get_input(prompt, case)
     local ok, pattern = pcall(fn.input, { prompt = prompt, cancelreturn = "" })
