@@ -76,8 +76,8 @@ local fn = vim.fn
 ---The current settings can be verified with "checkhealth qf-rancher"
 ---@brief ]]
 
--- TODO: Deprecate debug assertions. Locals should not have validations
--- MID: Create specific validator functions for these where appropriate
+-- MID: Create specific validator functions for these where appropriate. Issue: The current
+-- type validations are used for display in checkhealth
 
 -- stylua: ignore
 _G._QFR_G_VAR_MAP = {
@@ -138,40 +138,6 @@ qfr_grepprg = { { "string" }, "rg" },
 ---@brief [[
 ---Control the preview window (|qfr-preview|) with the options below
 ---@brief ]]
----
----(Default "single") Set the preview window border. See :h 'winborder' for
----more info
----@alias qfr_preview_border
----| ''
----| 'bold'
----| 'double'
----| 'none'
----| 'rounded'
----| 'shadow'
----| 'single'
----| 'solid'
----| 'An eight element string[] table'
-qfr_preview_border = { { "string", "table" }, "single" },
----
----(Default 100) Minimum interval in ms between preview window updates
----The default is 100 to accommodate slower systems/HDs. On a reasonable
----system, it should be possible to go down to 50ms before flicker/stutter
----start to appear. This behavior also depends on the size of the file(s)
----being scrolled through
----@alias qfr_preview_debounce string
-qfr_preview_debounce = { { "number" }, 100 },
----
----(Default true) Show title in the preview window
----@alias qfr_preview_show_title string
-qfr_preview_show_title = { { "boolean" }, true },
----
----(Default "left") If show_title is true, control where it shows
----@alias qfr_preview_title_pos string "center"|"left"|"right"
-qfr_preview_title_pos = { { "string" }, "left" },
----
----(Default 0) Set the winblend of the preview win (see :h winblend)
----@alias qfr_preview_winblend integer
-qfr_preview_winblend = { { "number" }, 0 },
 ---
 ---(Default true) When running a Qfr cmd to gather new entries, look for
 ---destination lists to re-use based on title
@@ -315,6 +281,7 @@ if vim.g.qfr_set_default_cmds then
     end
 end
 
+-- TODO: Update README based on g:vars
 -- TODO: Check all TODO comments and make sure they are not connected to functions or exported
 -- definitions. Lua_Ls includes them in hover info
 -- TODO: Organize the modules so that the actual exported module tables start where the
@@ -324,8 +291,6 @@ end
 -- NOTE: Anything containing nested echos or bad error reporting needs to be addressed as it's
 -- found. This will mean creating temporary duplicate utils. The originals can be cleaned as
 -- they are fully obsoleted.
--- - window
--- - preview
 -- - grep
 -- - diags
 -- - filter
@@ -338,11 +303,21 @@ end
 -- - recheck for bad utils
 -- - maps file
 
+-- MID: The plugin should be as optimized out of the box as possible, and the README should state
+-- as such. The goal should *not* be for the user to fiddle with configs in order for the plugin
+-- to be usable. Since maps like <C-u>zz are fairly typical, options like auto_center should be
+-- default true. Care should also be taken to make sure that behaviors like auto_resizing happen
+-- predictably and non-frivolously. A nag I need to sit down and deal with is that opening items
+-- in a vsplit causes the list to resize even though the list stays in a botright split. The
+-- behavior isn't responsive to anything intuitive.
+-- For any expected config changes (remappings being the most obvious), that info needs to be in
+-- the README file rather than hidden in the docs, so it is easily findable and aesthetically
+-- presented. This also applies to any API calls that would fall under typical use cases, such
+-- as customizing preview win appearance.
 -- MID: Publish Qfitems as diagnostics
 -- - How would you then be able to manipulate/delete them once they were out there?
 -- MID: Qsystem
 -- - Wait for other refactoring
--- - Feels like there should be some way to specify qftf
 -- MID: How to make the list more useful with compilers. Possible starting points:
 -- - https://github.com/Zeioth/compiler.nvim
 -- - https://github.com/ahmedkhalf/project.nvim

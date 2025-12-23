@@ -470,6 +470,18 @@ function Window.q_window(count)
     end
 end
 
+---@param count integer|nil New height. Nil autosizes
+---@return nil
+function Window.q_resize(count)
+    local tabpage = api.nvim_get_current_tabpage()
+    local qf_win = ru._find_qf_win({ tabpage })
+    if not qf_win then
+        return
+    end
+
+    resize_list_win(qf_win, count)
+end
+
 ---
 ---Open/keep open the Loclist window when there are recognized errors.
 ---Close/keep closed otherwise.
@@ -517,6 +529,25 @@ function Window.l_window(count)
     if not ok then
         ru._echo(false, err, hl)
     end
+end
+
+---@param count integer|nil New height. Nil autosizes
+---@return nil
+function Window.l_resize(count)
+    local cur_win = api.nvim_get_current_win()
+    local qf_id = fn.getloclist(cur_win, { id = 0 }).id ---@type integer
+    if qf_id == 0 then
+        ru._echo(false, QF_RANCHER_NO_LL, "")
+        return
+    end
+
+    local tabpage = api.nvim_get_current_tabpage()
+    local ll_win = ru._find_ll_win({ qf_id = qf_id, tabpages = { tabpage } })
+    if not ll_win then
+        return
+    end
+
+    resize_list_win(ll_win, count)
 end
 
 ---

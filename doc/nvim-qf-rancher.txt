@@ -141,59 +141,6 @@ qfr_grepprg                                                        *qfr_grepprg*
 
 Control the preview window (|qfr-preview|) with the options below
 
-qfr_preview_border                                          *qfr_preview_border*
-
-    (Default "single") Set the preview window border. See :h 'winborder' for
-    more info
-
-    Variants: ~
-        ("")
-        ("bold")
-        ("double")
-        ("none")
-        ("rounded")
-        ("shadow")
-        ("single")
-        ("solid")
-        ("An eight element string[] table")
-
-
-qfr_preview_debounce                                      *qfr_preview_debounce*
-
-    (Default 100) Minimum interval in ms between preview window updates
-    The default is 100 to accommodate slower systems/HDs. On a reasonable
-    system, it should be possible to go down to 50ms before flicker/stutter
-    start to appear. This behavior also depends on the size of the file(s)
-    being scrolled through
-
-    Type: ~
-        string
-
-
-qfr_preview_show_title                                  *qfr_preview_show_title*
-
-    (Default true) Show title in the preview window
-
-    Type: ~
-        string
-
-
-qfr_preview_title_pos                                    *qfr_preview_title_pos*
-
-    (Default "left") If show_title is true, control where it shows
-
-    Type: ~
-        string
-
-
-qfr_preview_winblend                                      *qfr_preview_winblend*
-
-    (Default 0) Set the winblend of the preview win (see :h winblend)
-
-    Type: ~
-        integer
-
-
 qfr_reuse_title                                                *qfr_reuse_title*
 
     (Default true) When running a Qfr cmd to gather new entries, look for
@@ -233,6 +180,9 @@ Qfr Window controls                                 *qf-rancher-window-controls*
 Modes: { n }, Plug: <Plug>(qfr-open-qf-list), Default: "<leader>qp"
  Desc: Open the quickfix list to [count] height (focus if already open)
 
+Modes: { n }, Plug: <Plug>(qfr-resize-qf-list), Default: "<leader>qP"
+ Desc: Resize the quickfix list to [count] height
+
 Modes: { n }, Plug: <Plug>(qfr-close-qf-list), Default: "<leader>qo"
  Desc: Close the quickfix list
 
@@ -240,10 +190,13 @@ Modes: { n }, Plug: <Plug>(qfr-toggle-qf-list), Default: "<leader>qq"
  Desc: Toggle the quickfix list (count sets height on open)
 
 Modes: { n }, Plug: <Plug>(qfr-qf-window), Default: "<leader>qw"
- Desc: Toggle the quickfix list based on recognized errors (count sets height on open)
+ Desc: Toggle the quickfix list based on recognized errors (count sets height)
 
 Modes: { n }, Plug: <Plug>(qfr-open-loclist), Default: "<leader>lp"
  Desc: Open the location list to [count] height (focus if already open)
+
+Modes: { n }, Plug: <Plug>(qfr-resize-loclist), Default: "<leader>lP"
+ Desc: Resize the location list to [count] height
 
 Modes: { n }, Plug: <Plug>(qfr-close-loclist), Default: "<leader>lo"
  Desc: Close the location list
@@ -252,7 +205,7 @@ Modes: { n }, Plug: <Plug>(qfr-toggle-loclist), Default: "<leader>ll"
  Desc: Toggle the location list (count sets height on open)
 
 Modes: { n }, Plug: <Plug>(qfr-ll-window), Default: "<leader>lw"
- Desc: Toggle the location list based on recognized errors (count sets height on open)
+ Desc: Toggle the location list based on recognized errors (count sets height)
 
 Cmd: Qopen
 Desc: Open the quickfix list to [count] height (focus if already open)
@@ -264,7 +217,7 @@ Cmd: Qtoggle
 Desc: Toggle the quickfix list (count sets height on open)
 
 Cmd: Qwindow
-Desc: Toggle the quickfix list based on recognized errors (count sets height on open)
+Desc: Toggle the quickfix list based on recognized errors (count sets height)
 
 Cmd: Lopen
 Desc: Open the location list to [count] height (focus if already open)
@@ -276,7 +229,7 @@ Cmd: Ltoggle
 Desc: Toggle the location list (count sets height on open)
 
 Cmd: Lwindow
-Desc: Toggle the location list based on recognized errors (count sets height on open)
+Desc: Toggle the location list based on recognized errors (count sets height)
 
 ==============================================================================
 Open, close, and resize list wins                                       *Window*
@@ -428,6 +381,15 @@ Window.q_window({count})                                       *Window.q_window*
         (nil)
 
 
+Window.q_resize({count})                                       *Window.q_resize*
+
+    Parameters: ~
+        {count}  (integer|nil) New height. Nil autosizes
+
+    Returns: ~
+        (nil)
+
+
 Window.l_window({count})                                       *Window.l_window*
 
     Open/keep open the Loclist window when there are recognized errors.
@@ -446,6 +408,15 @@ Window.l_window({count})                                       *Window.l_window*
 
     Parameters: ~
         {count}  (integer|nil) Height on open. Nil autosizes
+
+    Returns: ~
+        (nil)
+
+
+Window.l_resize({count})                                       *Window.l_resize*
+
+    Parameters: ~
+        {count}  (integer|nil) New height. Nil autosizes
 
     Returns: ~
         (nil)
@@ -1985,13 +1956,6 @@ Preview List Items                                                     *Preview*
                                                                    *qfr-preview*
 
 
-Preview.update_preview_win_buf()                *Preview.update_preview_win_buf*
-    Update the preview window buffer based on the current list cursor position
-
-    Returns: ~
-        (nil)
-
-
 Preview.update_preview_win_pos()                *Preview.update_preview_win_pos*
     Re-snap the preview window to the list
 
@@ -1999,16 +1963,38 @@ Preview.update_preview_win_pos()                *Preview.update_preview_win_pos*
         (nil)
 
 
-Preview.open_preview_win({list_win})                  *Preview.open_preview_win*
-    Open the preview window. Sets up buffer cache data
-    If the preview window is already open, this function is
-    a nop
+qf-rancher.preview.OpenOpts                        *qf-rancher.preview.OpenOpts*
+
+    Fields: ~
+        {debounce?}   (integer) Buffer between preview buffer loads
+
+                      (Default 100) Minimum interval in ms between preview
+                      window updates The default is 100 to accommodate slower
+                      systems/HDs. On a reasonable system, it should be
+                      possible to go down to 50ms before flicker/stutter start
+                      to appear. This behavior also depends on the size of
+                      the file(s) being scrolled through
+
+        {border?}     (qf-rancher.types.Border|string[]) See |'winborder'|
+
+        {title_pos?}  ("left"|"center"|"right") See |api-win_config|
+
+
+Preview.open_preview_win({opts?})                     *Preview.open_preview_win*
+    Open the preview window. Does nothing if the preview window isn't already
+    open
+
+    If opts.border is not provided, winborder will be used if it is not "". If
+    winborder cannot be used as a fallback, "single" will be used
+
+    If title_pos is nil, the window title will not be shown
+
 
     Parameters: ~
-        {list_win}  (integer) List window context
+        {opts?}  (qf-rancher.preview.OpenOpts)
 
     Returns: ~
-        (nil)
+        (integer|nil)  |winid| if it was opened
 
 
 Preview.close_preview_win()                          *Preview.close_preview_win*
@@ -2018,16 +2004,17 @@ Preview.close_preview_win()                          *Preview.close_preview_win*
         (nil)
 
 
-Preview.toggle_preview_win({list_win})              *Preview.toggle_preview_win*
+Preview.toggle_preview_win({opts?})                 *Preview.toggle_preview_win*
     Toggle the preview window
-    If the preview window is open in a different list than the one this
-    function is run in, the open preview window will be closed first
+
+    If the preview window is open in another list, move it to the current one
+
 
     Parameters: ~
-        {list_win}  (integer) List window context
+        {opts?}  (qf-rancher.preview.OpenOpts) See |qf-rancher.preview.OpenOpts|
 
     Returns: ~
-        (nil)
+        (integer|nil)  |winid| if it was opened
 
 
 ==============================================================================

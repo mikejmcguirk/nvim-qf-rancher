@@ -192,28 +192,11 @@ function Types._validate_win(win, optional)
     end
 end
 
----@param buf integer|nil
----@param optional? boolean
----@return nil
-function Types._validate_buf(buf, optional)
-    Types._validate_uint(buf, optional)
-    if optional and type(buf) == "nil" then
-        return
-    end
-
-    if type(buf) == "number" then
-        vim.validate("buf", buf, function()
-            return vim.api.nvim_buf_is_valid(buf)
-        end)
-    else
-        error("buf is not a number or nil")
-    end
-end
-
 -- LOW: Type should be able to take a function as a validator
 
 ---@class qf-rancher.types.ValidateListOpts
 ---@field len? integer
+---@field max_len? integer
 ---@field optional? boolean
 ---@field item_type? string
 
@@ -242,28 +225,12 @@ function Types._validate_list(list, opts)
             return #list == opts.len
         end, "List length must be " .. opts.len)
     end
-end
 
--- MID: This and the utils module are getting bigger, and another split will be necessary
--- This function sits in the uncanny valley between validating data and validating program state
--- Feels like an anchor point for deciding what the new cut points are
-
----@param list_win integer|nil
----@param optional? boolean
----@return nil
-function Types._validate_list_win(list_win, optional)
-    if optional and type(list_win) == "nil" then
-        return
+    if opts.max_len then
+        vim.validate("list", list, function()
+            return #list <= opts.max_len
+        end, "List length must be " .. opts.len)
     end
-
-    Types._validate_win(list_win)
-    ---@diagnostic disable-next-line: param-type-mismatch
-    local list_win_buf = vim.api.nvim_win_get_buf(list_win) ---@type integer
-    ---@type string
-    local buftype = vim.api.nvim_get_option_value("buftype", { buf = list_win_buf })
-    vim.validate("buftype", buftype, function()
-        return buftype == "quickfix"
-    end, optional, "Buftype must be quickfix")
 end
 
 ---@param item_type string|nil
@@ -283,81 +250,59 @@ function Types._validate_list_item_type(item_type, optional)
     end
 end
 
----NOTE: This is designed for entries used to set qflists. The entries from getqflist() are
----not exactly the same
----@param item vim.quickfix.entry
----@return nil
-function Types._validate_list_item(item)
-    vim.validate("item", item, "table")
-
-    vim.validate("item.bufnr", item.bufnr, "number", true)
-    -- Cannot check if buf is valid here, because a valid buf at the time of list creation might
-    -- have been deleted
-    Types._validate_uint(item.bufnr, true)
-    -- Cannot check if filename is valid here, because a valid filename at the time of list
-    -- creation might have been moved or deleted
-    vim.validate("item.filename", item.filename, "string", true)
-
-    vim.validate("item.module", item.module, "string", true)
-    Types._validate_int(item.nr, true)
-    vim.validate("item.pattern", item.pattern, "string", true)
-    Types._validate_uint(item.vcol, true)
-
-    vim.validate("item.text", item.text, "string", true)
-
-    -- MID: Figure out what the proper validation for this is
-    -- vim.validate("item.valid", item.valid, { "boolean", "nil" })
-
-    Types._validate_list_item_type(item.type, true)
-
-    -- NOTE: While qf rows and cols are one indexed, 0 is used to represent non-values
-    Types._validate_uint(item.lnum, true)
-    Types._validate_uint(item.col, true)
-    Types._validate_uint(item.end_lnum, true)
-    Types._validate_uint(item.end_col, true)
-end
-
+---@type table<integer, string>
 Types._severity_map = {
     [vim.diagnostic.severity.ERROR] = "E",
     [vim.diagnostic.severity.WARN] = "W",
     [vim.diagnostic.severity.INFO] = "I",
     [vim.diagnostic.severity.HINT] = "H",
-} ---@type table<integer, string>
+}
 
+---@type table<integer, string>
 Types._severity_map_plural = {
     [vim.diagnostic.severity.ERROR] = "errors",
     [vim.diagnostic.severity.WARN] = "warnings",
     [vim.diagnostic.severity.INFO] = "info",
     [vim.diagnostic.severity.HINT] = "hints",
-} ---@type table<integer, string>
+}
 
+---@type table<integer, string>
 Types._severity_map_str = {
     [vim.diagnostic.severity.ERROR] = "Error",
     [vim.diagnostic.severity.WARN] = "Warning",
     [vim.diagnostic.severity.INFO] = "Info",
     [vim.diagnostic.severity.HINT] = "Hint",
-} ---@type table<integer, string>
+}
 
+---@type table<string, integer>
 Types._severity_unmap = {
     E = vim.diagnostic.severity.ERROR,
     W = vim.diagnostic.severity.WARN,
     I = vim.diagnostic.severity.INFO,
     H = vim.diagnostic.severity.HINT,
-} ---@type table<string, integer>
+}
 
--- :h 'winborder'
--- PR: This feels like something you could put into vim.validate. Or at least a type annotation
--- NOTE/PR: The win config API keyset does not include "bold"
--- NOTE/PR: "" is also an acceptable option not noted in the keyset
-
----@alias QfrBorder ""|"bold"|"double"|"none"|"rounded"|"shadow"|"single"|"solid"|string[]
+---@alias qf-rancher.types.Border
+---|""
+---|"bold"
+---|"double"
+---|"none"
+---|"rounded"
+---|"shadow"
+---|"single"
+---|"solid"
 
 ---@type string[]
 local valid_borders = { "", "bold", "double", "none", "rounded", "shadow", "single", "solid" }
 
----@param border QfrBorder
+---@param border qf-rancher.types.Border|string[]
+---@param optional? boolean
 ---@return nil
-function Types._validate_border(border)
+function Types._validate_border(border, optional)
+    if optional and type(border) == "nil" then
+        return
+    end
+
     vim.validate("border", border, { "string", "table" })
     if type(border) == "string" then
         vim.validate("border", border, function()
@@ -371,17 +316,34 @@ end
 ---@alias QfrTitlePos "left"|"center"|"right"
 
 ---@param pos QfrTitlePos
+---@param optional? boolean
 ---@return nil
-function Types._validate_title_pos(pos)
+function Types._validate_title_pos(pos, optional)
+    if optional and type(pos) == "nil" then
+        return
+    end
+
     vim.validate("pos", pos, "string")
     vim.validate("pos", pos, function()
         return pos == "left" or pos == "center" or pos == "right"
     end)
 end
 
--- =============================
--- == CUSTOM TYPES -- GENERAL ==
--- =============================
+---@param title? string|[string,string|integer?][]
+---@param optional? boolean
+function Types._validate_title(title, optional)
+    if optional and type(title) == "nil" then
+        return
+    end
+
+    vim.validate("title", title, { "string", "table" })
+    if type(title) == "table" then
+        Types._validate_list(title, { item_type = "table" })
+        for _, tuple in ipairs(title) do
+            Types._validate_list(tuple, { max_len = 2, item_type = "string" })
+        end
+    end
+end
 
 ---@alias qf-rancher.types.Action "a"|"f"|"r"|"u"|" "
 
@@ -442,7 +404,7 @@ function Types._validate_case(case, optional)
     end)
 end
 
--- MID: Deprecate this. There are specific combinatorial problems for certain modules that
+-- TODO: Deprecate this. There are specific combinatorial problems for certain modules that
 -- require tables to answers, but adding in a generalized input table only adds another
 -- combinatorial layer
 

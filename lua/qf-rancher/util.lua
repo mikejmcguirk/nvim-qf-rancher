@@ -303,9 +303,23 @@ local function get_item(src_win, idx)
     return nil, nil
 end
 
+-- TODO: Deprecate so the new function can be named to here
+
 ---@type QfrGetItemFunc
 function M._get_item_under_cursor(src_win)
     return get_item(src_win, fn.line("."))
+end
+
+---@param src_win integer|nil
+---@return boolean, vim.quickfix.entry|string, string|nil
+function M._only_get_item_under_cursor(src_win)
+    local idx = fn.line(".")
+    local items = rt._get_list(src_win, { nr = 0, idx = idx, items = true }).items
+    if #items < 1 then
+        return false, "List is empty", ""
+    end
+
+    return true, items[1], nil
 end
 
 ---@type QfrGetItemFunc
@@ -364,9 +378,9 @@ function M._with_checked_spk(f)
 end
 
 ---@param win integer
----@param cur_pos {[1]: integer, [2]: integer}
----@return nil
-function M._protected_set_cursor(win, cur_pos)
+---@param cur_pos { [1]: integer, [2]: integer }
+---@return { [1]: integer, [2]: integer }
+local function get_checked_cur_pos(win, cur_pos)
     local buf = api.nvim_win_get_buf(win)
 
     local cursor_row = math.max(cur_pos[1], 1)
@@ -377,7 +391,15 @@ function M._protected_set_cursor(win, cur_pos)
     local set_line_len_0 = math.max(#set_line - 1, 0)
     local col = math.min(cur_pos[2], set_line_len_0)
 
-    api.nvim_win_set_cursor(win, { row, col })
+    return { row, col }
+end
+
+---@param win integer
+---@param cur_pos { [1]: integer, [2]: integer }
+---@return nil
+function M._protected_set_cursor(win, cur_pos)
+    local checked_cur_pos = get_checked_cur_pos(win, cur_pos)
+    api.nvim_win_set_cursor(win, checked_cur_pos)
 end
 
 ---@param win integer
@@ -390,8 +412,8 @@ function M._pwin_close(win, force)
 
     local tabpages = api.nvim_list_tabpages()
     local win_tabpage = api.nvim_win_get_tabpage(win)
-    local win_tabpage_wins = api.nvim_tabpage_list_wins(win_tabpage)
-    if #tabpages == 1 and #win_tabpage_wins == 1 then
+    local wins = api.nvim_tabpage_list_wins(win_tabpage)
+    if #tabpages == 1 and #wins == 1 then
         return false, "Cannot close the last window", ""
     end
 
@@ -467,7 +489,8 @@ function M._open_item(item, win, opts)
             end)
         end
 
-        M._protected_set_cursor(win, M._qf_pos_to_cur_pos(item.lnum, item.col))
+        local cur_pos = M._qf_pos_to_cur_pos(item.lnum, item.col, item.vcol, buf)
+        M._protected_set_cursor(win, cur_pos)
     end
 
     if not opts.skip_zzze then
@@ -551,15 +574,53 @@ function M._vcol_to_end_col_(vcol, line)
     end
 end
 
----@param item_lnum integer
----@param item_col integer
+---@param lnum integer
+---@param col_1 integer
+---@param vcol integer
+---@param buf integer
 ---@return { [1]:integer, [2]:integer }
-function M._qf_pos_to_cur_pos(item_lnum, item_col)
-    local row = math.max(item_lnum, 1)
-    local col = item_col - 1
-    col = math.max(col, 0)
+function M._qf_pos_to_cur_pos(lnum, col_1, vcol, buf)
+    local row = math.max(lnum, 1)
+
+    local line = api.nvim_buf_get_lines(buf, row - 1, row, false)[1]
+    local col = M._qf_col_1_to_col(col_1, vcol, line)
 
     return { row, col }
+end
+
+---@param row integer
+---@param buf integer
+---@return integer
+function M._checked_row_to_row_0(row, buf)
+    if row < 1 then
+        return 0
+    end
+
+    local row_0 = row - 1
+    local line_count = api.nvim_buf_line_count(buf)
+    local line_count_0 = line_count - 1
+    row_0 = math.min(row_0, line_count_0)
+
+    return row_0
+end
+
+---@param col_1 integer
+---@param vcol integer
+---@param line string
+---@return integer
+function M._qf_col_1_to_col(col_1, vcol, line)
+    if col_1 < 1 then
+        return 0
+    end
+
+    if vcol == 0 then
+        local col = col_1 - 1
+        local line_len_0 = #line - 1
+        return math.min(col, line_len_0)
+    end
+
+    local _, start_byte, _ = M._vcol_to_byte_bounds(col_1, line)
+    return start_byte
 end
 
 -- ====================

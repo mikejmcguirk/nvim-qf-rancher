@@ -17,7 +17,7 @@ local api = vim.api
 --- @class qf-rancher.System
 local System = {}
 
-local default_timeout = 2000 ---@type integer
+local DEFAULT_TIMEOUT = 2000
 
 -- MID: Find the common composable pieces here with the ftplugin file and merge them together
 ---@param tabpage integer
@@ -207,7 +207,7 @@ function System.system_do(cmd_parts, src_win, action, what, system_opts)
     ry._validate_what(what)
     ry._validate_system_opts(system_opts)
 
-    local timeout = system_opts.timeout or default_timeout ---@type integer
+    local timeout = system_opts.timeout or DEFAULT_TIMEOUT ---@type integer
     local vim_system_opts = { text = true, timeout = timeout } ---@type vim.SystemOpts
     if system_opts.sync then
         ---@type vim.SystemCompleted

@@ -45,9 +45,6 @@ Key options are listed below. See the help file for more:
 | qfr_ftplugin_keymap | (Default true) Set ack.vim style ftplugin list keymaps |
 | qfr_ftplugin_set_opts | (Default true) Set list-specific options |
 | qfr_grepprg | (Default "rg") Set the grepprg used for Rancher's grep functions "rg" and "grep" are available |
-| qfr_preview_border | (Default "single") Set the preview window border |
-| qfr_preview_show_title | (Default true) Show title in the preview window |
-| qfr_qfsplit | (Default "botright") Set the split the quickfix list opens to |
 | qfr_set_default_cmds | (Default true) Create Qfr's default commands |
 | qfr_set_default_keymaps | (Default true) Set default keymaps (excluding ftplugin maps) |
 

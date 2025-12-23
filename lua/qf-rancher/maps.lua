@@ -116,31 +116,34 @@ M.doc_tbls = {} ---@type { [1]: string, [2]:QfrMapData[], [3]: QfrCmdData[] }[]
 local open_on_list = function(qf_win, _) rw._resize_list_win(qf_win, vim.v.count) vim.api.nvim_set_current_win(qf_win) end
 
 -- TODO: Re-format after the maps and cmds are updated here
+-- MID: Re-add qP and lP maps to resize the list without focusing it. Still in my muscle memory.
 
 -- stylua: ignore
 ---@type QfrMapData[]
 M.qfr_win_maps = {
-{ nn, "<Plug>(qfr-open-qf-list)",     ql.."p", "Open the quickfix list to [count] height (focus if already open)", function() rw.open_qf_win({ height = vim.v.count, on_list = open_on_list }) end },
-{ nn, "<Plug>(qfr-close-qf-list)",    ql.."o", "Close the quickfix list",                                          function() rw.close_qf_win({ use_alt_win = true }) end },
-{ nn, "<Plug>(qfr-toggle-qf-list)",   ql..qp,  "Toggle the quickfix list (count sets height on open)",             function() rw.q_toggle(vim.v.count) end },
-{ nn, "<Plug>(qfr-qf-window)",   ql.."w",  "Toggle the quickfix list based on recognized errors (count sets height on open)",             function() rw.q_window(vim.v.count) end },
-{ nn, "<Plug>(qfr-open-loclist)",     ll.."p", "Open the location list to [count] height (focus if already open)", function() rw.open_ll_win({ height = vim.v.count, on_list = open_on_list }) end },
-{ nn, "<Plug>(qfr-close-loclist)",    ll.."o", "Close the location list",                                          function() rw.close_ll_win(cur_win(), { use_alt_win = true }) end },
-{ nn, "<Plug>(qfr-toggle-loclist)",   ll..lp,  "Toggle the location list (count sets height on open)",             function() rw.l_toggle(vim.v.count) end },
-{ nn, "<Plug>(qfr-ll-window)",        ll.."w",  "Toggle the location list based on recognized errors (count sets height on open)",             function() rw.l_window(vim.v.count) end },
+{ nn, "<Plug>(qfr-open-qf-list)",   ql.."p", "Open the quickfix list to [count] height (focus if already open)",        function() rw.open_qf_win({ height = vim.v.count, on_list = open_on_list }) end },
+{ nn, "<Plug>(qfr-resize-qf-list)", ql.."P", "Resize the quickfix list to [count] height",                              function() rw.q_resize(vim.v.count) end },
+{ nn, "<Plug>(qfr-close-qf-list)",  ql.."o", "Close the quickfix list",                                                 function() rw.close_qf_win({ use_alt_win = true }) end },
+{ nn, "<Plug>(qfr-toggle-qf-list)", ql..qp,  "Toggle the quickfix list (count sets height on open)",                    function() rw.q_toggle(vim.v.count) end },
+{ nn, "<Plug>(qfr-qf-window)",      ql.."w", "Toggle the quickfix list based on recognized errors (count sets height)", function() rw.q_window(vim.v.count) end },
+{ nn, "<Plug>(qfr-open-loclist)",   ll.."p", "Open the location list to [count] height (focus if already open)",        function() rw.open_ll_win({ height = vim.v.count, on_list = open_on_list }) end },
+{ nn, "<Plug>(qfr-resize-loclist)", ll.."P", "Resize the location list to [count] height",                              function() rw.l_resize(vim.v.count) end },
+{ nn, "<Plug>(qfr-close-loclist)",  ll.."o", "Close the location list",                                                 function() rw.close_ll_win(cur_win(), { use_alt_win = true }) end },
+{ nn, "<Plug>(qfr-toggle-loclist)", ll..lp,  "Toggle the location list (count sets height on open)",                    function() rw.l_toggle(vim.v.count) end },
+{ nn, "<Plug>(qfr-ll-window)",      ll.."w", "Toggle the location list based on recognized errors (count sets height)", function() rw.l_window(vim.v.count) end },
 }
 
 -- stylua: ignore
 ---@type QfrCmdData[]
 M.qfr_win_cmds = {
-{ "Qopen",   function(cargs) rw.q_open_cmd(cargs) end,    { count = 0, desc = "Open the quickfix list to [count] height (focus if already open)" } },
-{ "Qclose",  function() rw.q_close_cmd() end,             { desc = "Close the Quickfix list" } },
-{ "Qtoggle", function(cargs) rw.q_toggle_cmd(cargs) end,  { count = 0, desc = "Toggle the quickfix list (count sets height on open)" } },
-{ "Qwindow", function(cargs) rw.q_window_cmd(cargs) end,  { count = 0, desc = "Toggle the quickfix list based on recognized errors (count sets height on open)" } },
+{ "Qopen",   function(cargs) rw.q_open_cmd(cargs) end,   { count = 0, desc = "Open the quickfix list to [count] height (focus if already open)" } },
+{ "Qclose",  function() rw.q_close_cmd() end,            { desc = "Close the Quickfix list" } },
+{ "Qtoggle", function(cargs) rw.q_toggle_cmd(cargs) end, { count = 0, desc = "Toggle the quickfix list (count sets height on open)" } },
+{ "Qwindow", function(cargs) rw.q_window_cmd(cargs) end, { count = 0, desc = "Toggle the quickfix list based on recognized errors (count sets height)" } },
 { "Lopen",   function(cargs) rw.l_open_cmd(cargs) end,   { count = 0, desc = "Open the location list to [count] height (focus if already open)" } },
 { "Lclose",  function() rw.l_close_cmd() end,            { desc = "Close the location List" } },
 { "Ltoggle", function(cargs) rw.l_toggle_cmd(cargs) end, { count = 0, desc = "Toggle the location list (count sets height on open)" } },
-{ "Lwindow", function(cargs) rw.l_window_cmd(cargs) end,  { count = 0, desc = "Toggle the location list based on recognized errors (count sets height on open)" } },
+{ "Lwindow", function(cargs) rw.l_window_cmd(cargs) end, { count = 0, desc = "Toggle the location list based on recognized errors (count sets height)" } },
 }
 
 M.plug_tbls[#M.plug_tbls + 1] = M.qfr_win_maps
@@ -229,7 +232,7 @@ M.doc_tbls[#M.doc_tbls + 1] = { ra_str, M.qfr_stack_maps, M.qfr_stack_cmds }
 M.qfr_ftplugin_maps = {
 { nn, "<Plug>(qfr-list-del-one)",               "dd", "Delete the current list line",                      function() ri._del_one_list_item() end },
 { xx, "<Plug>(qfr-list-visual-del)",            "d", "Delete a visual line list selection",                function() ri._visual_del() end },
-{ nn, "<Plug>(qfr-list-toggle-preview)",        "p", "Toggle the list preview win",                        function() rr.toggle_preview_win(cur_win()) end },
+{ nn, "<Plug>(qfr-list-toggle-preview)",        "p", "Toggle the list preview win",                        function() rr.toggle_preview_win({ title_pos = "left" }) end },
 { nn, "<Plug>(qfr-list-update-preview-pos)",    "P", "Update the preview win position",                    function() rr.update_preview_win_pos() end },
 { nn, "<Plug>(qfr-list-prev)",                  "{", "Go to the previous list entry, keep list focus",     function() ri._open_prev_focuslist() end },
 { nn, "<Plug>(qfr-list-next)",                  "}", "Go to the next list entry, keep list focus",         function() ri._open_next_focuslist() end },
