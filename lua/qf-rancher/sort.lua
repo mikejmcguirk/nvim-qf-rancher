@@ -19,14 +19,11 @@ local Sort = {}
 
 ---@tag qf-rancher-sort-predicate
 ---@tag qfr-sort-predicate
----
----Parameters:
----- vim.qflist.item (first item to sort)
----- vim.qflist.item (second item to sort)
----Return: Boolean
----@alias qf-rancher.sort.Predicate fun(vim.qflist.item, vim.qflist.item): boolean
+---@alias qf-rancher.sort.Predicate fun(a:vim.quickfix.entry, b:vim.quickfix.entry): boolean
 
----@param pred qf-rancher.sort.Predicate A function to sort the list items
+---@param predicate qf-rancher.sort.Predicate A function to sort the list
+---items
+---
 ---@param src_win integer|nil Optional location list window context
 ---
 ---@param action qf-rancher.types.Action
@@ -35,8 +32,8 @@ local Sort = {}
 ---
 ---@param nr integer|'$' Which list nr to operate on
 ---@return nil
-function Sort.sort(pred, src_win, action, nr)
-    vim.validate("pred", pred, "function")
+function Sort.sort(predicate, src_win, action, nr)
+    vim.validate("pred", predicate, "function")
     ry._validate_win(src_win, true)
     ry._validate_action(action)
     ry._validate_list_nr(nr)
@@ -56,7 +53,7 @@ function Sort.sort(pred, src_win, action, nr)
     end
 
     local what_set = rt._what_ret_to_set(what_ret)
-    table.sort(what_set.items, pred)
+    table.sort(what_set.items, predicate)
     what_set.nr = nr
 
     local dest_nr = rt._set_list(src_win, action, what_set)
@@ -80,18 +77,13 @@ function Sort.sort(pred, src_win, action, nr)
     })
 end
 
----@tag qf-rancher-sort-info
----@tag qfr-sort-info
----@class qf-rancher.sort.Info
+---@package
+---@class qf-rancher.sort.CmdInfo
 ---@field asc qf-rancher.sort.Predicate Predicate for asc Sort.sorts
 ---@field desc qf-rancher.sort.Predicate Predicate for desc Sort.sorts
 
----Sorts available to the Qsort and Lsort cmds. The string table key can be
----fed to those cmds as an argument to use the sorts. Because this table is
----public, sorts can be directly added or removed
----Pre-built sorts are available in "qf-rancher.lib.sort"
----@type table<string, qf-rancher.sort.Info>
-Sort.sorts = {
+---@type table<string, qf-rancher.sort.CmdInfo>
+local sort_cmds = {
     fname = { asc = lib.sort_fname_asc, desc = lib.sort_fname_desc },
     fname_diag = { asc = lib.sort_fname_diag_asc, desc = lib.sort_fname_diag_desc },
     severity = { asc = lib.sort_severity_asc, desc = lib.sort_severity_desc },
@@ -99,40 +91,33 @@ Sort.sorts = {
     type = { asc = lib.sort_type_asc, desc = lib.sort_type_desc },
 }
 
----@alias QfrSortDir 'asc'|'desc'
-
 ---@param src_win integer|nil
 ---@param cargs vim.api.keyset.create_user_command.command_args
 ---@return nil
 local function sort_cmd(src_win, cargs)
-    local sort_names = vim.tbl_keys(Sort.sorts) ---@type string[]
-    if #sort_names < 1 then
-        api.nvim_echo({ { "No sorts available" } }, true, {})
-        return
-    end
+    local sort_names = vim.tbl_keys(sort_cmds) ---@type string[]
 
-    ---@type string
-    local default_sort = vim.tbl_contains(sort_names, "fname") and "fname" or sort_names[1]
-    local sort_name = ru._check_cmd_arg(cargs.fargs, sort_names, default_sort) ---@type string
-    local dir = cargs.bang and "desc" or "asc" ---@type QfrSortDir
-    ---@type qf-rancher.types.Action
-    local action = ru._check_cmd_arg(cargs.fargs, ry._actions, "u")
+    local sort_name = ru._check_cmd_arg(cargs.fargs, sort_names, "fname")
+    local dir = cargs.bang and "desc" or "asc" ---@type "asc"|"desc"
+    local predicate = sort_cmds[sort_name][dir]
+    local action = "u" ---@type qf-rancher.types.Action
 
-    Sort.sort(Sort.sorts[sort_name][dir], src_win, action, cargs.count)
+    Sort.sort(predicate, src_win, action, cargs.count)
 end
 
 ---@brief [[
 ---The callbacks to assign the Qsort and Lsort commands are below. They
 ---expect count = 0 and nargs = 1 to be present in the user_command table.
+---
 ---They accept the following options:
 ---- A registered sort name (fname|fname_diag|severity|text|type)
 ---  fname is the default
 ---  NOTE: fname_diag Sort.sorts by filename, with subsorting by diagnostic
 ---  severity
----- A |setqflist-action| can also be provided (default "u")
 ---- If a bang is provided, the sort will be in descending order
----- If a count is provided, that list nr will be used. Default is the current
----  list
+---
+---If a count is provided, that list nr will be used. Default is the current
+---list
 ---Example: 4Qsort! fname r
 ---@brief ]]
 

@@ -214,6 +214,7 @@ function Grep.grep(src_win, action, what, grep_opts, sys_opts)
     re._system_do(grep_parts, src_win, action, what, sys_opts)
 end
 
+---@package
 ---@class qf-rancher.grep.GrepInfo
 ---@field grep_opts qf-rancher.grep.GrepOpts See |QfrGrepOpts|
 ---@field sys_opts qf-rancher.SystemOpts See |QfrSystemOpts|

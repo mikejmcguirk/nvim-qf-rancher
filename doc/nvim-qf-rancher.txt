@@ -1869,67 +1869,40 @@ Sort list items                                                           *Sort*
                                                             *qfr-sort-predicate*
 qf-rancher.sort.Predicate                            *qf-rancher.sort.Predicate*
 
-    Parameters:
-    - vim.qflist.item (first item to sort)
-    - vim.qflist.item (second item to sort)
-    Return: Boolean
-
     Type: ~
-        fun
+        fun(a:vim.quickfix.entry,b:vim.quickfix.entry):boolean
 
 
                                                                      *Sort.sort*
-Sort.sort({pred}, {src_win}, {action}, {nr})
+Sort.sort({predicate}, {src_win}, {action}, {nr})
 
     Parameters: ~
-        {pred}     (qf-rancher.sort.Predicate) A function to sort the list items
-        {src_win}  (integer|nil) Optional location list window context
+        {predicate}  (qf-rancher.sort.Predicate) A function to sort the list
+                     items
 
-        {action}   (qf-rancher.types.Action)
-                   What action to take when setting the list
+        {src_win}    (integer|nil) Optional location list window context
 
-        {nr}       (integer|"$") Which list nr to operate on
+        {action}     (qf-rancher.types.Action)
+                     What action to take when setting the list
+
+        {nr}         (integer|"$") Which list nr to operate on
 
     Returns: ~
         (nil)
 
 
-                                                          *qf-rancher-sort-info*
-                                                                 *qfr-sort-info*
-qf-rancher.sort.Info                                      *qf-rancher.sort.Info*
-
-    Fields: ~
-        {asc}   (qf-rancher.sort.Predicate) Predicate for asc Sort.sorts
-        {desc}  (qf-rancher.sort.Predicate) Predicate for desc Sort.sorts
-
-
-Sort.sorts                                                          *Sort.sorts*
-    Sorts available to the Qsort and Lsort cmds. The string table key can be
-    fed to those cmds as an argument to use the sorts. Because this table is
-    public, sorts can be directly added or removed
-    Pre-built sorts are available in "qf-rancher.lib.sort"
-
-    Type: ~
-        (table<string,qf-rancher.sort.Info>)
-
-
-QfrSortDir                                                          *QfrSortDir*
-
-    Type: ~
-        "asc"|"desc"
-
-
 The callbacks to assign the Qsort and Lsort commands are below. They
 expect count = 0 and nargs = 1 to be present in the user_command table.
+
 They accept the following options:
 - A registered sort name (fname|fname_diag|severity|text|type)
   fname is the default
   NOTE: fname_diag Sort.sorts by filename, with subsorting by diagnostic
   severity
-- A |setqflist-action| can also be provided (default "u")
 - If a bang is provided, the sort will be in descending order
-- If a count is provided, that list nr will be used. Default is the current
-  list
+
+If a count is provided, that list nr will be used. Default is the current
+list
 Example: 4Qsort! fname r
 
 Sort.q_sort({cargs})                                               *Sort.q_sort*
