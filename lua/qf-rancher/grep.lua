@@ -218,11 +218,8 @@ end
 ---@field grep_opts qf-rancher.grep.GrepOpts See |QfrGrepOpts|
 ---@field sys_opts qf-rancher.SystemOpts See |QfrSystemOpts|
 
----Greps available to the Qgrep and Lgrep cmds. The string table key can be
----used as an argument to specify the grep type. This table is public, and
----new greps can be added or removed directly
 ---@type table<string, qf-rancher.grep.GrepInfo>
-Grep.greps = {
+local grep_cmds = {
     cwd = { grep_opts = { locations = gl.get_cwd, name = "CWD" }, sys_opts = {} },
     help = {
         grep_opts = { locations = gl.get_help_dirs, name = "Help" },
@@ -241,26 +238,16 @@ local function grep_cmd(src_win, cargs)
     cargs = cargs or {}
     local fargs = cargs.fargs ---@type string[]
 
-    local action = ru._check_cmd_arg(fargs, ry._actions, " ") ---@type qf-rancher.types.Action
+    local grep_names = vim.tbl_keys(grep_cmds)
+    local grep_name = ru._check_cmd_arg(fargs, grep_names, "cwd")
 
-    local grep_names = vim.tbl_keys(Grep.greps)
-    if #grep_names < 1 then
-        api.nvim_echo({ { "No grep commands available", "ErrorMsg" } }, false, {})
-        return
-    end
-
-    -- MID: Shouldn't this always be able to fall back to cwd?
-    local has_cwd = vim.tbl_contains(grep_names, "cwd")
-    local default_grep = has_cwd and "cwd" or grep_names[1]
-    local grep_name = ru._check_cmd_arg(fargs, grep_names, default_grep)
-
-    local grep_info = vim.deepcopy(Grep.greps[grep_name], true) ---@type qf-rancher.grep.GrepInfo
+    local grep_info = vim.deepcopy(grep_cmds[grep_name], true) ---@type qf-rancher.grep.GrepInfo
     local grep_opts = grep_info.grep_opts ---@type qf-rancher.grep.GrepOpts
     grep_opts.pattern = ru._find_pattern_in_cmd(fargs)
 
     ---@type QfrInputType
     local input_type = ru._check_cmd_arg(fargs, ry._cmd_input_types, ry._default_input_type)
-    -- MID: Phase out input type and therefore this hack
+    -- TODO: Phase out input type and therefore this hack
     if input_type == "regex" then
         grep_opts.regex = true
     else
@@ -274,20 +261,33 @@ local function grep_cmd(src_win, cargs)
     local sync = sync_str == "sync" and true or false ---@type boolean
     sys_opts.sync = sync
 
-    Grep.grep(src_win, action, { nr = cargs.count }, grep_opts, sys_opts)
+    local action = cargs.count > 0 and "r" or " " ---@type qf-rancher.types.Action
+    local nr = cargs.count > 0 and cargs.count or "$" ---@type integer|"$"
+
+    Grep.grep(src_win, action, { nr = nr }, grep_opts, sys_opts)
 end
+
+-- MAYBE: Use bang to use regex. Or maybe a special character in front of the case arg
 
 ---@brief [[
 ---The callbacks to assign the Qgrep and Lgrep commands are below. They expect
 ---count = 0 and nargs = "*" to be present in the user_command table.
+---
 ---They accept the following options:
----- A registered grep name (cwd|help|bufs|cbuf). cwd is default
+---- A grep name (cwd|help|bufs|cbuf). cwd is default
 ---  NOTE: "bufs" searches all open bufs, excluding help bufs
 ---  NOTE: "cbuf" searches the current buf, including help buffers
 ---- A pattern starting with "/"
 ---- A |qfr-input-type| ("vimcase" by default)
 ---- "async" or "sync" to control system behavior (async by default)
----- A |setqflist-action| (default " ")
+---
+---If a count is provided, then [count] list will be overwritten. Otherwise, a
+---new list will be created at the end of the stack.
+---
+---The output list will be given a title based on the grep cmd and the query.
+---If no count is provided, g:qfr_reuse_title is true, and a list with a
+---matching title exists, it will be reused.
+---
 ---Example: 2Qgrep help r vimcase /setqflist
 ---@brief ]]
 

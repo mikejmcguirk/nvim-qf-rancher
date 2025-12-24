@@ -1382,25 +1382,24 @@ qf-rancher.grep.GrepInfo                              *qf-rancher.grep.GrepInfo*
         {sys_opts}   (qf-rancher.SystemOpts) See |QfrSystemOpts|
 
 
-Grep.greps                                                          *Grep.greps*
-    Greps available to the Qgrep and Lgrep cmds. The string table key can be
-    used as an argument to specify the grep type. This table is public, and
-    new greps can be added or removed directly
-
-    Type: ~
-        (table<string,qf-rancher.grep.GrepInfo>)
-
-
 The callbacks to assign the Qgrep and Lgrep commands are below. They expect
 count = 0 and nargs = "*" to be present in the user_command table.
+
 They accept the following options:
-- A registered grep name (cwd|help|bufs|cbuf). cwd is default
+- A grep name (cwd|help|bufs|cbuf). cwd is default
   NOTE: "bufs" searches all open bufs, excluding help bufs
   NOTE: "cbuf" searches the current buf, including help buffers
 - A pattern starting with "/"
 - A |qfr-input-type| ("vimcase" by default)
 - "async" or "sync" to control system behavior (async by default)
-- A |setqflist-action| (default " ")
+
+If a count is provided, then [count] list will be overwritten. Otherwise, a
+new list will be created at the end of the stack.
+
+The output list will be given a title based on the grep cmd and the query.
+If no count is provided, g:qfr_reuse_title is true, and a list with a
+matching title exists, it will be reused.
+
 Example: 2Qgrep help r vimcase /setqflist
 
 Grep.q_grep_cmd({cargs})                                       *Grep.q_grep_cmd*
