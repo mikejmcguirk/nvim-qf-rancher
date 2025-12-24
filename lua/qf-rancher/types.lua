@@ -43,9 +43,7 @@ function Types._validate_what(what)
     if type(what.nr) == "number" then
         ---@diagnostic disable-next-line: param-type-mismatch
         Types._validate_uint(what.nr)
-    end
-
-    if type(what.nr) == "string" then
+    elseif type(what.nr) == "string" then
         vim.validate("what.nr", what.nr, function()
             return what.nr == "$"
         end)

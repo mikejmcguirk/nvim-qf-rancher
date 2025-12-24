@@ -40,8 +40,28 @@ end
 -- == INPUT UTILS ==
 -- =================
 
--- TODO: I have a feeling this gets deprecated, but not sure how filter refactor + second grep
--- pass go
+---@param case qf-rancher.types.Case
+---@return qf-rancher.types.Case
+function M._resolve_case(case)
+    if case ~= "vimcase" then
+        return case
+    end
+
+    local ic = api.nvim_get_option_value("ic", { scope = "global" })
+    if ic then
+        local scs = api.nvim_get_option_value("scs", { scope = "global" })
+        if scs then
+            return "smartcase"
+        else
+            return "insensitive"
+        end
+    else
+        return "sensitive"
+    end
+end
+
+-- TODO: Deprecate (or maybe, just add case as a param and use it in the grep module too.
+-- Basically the same logic)
 
 ---@param input QfrInputType
 ---@return string
@@ -81,11 +101,7 @@ function M._resolve_input_vimcase(input)
     return "sensitive"
 end
 
--- TODO: This function needs to be re-thought:
--- - Needs to return ok, result pattern
--- - An empty selection should return a "" highlight
--- - It should not handle leaving the visual selection
--- Current blocker: Would require refactoring callers. They need to come first.
+-- TODO: Deprecate
 
 ---@param mode string
 ---@return string|nil
@@ -111,6 +127,33 @@ local function get_visual_pattern(mode)
 
     api.nvim_echo({ { "get_visual_pattern: Empty selection" } }, false, {})
     return nil
+end
+
+-- TODO: Rename when the old one is deprecated
+
+---@param short_mode string
+---@return boolean, string, string|nil
+local function just_get_visual_pattern(short_mode)
+    local start_pos = fn.getpos(".")
+    local end_pos = fn.getpos("v")
+    local region = fn.getregion(start_pos, end_pos, { type = short_mode })
+
+    if #region == 1 then
+        local trimmed = string.gsub(region[1], "^%s*(.-)%s*$", "%1")
+        if #trimmed > 0 then
+            return true, trimmed, nil
+        else
+            return false, "Empty selection", ""
+        end
+    elseif #region > 1 then
+        for _, line in ipairs(region) do
+            if line ~= "" then
+                return true, table.concat(region, "\n"), nil
+            end
+        end
+    end
+
+    return false, "Empty selection", ""
 end
 
 -- TODO: Deprecate, since this should not be a sub function
@@ -154,10 +197,34 @@ function M._resolve_pattern(prompt, input_pattern, input_type)
     return (pattern and input_type == "insensitive") and string.lower(pattern) or pattern
 end
 
+-- TODO: Change to _resolve_pattern when the old one is deprecated
+
+---@param pattern string|nil
+---@param case qf-rancher.types.Case
+---@param get_prompt fun():string
+---@return boolean, boolean, string|nil, string|nil
+function M._get_pattern(pattern, case, get_prompt)
+    if pattern then
+        return true, false, pattern, nil
+    end
+
+    local mode = api.nvim_get_mode().mode
+    local short_mode = string.sub(mode, 1, 1)
+    local is_visual = short_mode == "v" or short_mode == "V" or short_mode == "\22"
+    if is_visual then
+        local ok, v_pattern, hl = M._just_get_visual_pattern(short_mode)
+        return ok, true, v_pattern, hl
+    end
+
+    local prompt = get_prompt()
+    local ok, n_pattern, hl = M._get_input(prompt, case)
+    return ok, false, n_pattern, hl
+end
+
 ---@param short_mode string
----@return string|nil
-function M._get_visual_pattern(short_mode)
-    return get_visual_pattern(short_mode)
+---@return boolean, string, string|nil
+function M._just_get_visual_pattern(short_mode)
+    return just_get_visual_pattern(short_mode)
 end
 
 ---@param prompt string
@@ -807,6 +874,17 @@ function M._echo(silent, msg, hl)
 
     local history = hl == "ErrorMsg" or hl == "WarningMsg" ---@type boolean
     api.nvim_echo({ { msg, hl } }, history, {})
+end
+
+---@param opt boolean|nil
+---@param default boolean
+---@return boolean
+function M._resolve_boolean_opt(opt, default)
+    if type(opt) == "nil" then
+        return default
+    else
+        return opt
+    end
 end
 
 return M

@@ -281,10 +281,17 @@ if vim.g.qfr_set_default_cmds then
     end
 end
 
--- TODO: Update README based on g:vars
--- TODO: Check all TODO comments and make sure they are not connected to functions or exported
--- definitions. Lua_Ls includes them in hover info
--- TODO: Organize the modules so that the actual exported module tables start where the
+-- TODO: As refactoring continues, the documentation gets more out of date. But I've let it go
+-- because the behavior + shape of the modules is a moving target. Things to address when code
+-- refactoring is done:
+-- - The action/nr behavior of the cmds and maps based on count. Unsure how to do so because the
+-- docs are a bit spread out and the different maps/cmds behave differently. The reuse_title
+-- behavior adds an additional layer of complication. Would favor language like "Replace [count]
+-- list, or create a new one" rather than regurgitating the setlist params
+-- - For grep and filter, make sure that references to the input_type construct are removed
+-- - Update README based on g:vars
+-- - Remove references to deprecated data types
+-- TODO: Organize the modules so that the exported module tables start where the
 -- user-facing functions start, rather than at the locals, and then the underline functions
 -- should be after the doc export
 -- TODO: General refactoring strategy:
@@ -302,7 +309,16 @@ end
 --   - obsolete unneeded ones
 -- - recheck for bad utils
 -- - maps file
+-- TODO: Remove the ability to specify actions in the cmds. The nr/action behavior should match
+-- the default keymaps for consistency. I want to avoid over-complication in the cmd parsing and
+-- and behavior
+-- TODO: The case in grep/filter cmds should take some identifying prefix
+-- - For now at least I could fold regex under the case prefix since it's a distinct behavior.
+-- In the future, regex could get its own special character
 
+-- MID: Applies to grep and filter - Breaking out case and regex is good since different case
+-- sensitivities can be applied to regex. But then those vars in combination need to actually be
+-- utilized
 -- MID: The plugin should be as optimized out of the box as possible, and the README should state
 -- as such. The goal should *not* be for the user to fiddle with configs in order for the plugin
 -- to be usable. Since maps like <C-u>zz are fairly typical, options like auto_center should be
@@ -339,6 +355,10 @@ end
 -- treat "edit mode" as a distinct thing, where it can then be saved and propagate the changes
 -- - https://github.com/gabrielpoca/replacer.nvim
 -- - https://github.com/stefandtw/quickfix-reflector.vim
+-- Challenges:
+-- - How do you represent you are in "edit" mode?
+-- - What does "dd" do?
+-- An alternative idea: Opening editable popups.
 -- LOW: It would be cool to have a canned way to take cdo/cfdo and export the results to a
 -- scratch buf. But would need to test with something like the c substitute option
 -- LOW: Add a callback opt to preview win opening/closing. This would allow users to hook in
@@ -372,21 +392,18 @@ end
 -- DOCUMENT: What types of regex are used where. Grep cmds have their own regex. Regex filters use
 -- vim regex
 
--- PR: Make the fields in vim.api.keyset.cmd.mods optional. Verify it is possible to use an
--- empty table
 -- PR: Add "uint" to vim.validate
--- PR: Fix wintype annotations
 -- PR: It should be possible to output vimgrep to a list so it can be used by internal scripting
--- PR: It would be better if cmd marks produced rows and columns
 
--- FUTURE: If it becomes possible to add metatables to g:vars, could use to put validations on
--- g:var sets
+-- FUTURE: Once it's possible to attach metatables to g:vars, use them for input validation
+-- FUTURE: When the new module has matured, add an interface for nvim-treesitter locals
 
 -- NOGO: clist
--- NOGO: Persistent state must be minimal
--- NOGO: Additional context within the list itself. Any info like that should be covered by the
--- preview win or additional floating wins or cmds
--- NOGO: Anything Fuzzy Finder related. FzfLua does this
+-- NOGO: Creating persistent plugin state as a matter of course
+-- NOGO: List context on top of the list. Additional info should be handled with the
+-- quickfixtextfunc, the preview win, floating wins, or cmds
+-- NOGO: Grepping/searching the list itself. Multiple plugins do this, or Rancher's filter can be
+-- used
 -- NOGO: Any sort of annotation scheme. Should be able to use filtering
 -- NOGO: Dynamic behavior. Trouble has to create a whole runtime to manage this
 -- NOGO: "Modernizing" the feel of the qflist. The old school feel is part of the charm

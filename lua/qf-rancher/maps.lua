@@ -91,6 +91,24 @@ local function replace_loclist()
     return get_output_opts(cur_win(), "u")
 end
 
+---@return qf-rancher.types.Action
+local function nocount_new()
+    if vim.v.count < 1 then
+        return " "
+    else
+        return "r"
+    end
+end
+
+---@return integer|"$"
+local function nocount_end()
+    if vim.v.count < 1 then
+        return "$"
+    else
+        return vim.v.count
+    end
+end
+
 -- NOTE: In order for the defer require to work, all function calls must be inside of
 -- anonymous functions. If you pass, for example, eo.closeqflist as a function reference, eo
 -- needs to be evaluated at command creation
@@ -249,7 +267,7 @@ M.qfr_ftplugin_maps = {
 M.plug_tbls[#M.plug_tbls + 1] = M.qfr_ftplugin_maps
 M.doc_tbls[#M.doc_tbls + 1] = { "qf", M.qfr_ftplugin_maps, {} }
 
-local gl = maps_defer_require("qf-rancher.lib.grep_locs") ---@type qf-rancher.lib.GrepLocs
+local gl = maps_defer_require("qf-rancher.lib.grep-locs") ---@type qf-rancher.lib.GrepLocs
 
 -- stylua: ignore
 local cwd_grep = function() return { name = "CWD" } end
@@ -271,21 +289,21 @@ local cbuf_grepX = function() return { locations = gl.get_cur_buf(), name = "Cur
 -- stylua: ignore
 ---@type QfrMapData[]
 M.qfr_grep_maps = {
-{ nx, "<Plug>(qfr-qgrep-cwd)",    ql..gp.."d", "Quickfix grep CWD"..vc,  function() rg.grep(nil,       " ", { nr = vim.v.count }, cwd_grep(),   {}) end },
-{ nx, "<Plug>(qfr-qgrep-cwdX)",   ql..gp.."D", "Quickfix grep CWD"..rx,  function() rg.grep(nil,       " ", { nr = vim.v.count }, cwd_grepX(),  {}) end },
-{ nx, "<Plug>(qfr-lgrep-cwd)",   ll..gp.."d", "Loclist grep CWD"..vc,    function() rg.grep(cur_win(), " ", { nr = vim.v.count }, cwd_grep(),   {}) end },
-{ nx, "<Plug>(qfr-lgrep-cwdX)",  ll..gp.."D", "Loclist grep CWD"..rx,    function() rg.grep(cur_win(), " ", { nr = vim.v.count }, cwd_grepX(),  {}) end },
-{ nx, "<Plug>(qfr-lgrep-help)",  ll..gp.."h", "Loclist grep help"..vc,   function() rg.grep(cur_win(), " ", { nr = vim.v.count }, help_grep(),  { list_item_type = "\1" }) end },
-{ nx, "<Plug>(qfr-lgrep-helpX)", ll..gp.."H", "Loclist grep help"..rx,   function() rg.grep(cur_win(), " ", { nr = vim.v.count }, help_grepX(), { list_item_type = "\1" }) end },
+{ nx, "<Plug>(qfr-qgrep-cwd)",    ql..gp.."d", "Quickfix grep CWD"..vc,  function() rg.grep(nil,       nocount_new(), { nr = nocount_end() }, cwd_grep(),   {}) end },
+{ nx, "<Plug>(qfr-qgrep-cwdX)",   ql..gp.."D", "Quickfix grep CWD"..rx,  function() rg.grep(nil,       nocount_new(), { nr = nocount_end() }, cwd_grepX(),  {}) end },
+{ nx, "<Plug>(qfr-lgrep-cwd)",   ll..gp.."d", "Loclist grep CWD"..vc,    function() rg.grep(cur_win(), nocount_new(), { nr = nocount_end() }, cwd_grep(),   {}) end },
+{ nx, "<Plug>(qfr-lgrep-cwdX)",  ll..gp.."D", "Loclist grep CWD"..rx,    function() rg.grep(cur_win(), nocount_new(), { nr = nocount_end() }, cwd_grepX(),  {}) end },
+{ nx, "<Plug>(qfr-lgrep-help)",  ll..gp.."h", "Loclist grep help"..vc,   function() rg.grep(cur_win(), nocount_new(), { nr = nocount_end() }, help_grep(),  { list_item_type = "\1" }) end },
+{ nx, "<Plug>(qfr-lgrep-helpX)", ll..gp.."H", "Loclist grep help"..rx,   function() rg.grep(cur_win(), nocount_new(), { nr = nocount_end() }, help_grepX(), { list_item_type = "\1" }) end },
 }
 
 -- stylua: ignore
 ---@type QfrMapData[]
 M.qfr_grep_buf_maps = {
-{ nx, "<Plug>(qfr-qgrep-bufs)",  ql..gp.."u", "Quickfix grep open bufs"..vc, function() rg.grep(nil,       " ", { nr = vim.v.count }, bufs_grep(),  {}) end },
-{ nx, "<Plug>(qfr-qgrep-bufsX)", ql..gp.."U", "Quickfix grep bufs"..rx,      function() rg.grep(nil,       " ", { nr = vim.v.count }, bufs_grepX(), {}) end },
-{ nx, "<Plug>(qfr-lgrep-cbuf)",  ll..gp.."u", "Loclist grep cur buf"..vc,    function() rg.grep(cur_win(), " ", { nr = vim.v.count }, cbuf_grep(),  {}) end },
-{ nx, "<Plug>(qfr-lgrep-cbufX)", ll..gp.."U", "Loclist grep cur buf"..rx,    function() rg.grep(cur_win(), " ", { nr = vim.v.count }, cbuf_grepX(), {}) end },
+{ nx, "<Plug>(qfr-qgrep-bufs)",  ql..gp.."u", "Quickfix grep open bufs"..vc, function() rg.grep(nil,       nocount_new(), { nr = nocount_end() }, bufs_grep(),  {}) end },
+{ nx, "<Plug>(qfr-qgrep-bufsX)", ql..gp.."U", "Quickfix grep bufs"..rx,      function() rg.grep(nil,       nocount_new(), { nr = nocount_end() }, bufs_grepX(), {}) end },
+{ nx, "<Plug>(qfr-lgrep-cbuf)",  ll..gp.."u", "Loclist grep cur buf"..vc,    function() rg.grep(cur_win(), nocount_new(), { nr = nocount_end() }, cbuf_grep(),  {}) end },
+{ nx, "<Plug>(qfr-lgrep-cbufX)", ll..gp.."U", "Loclist grep cur buf"..rx,    function() rg.grep(cur_win(), nocount_new(), { nr = nocount_end() }, cbuf_grepX(), {}) end },
 }
 
 local all_greps = {}
@@ -309,6 +327,8 @@ M.uienter_tbls[#M.uienter_tbls + 1] = M.qfr_grep_maps
 M.bufevent_tbls[#M.bufevent_tbls + 1] = M.qfr_grep_buf_maps
 M.cmd_tbls[#M.cmd_tbls + 1] = M.qfr_grep_cmds
 M.doc_tbls[#M.doc_tbls + 1] = { rg_str, all_greps, M.qfr_grep_cmds }
+
+-- TODO: When these interfaces are re-done, use the nocount_end function for count
 
 -- stylua: ignore
 ---@type QfrMapData[]

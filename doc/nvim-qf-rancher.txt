@@ -1319,20 +1319,22 @@ Grep items into the list                                                  *Grep*
                                                                       *qfr-grep*
 
 
-QfrGrepLocsFunc                                                *QfrGrepLocsFunc*
+qf-rancher.grep.GrepPartsFunc                    *qf-rancher.grep.GrepPartsFunc*
 
     Type: ~
-        fun():string[]
+        fun(pattern:string,case:qf-rancher.types.Case,regex:boolean,locations:string[]):string[]
 
 
-QfrGrepOpts                                                        *QfrGrepOpts*
+qf-rancher.grep.GrepOpts                              *qf-rancher.grep.GrepOpts*
+
 
     Fields: ~
-        {case?}       (qf-rancher.types.Case) "insensitive"|"sensitive"|"smartcase"|"vimcase"
-        {locations?}  (string[]|QfrGrepLocsFunc) A string list or a function
-                      returning a string list to provide locations to grep to.
+        {case?}       (qf-rancher.types.Case)
+                      "insensitive"|"sensitive"|"smartcase"|"vimcase"
+        {locations?}  (string[]|fun():string[]) A string list or a function
+                      returning a string list of locations to grep to.
                       Pre-built location functions are available in
-                      "qf-rancher.lib.grep_locs"
+                      "qf-rancher.lib.grep-locs"
         {name?}       (string) Display name of the grep for prompting
         {pattern}     (string|nil) Pattern to grep. If nil, either a prompt
                       will display in normal mode or the selection will be
@@ -1341,7 +1343,7 @@ QfrGrepOpts                                                        *QfrGrepOpts*
 
 
                                                                      *Grep.grep*
-Grep.grep({src_win}, {action}, {what}, {grep_opts}, {system_opts})
+Grep.grep({src_win}, {action}, {what}, {grep_opts}, {sys_opts})
     Run a grep
 
     The list title will be set to:
@@ -1362,21 +1364,31 @@ Grep.grep({src_win}, {action}, {what}, {grep_opts}, {system_opts})
     results
 
     Parameters: ~
-        {src_win}      (integer|nil) Location list window context. Nil for qflist
-        {action}       (qf-rancher.types.Action) See |setqflist-action|
-        {what}         (qf-rancher.types.What) See |setqflist-what|
-        {grep_opts}    (QfrGrepOpts) See |QfrGrepOpts|
-        {system_opts}  (qf-rancher.SystemOpts) See |QfrSystemOpts|
+        {src_win}    (integer|nil) Location list window context. Nil for
+                     qflist
+        {action}     (qf-rancher.types.Action) See |setqflist-action|
+        {what}       (qf-rancher.types.What) See |setqflist-what|
+        {grep_opts}  (qf-rancher.grep.GrepOpts) See |qf-rancher.grep.GrepOpts|
+        {sys_opts}   (qf-rancher.SystemOpts) See |QfrSystemOpts|
 
     Returns: ~
         (nil)
 
 
-QfrGrepInfo                                                        *QfrGrepInfo*
+qf-rancher.grep.GrepInfo                              *qf-rancher.grep.GrepInfo*
 
     Fields: ~
-        {grep_opts}  (QfrGrepOpts) See |QfrGrepOpts|
+        {grep_opts}  (qf-rancher.grep.GrepOpts) See |QfrGrepOpts|
         {sys_opts}   (qf-rancher.SystemOpts) See |QfrSystemOpts|
+
+
+Grep.greps                                                          *Grep.greps*
+    Greps available to the Qgrep and Lgrep cmds. The string table key can be
+    used as an argument to specify the grep type. This table is public, and
+    new greps can be added or removed directly
+
+    Type: ~
+        (table<string,qf-rancher.grep.GrepInfo>)
 
 
 The callbacks to assign the Qgrep and Lgrep commands are below. They expect
@@ -1385,8 +1397,6 @@ They accept the following options:
 - A registered grep name (cwd|help|bufs|cbuf). cwd is default
   NOTE: "bufs" searches all open bufs, excluding help bufs
   NOTE: "cbuf" searches the current buf, including help buffers
-  NOTE: The built in quickfix buf grep keymap searches all open bufs.
-  The location list grep searches the current buf
 - A pattern starting with "/"
 - A |qfr-input-type| ("vimcase" by default)
 - "async" or "sync" to control system behavior (async by default)

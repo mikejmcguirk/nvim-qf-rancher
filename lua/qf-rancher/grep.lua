@@ -1,103 +1,18 @@
--- Escaping test line from From vim-grepper
--- ..ad\\f40+$':-# @=,!;%^&&*()_{}/ /4304\'""?`9$343%$ ^adfadf[ad)[(
-
-local gl = Qfr_Defer_Require("qf-rancher.lib.grep_locs") ---@type qf-rancher.lib.GrepLocs
+local gl = Qfr_Defer_Require("qf-rancher.lib.grep-locs") ---@type qf-rancher.lib.GrepLocs
+local gp = Qfr_Defer_Require("qf-rancher.lib.grep-prgs") ---@type qf-rancher.lib.GrepPrgs
 local re = Qfr_Defer_Require("qf-rancher.system") ---@type qf-rancher.System
-local rt = Qfr_Defer_Require("qf-rancher.tools") ---@type qf-rancher.Tools
 local ru = Qfr_Defer_Require("qf-rancher.util") ---@type qf-rancher.Util
 local ry = Qfr_Defer_Require("qf-rancher.types") ---@type qf-rancher.Types
 
 local api = vim.api
 local fn = vim.fn
 
----@mod Grep Grep items into the list
----@tag qf-rancher-grep
----@tag qfr-grep
----@brief [[
----
----@brief ]]
+local executable = {} ---@type table<string, boolean>
 
---- @class qf-rancher.Grep
-local Grep = {}
-
-local base_parts = {
-    rg = { "rg", "--vimgrep", "-uu" },
-    grep = { "grep", "--recursive", "--with-filename", "--line-number", "-I" },
-} ---@type table<string, string[]>
-
--- MID: Would be cool in the future to have an interface to add these
---- Fields:
---- - string pattern
---- - string See |QfrInputType|
---- - boolean Use regex
---- - QfrGrepLocs Locations to grep from
---- Returns: string[]
---- @alias QfrGrepPartsFunc fun(string, string, boolean, QfrGrepLocs):string[]
-
----@type QfrGrepPartsFunc
-local function get_full_parts_rg(pattern, case, regex, locations)
-    local cmd = vim.deepcopy(base_parts.rg, true) ---@type string[]
-
-    if fn.has("win32") == 1 then
-        cmd[#cmd + 1] = "--crlf"
-    end
-
-    if case == "smartcase" then
-        cmd[#cmd + 1] = "--smart-case" -- or "-S"
-    elseif case == "insensitive" then
-        cmd[#cmd + 1] = "--ignore-case" -- or "-i"
-    end
-
-    if not regex then
-        cmd[#cmd + 1] = "--fixed-strings" -- or "-F"
-    end
-
-    if string.find(pattern, "\n", 1, true) ~= nil then
-        cmd[#cmd + 1] = "--multiline" -- or "-U"
-    end
-
-    cmd[#cmd + 1] = "--"
-    cmd[#cmd + 1] = pattern
-    vim.list_extend(cmd, locations)
-
-    return cmd
-end
-
----@type QfrGrepPartsFunc
-local function get_full_parts_grep(pattern, case, regex, locations)
-    local cmd = vim.deepcopy(base_parts.grep) ---@type string[]
-
-    if regex then
-        cmd[#cmd + 1] = "--extended-regexp" -- or "-E"
-    else
-        cmd[#cmd + 1] = "--fixed-strings" -- or "-F"
-    end
-
-    if case == "smartcase" or case == "insensitive" then
-        cmd[#cmd + 1] = "--ignore-case" -- or "-i"
-    end
-
-    cmd[#cmd + 1] = "--"
-    -- No multiline mode in vanilla grep, so fall back to or comparison
-    local sub_pattern = string.gsub(pattern, "\n", "|")
-    cmd[#cmd + 1] = sub_pattern
-    vim.list_extend(cmd, locations)
-
-    return cmd
-end
-
-local get_full_parts = {
-    grep = get_full_parts_grep,
-    rg = get_full_parts_rg,
-} ---@type table<string, function>
-
----@param grep_opts QfrGrepOpts
+---@param grep_opts qf-rancher.grep.GrepOpts
 ---@return nil
 local function validate_grep_opts(grep_opts)
-    vim.validate("grep_opts", grep_opts, "table", true)
-    if type(grep_opts) == "nil" then
-        return
-    end
+    vim.validate("grep_opts", grep_opts, "table")
 
     ry._validate_case(grep_opts.case, true)
     vim.validate("grep_opts.regex", grep_opts.regex, "boolean", true)
@@ -114,48 +29,13 @@ local function validate_grep_opts(grep_opts)
     end
 end
 
----@param grep_opts QfrGrepOpts
----@return nil
-local function populate_grep_opts(grep_opts)
-    grep_opts.case = grep_opts.case or "vimcase"
-    if type(grep_opts.regex) == "nil" then
-        grep_opts.regex = false
-    end
-
-    grep_opts.name = grep_opts.name or ""
-    grep_opts.locations = grep_opts.locations or gl.get_cwd
-end
-
----@param case qf-rancher.types.Case
----@return qf-rancher.types.Case
-local function resolve_case(case)
-    if case ~= "vimcase" then
-        return case
-    end
-
-    local ic = api.nvim_get_option_value("ic", { scope = "global" })
-    if ic then
-        local scs = api.nvim_get_option_value("scs", { scope = "global" })
-        if scs then
-            return "smartcase"
-        else
-            return "insensitive"
-        end
-    else
-        return "sensitive"
-    end
-end
-
----@param grep_opts QfrGrepOpts
----@return nil
-local function resolve_grep_opts(grep_opts)
-    grep_opts.case = resolve_case(grep_opts.case)
-    if type(grep_opts.locations) == "function" then
-        grep_opts.locations = grep_opts.locations()
-    end
-end
-
+-- MID: This logic is currently correct because regex is just regex. But if we allow case to
+-- influence regex behavior, then we'd have to think about what to show. Issue: For external
+-- interactions we can't necessarily know what casing behavior we get. Perhaps for vim regex you
+-- show something specific, and for external regex you just show generic "Regex". I think trying
+-- to solve the one-to-many problem of "which external regex are we using" is a mistake.
 -- MID: Eventually put this into utils
+
 ---@param case qf-rancher.types.Case
 ---@param regex boolean
 ---@return string
@@ -173,32 +53,72 @@ local function get_display_input_type(case, regex)
     end
 end
 
----@param case qf-rancher.types.Case
----@param regex boolean
----@param grepprg string
----@param name string
----@return boolean, string, string|nil
-local function get_pattern_from_prompt(case, regex, grepprg, name)
+local function assemble_prompt(case, regex, grepprg, name)
     local display_input_type = get_display_input_type(case, regex)
     local which_grep = "[" .. grepprg .. "] " .. name .. " Grep "
-    local prompt = which_grep .. "(" .. display_input_type .. "): "
-
-    local ok, pattern, hl = ru._get_input(prompt, case)
-    return ok, pattern, hl
+    return which_grep .. "(" .. display_input_type .. "): "
 end
 
----@alias QfrGrepLocsFunc fun():string[]
+---@param src_win integer|nil
+---@param grepprg string
+---@return boolean, string|nil, string|nil
+local function check_runtime_input_data(src_win, grepprg)
+    if src_win then
+        local ok, msg, hl = ru._is_valid_loclist_win(src_win)
+        if not ok then
+            return false, msg, hl
+        end
+    end
 
--- MID: Creates a conflict, becaue input type is exposed in the types module
--- MID: The case typedoc runs over the edge
+    if not executable[grepprg] then
+        local is_executable = fn.executable(grepprg) == 1
+        if is_executable then
+            executable[grepprg] = true
+        else
+            local msg = grepprg .. " is not executable"
+            return false, msg, "ErrorMsg"
+        end
+    end
 
----@class QfrGrepOpts
----@field case? qf-rancher.types.Case "insensitive"|"sensitive"|"smartcase"|"vimcase"
+    return true, nil, nil
+end
+
+---@param src_win integer|nil
+---@param action qf-rancher.types.Action
+---@param what qf-rancher.types.What
+---@param grep_opts qf-rancher.grep.GrepOpts
+---@param sys_opts qf-rancher.SystemOpts
+---@return nil
+local function validate_grep_params(src_win, action, what, grep_opts, sys_opts)
+    ry._validate_win(src_win, true)
+    ry._validate_action(action)
+    ry._validate_what(what)
+    validate_grep_opts(grep_opts)
+    re._validate_system_opts(sys_opts)
+end
+
+--- @class qf-rancher.Grep
+local Grep = {}
+
+---@mod Grep Grep items into the list
+---@tag qf-rancher-grep
+---@tag qfr-grep
+---@brief [[
+---
+---@brief ]]
+
+---@alias qf-rancher.grep.GrepPartsFunc fun(pattern: string, case: qf-rancher.types.Case, regex: boolean, locations: string[]):string[]
+
+---
+---@class qf-rancher.grep.GrepOpts
+---
+---"insensitive"|"sensitive"|"smartcase"|"vimcase"
+---@field case? qf-rancher.types.Case
 ---A string list or a function
----returning a string list to provide locations to grep to.
+---returning a string list of locations to grep to.
 ---Pre-built location functions are available in
----"qf-rancher.lib.grep_locs"
----@field locations? string[]|QfrGrepLocsFunc
+---"qf-rancher.lib.grep-locs"
+---@field locations? string[]|fun():string[]
 ---@field name? string Display name of the grep for prompting
 ---Pattern to grep. If nil, either a prompt
 ---will display in normal mode or the selection will be
@@ -224,85 +144,84 @@ end
 ---
 ---This command uses the |qfr-system| module to run the grep and print
 ---results
----@param src_win integer|nil Location list window context. Nil for qflist
+---@param src_win integer|nil Location list window context. Nil for
+---qflist
 ---@param action qf-rancher.types.Action See |setqflist-action|
 ---@param what qf-rancher.types.What See |setqflist-what|
----@param grep_opts QfrGrepOpts See |QfrGrepOpts|
----@param system_opts qf-rancher.SystemOpts See |QfrSystemOpts|
+---@param grep_opts qf-rancher.grep.GrepOpts See |qf-rancher.grep.GrepOpts|
+---@param sys_opts qf-rancher.SystemOpts See |QfrSystemOpts|
 ---@return nil
-function Grep.grep(src_win, action, what, grep_opts, system_opts)
-    ry._validate_win(src_win, true)
-    ry._validate_action(action)
-    ry._validate_what(what)
-    validate_grep_opts(grep_opts)
-    re._validate_system_opts(system_opts)
-
-    if src_win then
-        local ok, msg, hl = ru._is_valid_loclist_win(src_win)
-        if not ok then
-            api.nvim_echo({ { msg, hl } }, false, {})
-            return
-        end
-    end
+function Grep.grep(src_win, action, what, grep_opts, sys_opts)
+    grep_opts = grep_opts or {}
+    validate_grep_params(src_win, action, what, grep_opts, sys_opts)
 
     local grepprg = vim.g.qfr_grepprg ---@type string
-    if fn.executable(grepprg) ~= 1 then
-        api.nvim_echo({ { grepprg .. " is not executable", "ErrorMsg" } }, true, {})
+    local ok_d, err, hl = check_runtime_input_data(src_win, grepprg)
+    if not ok_d then
+        ru._echo(false, err, hl)
         return
     end
 
-    grep_opts = grep_opts or {}
-    populate_grep_opts(grep_opts)
-    resolve_grep_opts(grep_opts)
-
-    local pattern = grep_opts.pattern ---@type string|nil
-    local case = grep_opts.case ---@type qf-rancher.types.Case
-    local regex = grep_opts.regex ---@type boolean
-    local locations = grep_opts.locations --[[@as string[]]
-
-    if not pattern then
-        local mode = api.nvim_get_mode().mode ---@type string
-        local short_mode = string.sub(mode, 1, 1) ---@type string
-        if short_mode == "v" or short_mode == "V" or short_mode == "\22" then
-            pattern = ru._get_visual_pattern(short_mode)
+    local locations = grep_opts.locations or gl.get_cwd
+    -- Lua_Ls complains if this is a ternary
+    locations = (function()
+        if type(locations) == "function" then
+            return locations()
         else
-            local ok, input, hl = get_pattern_from_prompt(case, regex, grepprg, grep_opts.name)
-            if ok then
-                pattern = input
-            else
-                ru._echo(false, input, hl)
-                return
-            end
+            return locations
         end
-    end
+    end)()
 
-    local grep_parts = get_full_parts[grepprg](pattern, case, regex, locations) ---@type string[]
-    if (not grep_parts) or #grep_parts == 0 then
+    if #locations == 0 then
+        api.nvim_echo({ { "No valid grep locations found" } }, false, {})
         return
     end
 
-    local sys_opts = vim.deepcopy(system_opts, true) ---@type qf-rancher.SystemOpts
-    local base_cmd = table.concat(base_parts[grepprg], " ") ---@type string
-    what.title = grep_opts.name .. " " .. base_cmd .. "  " .. pattern
+    local case = grep_opts.case or "vimcase" ---@type qf-rancher.types.Case
+    case = ru._resolve_case(case)
+    local name = grep_opts.name or ""
+    local regex = ru._resolve_boolean_opt(grep_opts.regex, false)
+    local ok_p, vmode, pattern, hl_p = ru._get_pattern(grep_opts.pattern, case, function()
+        return assemble_prompt(case, regex, grepprg, name)
+    end)
 
-    if vim.g.qfr_reuse_title and action == " " then
-        local cur_list = rt._find_list_with_title(src_win, what.title) ---@type integer|nil
-        if cur_list then
-            action = "u"
-            what.nr = cur_list
+    if not (ok_p and pattern) then
+        if pattern ~= "Keyboard interrupt" then
+            ru._echo(false, pattern, hl_p)
         end
+
+        return
     end
+
+    if vmode then
+        api.nvim_cmd({ cmd = "norm", args = { "\27" }, bang = true }, {})
+    end
+
+    local grep_parts = gp.get_full_parts[grepprg](pattern, case, regex, locations)
+    if (not grep_parts) or #grep_parts == 0 then
+        api.nvim_echo({ { "Unable to build " .. grepprg .. " cmd", "ErrorMsg" } }, true, {})
+        return
+    end
+
+    what = vim.deepcopy(what, true)
+    sys_opts = vim.deepcopy(sys_opts, true)
+
+    local base_cmd = table.concat(gp.base_parts[grepprg], " ")
+    what.title = name .. " " .. base_cmd .. "  " .. pattern
+    local rt = require("qf-rancher.tools")
+    action, what = rt._resolve_title_reuse(src_win, action, what)
 
     re._system_do(grep_parts, src_win, action, what, sys_opts)
 end
 
----@class QfrGrepInfo
----@field grep_opts QfrGrepOpts See |QfrGrepOpts|
+---@class qf-rancher.grep.GrepInfo
+---@field grep_opts qf-rancher.grep.GrepOpts See |QfrGrepOpts|
 ---@field sys_opts qf-rancher.SystemOpts See |QfrSystemOpts|
 
 ---Greps available to the Qgrep and Lgrep cmds. The string table key can be
 ---used as an argument to specify the grep type. This table is public, and
 ---new greps can be added or removed directly
+---@type table<string, qf-rancher.grep.GrepInfo>
 Grep.greps = {
     cwd = { grep_opts = { locations = gl.get_cwd, name = "CWD" }, sys_opts = {} },
     help = {
@@ -311,9 +230,10 @@ Grep.greps = {
     },
     bufs = { grep_opts = { locations = gl.get_buflist, name = "Buf" }, sys_opts = {} },
     cbuf = { grep_opts = { locations = gl.get_cur_buf, name = "Cur Buf" }, sys_opts = {} },
-} ---@type table<string, QfrGrepInfo>
+}
 
 -- LOW: Should be able to set the sys timeout from the cmd
+
 ---@param src_win? integer
 ---@param cargs vim.api.keyset.create_user_command.command_args
 ---@return nil
@@ -323,15 +243,19 @@ local function grep_cmd(src_win, cargs)
 
     local action = ru._check_cmd_arg(fargs, ry._actions, " ") ---@type qf-rancher.types.Action
 
-    local grep_names = vim.tbl_keys(Grep.greps) ---@type string[]
-    assert(#grep_names > 1, "No grep commands available")
-    local has_cwd = vim.tbl_contains(grep_names, "cwd") ---@type boolean
-    local default_grep = has_cwd and "cwd" or grep_names[1] ---@type string
-    local grep_name = ru._check_cmd_arg(fargs, grep_names, default_grep) ---@type string
+    local grep_names = vim.tbl_keys(Grep.greps)
+    if #grep_names < 1 then
+        api.nvim_echo({ { "No grep commands available", "ErrorMsg" } }, false, {})
+        return
+    end
 
-    local grep_info = vim.deepcopy(Grep.greps[grep_name], true) ---@type QfrGrepInfo
+    -- MID: Shouldn't this always be able to fall back to cwd?
+    local has_cwd = vim.tbl_contains(grep_names, "cwd")
+    local default_grep = has_cwd and "cwd" or grep_names[1]
+    local grep_name = ru._check_cmd_arg(fargs, grep_names, default_grep)
 
-    local grep_opts = grep_info.grep_opts ---@type QfrGrepOpts
+    local grep_info = vim.deepcopy(Grep.greps[grep_name], true) ---@type qf-rancher.grep.GrepInfo
+    local grep_opts = grep_info.grep_opts ---@type qf-rancher.grep.GrepOpts
     grep_opts.pattern = ru._find_pattern_in_cmd(fargs)
 
     ---@type QfrInputType
@@ -360,8 +284,6 @@ end
 ---- A registered grep name (cwd|help|bufs|cbuf). cwd is default
 ---  NOTE: "bufs" searches all open bufs, excluding help bufs
 ---  NOTE: "cbuf" searches the current buf, including help buffers
----  NOTE: The built in quickfix buf grep keymap searches all open bufs.
----  The location list grep searches the current buf
 ---- A pattern starting with "/"
 ---- A |qfr-input-type| ("vimcase" by default)
 ---- "async" or "sync" to control system behavior (async by default)
@@ -378,30 +300,30 @@ end
 ---@param cargs vim.api.keyset.create_user_command.command_args
 ---@return nil
 function Grep.l_grep_cmd(cargs)
-    grep_cmd(api.nvim_get_current_win(), cargs)
+    local cur_win = api.nvim_get_current_win()
+    grep_cmd(cur_win, cargs)
 end
 
 return Grep
+
 ---@export Grep
 
--- MID: Visual mode should be handled in its own functions. But other stuff should settle in first
--- MID: Check if grepprg is executable once and cache the result. Run the check if checkhealth is
--- run. Realistically, that status won't change while vim is open
--- MID: Grep a specific file. Could show this an an API example
--- MID: Grep in specific treesitter nodes. So qgtm would grep in function definitions. The llist
--- grep is easy because you do it in the current win buf. But for multiple bufs, how do you
--- handle different languages? This almost feels like it needs ts-textobjects
--- MID: Grep refactor:
--- - Put the grepprgs in their own module
--- - Each grepprg has a common type interface
--- - This, should, make it easier to register custom grepprgs or develop new ones
--- - Caveat: Creates a source of truth conflict with the g_var
--- - Look at vim-grepper for ideas
--- - grep_info should be renamed to grep_opts
--- - grep_opts should be used for specifying grep behavior, such as how to handle hidden and
--- git files. Should all be run through the grep interface
+-- Escaping test line from From vim-grepper
+-- ..ad\\f40+$':-# @=,!;%^&&*()_{}/ /4304\'""?`9$343%$ ^adfadf[ad)[(
 
--- LOW: Support findstr
--- LOW: Support ack
--- LOW: When handling multiple locations, the grepprgs should build their arguments using
--- globbing rather than appending potentially dozens of locations
+-- MID: Add built-in logic for handling hidden files and git files. The base maps/cmds should
+-- ignore hidden files. A separate map should be available for only searching git files.
+-- MID: Would like to add a Qfuzzy cmd that acts as an interface with fzf and other fuzzy finding
+-- programs. You could generalize out to a cmd like Qfind that works with greps and fuzzy finders,
+-- but I like having both grepprg and fuzzyprg readily available. But that idea still influences
+-- how this module should be written since we want the components to be as generalizable as
+-- possible.
+-- MID: Add a Qfuzzy cmd for fzf and other fuzzy finders. The code here should be generalizable for
+-- the purposes of pattern acquisition and interfacing with the system module.
+-- - Avoid abstracting all the way out to "Qfind". Grep and Fuzzy finding do different things, so
+-- both could be readily available. Even under the hood, the concepts don't fully merge well
+-- because Greps and Fuzzy finders use different settings
+
+-- LOW: For currently open buffers, is it possible to send the file contents to the grepprg
+-- directly rather than having the grepprg re-read from memory? More performant and allows for
+-- searching on unsaved buffer state.

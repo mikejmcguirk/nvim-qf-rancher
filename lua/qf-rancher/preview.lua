@@ -491,7 +491,7 @@ end
 ---@return string|nil
 local function get_parsable_lang(ft)
     local lang = vim.treesitter.language.get_lang(ft) or ft ---@type string
-    if parsers[lang] == true then
+    if parsers[lang] then
         return lang
     end
 
@@ -506,7 +506,6 @@ local function get_parsable_lang(ft)
         parsers[lang] = true
         return lang
     else
-        parsers[lang] = false
         return nil
     end
 end

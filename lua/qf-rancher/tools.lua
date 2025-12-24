@@ -28,6 +28,27 @@ function M._find_list_with_title(src_win, title)
     return nil
 end
 
+-- LOW: The params/returns in this function are awkward. But don't want to re-inline because this
+-- behavior is discrete enough to section out.
+
+---@param src_win integer|nil
+---@param cur_action qf-rancher.types.Action
+---@param what qf-rancher.types.What
+---@return qf-rancher.types.Action, qf-rancher.types.What
+function M._resolve_title_reuse(src_win, cur_action, what)
+    if not vim.g.qfr_reuse_title then
+        return cur_action, what
+    end
+
+    local cur_list = M._find_list_with_title(src_win, what.title) ---@type integer|nil
+    if not cur_list then
+        return cur_action, what
+    end
+
+    what.nr = cur_list
+    return "u", what
+end
+
 ---@param src_win integer|nil
 ---@param nr integer|"$"|nil
 ---@return integer|"$"
@@ -236,6 +257,11 @@ return M
 --   with the default behavior
 -- Problem 1: Making these behaviors interface with the defaults
 -- Problem 2: More keymaps/interfaces/complexity for unknown use cases
+-- Relevant note: " " actually frees the lists after rather than clearing them, which makes some of
+-- the ideas above more useful.
+-- A simple/useful cmd/keymap I think would be like Qhygiene or something, where you could
+-- consolidate lists to remove gaps, then do a " " write at the end with the last list to clear
+-- everything afterwards. If all lists are empty, just run setlist("f")
 
 -- FUTURE: If there's ever any type of quickfixchanged autocmd, add a g:var to automatically free
 -- the stack if all lists have zero items

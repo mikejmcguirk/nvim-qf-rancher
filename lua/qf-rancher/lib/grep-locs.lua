@@ -5,6 +5,7 @@ local fn = vim.fn
 local Locs = {}
 
 -- LOW: Trivial, but why can't I use uv.cwd here?
+
 ---@return string[]
 function Locs.get_cwd()
     return { fn.getcwd() }
@@ -12,20 +13,23 @@ end
 
 -- MID: Printing the error here is a bad pattern
 -- LOW: How does FzfLua handle Lazy.nvim unloaded paths?
----@return string[]|nil
+
+---@return string[]
 function Locs.get_help_dirs()
     local doc_files = api.nvim_get_runtime_file("doc/*.txt", true) ---@type string[]
     if #doc_files > 0 then
         return doc_files
+    else
+        return {}
     end
 
-    api.nvim_echo({ { "No doc files found", "ErrorMsg" } }, true, {})
-    return nil
+    -- api.nvim_echo({ { "No doc files found", "ErrorMsg" } }, true, {})
 end
 
 -- MID: Printing the error here is a bad pattern
 -- LOW: Since this has to check fs_access for multiple bufs, would be neat if it were async
----@return string[]|nil
+
+---@return string[]
 function Locs.get_buflist()
     local bufs = api.nvim_list_bufs() ---@type integer[]
     local fnames = {} ---@type string[]
@@ -52,28 +56,26 @@ function Locs.get_buflist()
         end
     end
 
-    if #fnames > 0 then
-        return fnames
-    end
+    return fnames
 
-    api.nvim_echo({ { "No valid bufs found", "" } }, false, {})
-    return nil
+    -- api.nvim_echo({ { "No valid bufs found", "" } }, false, {})
 end
 
 -- MID: Same as others - Should not print error here
----@return string[]|nil
+
+---@return string[]
 function Locs.get_cur_buf()
     local buf = api.nvim_get_current_buf() ---@type integer
     local bl = api.nvim_get_option_value("bl", { buf = buf })
     if not bl then
-        api.nvim_echo({ { "Current buf is not listed", "" } }, false, {})
-        return nil
+        -- api.nvim_echo({ { "Current buf is not listed", "" } }, false, {})
+        return {}
     end
 
     local bt = api.nvim_get_option_value("bt", { buf = buf }) ---@type string
     if not (bt == "" or bt == "help") then
-        api.nvim_echo({ { "Buftype " .. bt .. " is not valid", "" } }, false, {})
-        return nil
+        -- api.nvim_echo({ { "Buftype " .. bt .. " is not valid", "" } }, false, {})
+        return {}
     end
 
     local fname = api.nvim_buf_get_name(buf) ---@type string
@@ -82,8 +84,10 @@ function Locs.get_cur_buf()
         return { fname }
     end
 
-    api.nvim_echo({ { "Current buffer is not a valid file", "" } }, false, {})
-    return nil
+    -- api.nvim_echo({ { "Current buffer is not a valid file", "" } }, false, {})
+    return {}
 end
 
 return Locs
+
+-- MID: These functions should propagate their errors
