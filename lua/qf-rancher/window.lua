@@ -650,11 +650,18 @@ end
 ---@param opts? qf-rancher.window.OpenOpts
 ---@return nil
 function Window._open_list(src_win, opts)
-    ry._validate_win(src_win, true)
     if src_win then
         Window.open_ll_win(opts)
     else
         Window.open_qf_win(opts)
+    end
+end
+
+function Window._close_list(src_win, opts)
+    if src_win then
+        Window.close_ll_win(opts)
+    else
+        Window.close_qf_win(opts)
     end
 end
 
@@ -716,6 +723,8 @@ return Window
 -- - Unlike the on_list/on_open behaviors, this should not create exploding combinatorial
 -- complexity. They are pocketed fairly discretely
 -- - If the opt is nil, the g:var should be used.
+-- And once these are added back in, especially with use_alt_win, set the internal calls to nil
+-- so they use the g:vars
 
 -- LOW: Make get_list_height work consistently without nowrap
 

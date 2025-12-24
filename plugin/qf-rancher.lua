@@ -21,9 +21,6 @@ end
 local api = vim.api
 local fn = vim.fn
 
--- MID: Set to the most useful defaults for the most users. The README should then document
--- default behaviors that deviate from the Neovim defaults
-
 ---@mod nvim-qf-rancher.txt Error list husbandry
 ---@brief [[
 ---Nvim Quickfix Rancher provides a stable of tools for taming the quickfix
@@ -298,8 +295,6 @@ end
 -- NOTE: Anything containing nested echos or bad error reporting needs to be addressed as it's
 -- found. This will mean creating temporary duplicate utils. The originals can be cleaned as
 -- they are fully obsoleted.
--- - grep
--- - diags
 -- - filter
 -- - system
 -- - remove output opts
@@ -309,6 +304,7 @@ end
 --   - obsolete unneeded ones
 -- - recheck for bad utils
 -- - maps file
+-- TODO: Remove cmd customization
 -- TODO: Remove the ability to specify actions in the cmds. The nr/action behavior should match
 -- the default keymaps for consistency. I want to avoid over-complication in the cmd parsing and
 -- and behavior
@@ -383,8 +379,6 @@ end
 -- LOW: cfile/cgetfile/caddfile
 -- LOW: cabove/cbelow
 -- - unimpaired + diagnostic navigation address this IMO
-
--- MAYBE: Add ftplugin files that use rancher, such as make commands piped to the system module
 
 -- DOCUMENT: vim.regex currently uses case sensitive default behavior
 -- DOCUMENT: How default counts are treated in cmds and maps

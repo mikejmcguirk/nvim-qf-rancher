@@ -1498,29 +1498,34 @@ Sends diags to the qf list                                                *Diag*
 qf-rancher.diag.DiagOpts                              *qf-rancher.diag.DiagOpts*
 
     Fields: ~
-        {disp_func?}  (qf-rancher.diag.DisplayFunc)
+        {disp_func?}  (fun(diag:vim.Diagnostic):vim.quickfix.entry)
                       List entry conversion function
-        {top?}        (boolean) If true, only show top severity
         {getopts?}    (vim.diagnostic.GetOpts) See |vim.diagnostic.Getopts|
+        {sort_func?}  (qf-rancher.sort.Predicate)
+                      See |qf-rancher.sort.Predicate|
+        {top?}        (boolean) If true, only show top severity
 
 
                                                             *Diag.diags_to_list*
-Diag.diags_to_list({diag_opts}, {output_opts})
+Diag.diags_to_list({src_win}, {action}, {what?}, {diag_opts?})
 
-    Convert diagnostics into list entries
+    Convert diagnostics into list entries.
 
-    In line with Neovim's default, the list title will be "Diagnostics"
+    In line with Neovim's default, the list title will be "Diagnostics".
 
-    If g:qfr_reuse_title is true, output_opts.action is " ", and a list with
-    the title "Diagnostics" already exists, it will be re-used
+    If g:qfr_reuse_title is true, action is " ", and a list with the title
+    "Diagnostics" already exists, it will be re-used.
 
     If a query is made for all diagnostics in a scope, and no results return,
-    the "Diagnostics" list will be automatically cleared
+    the "Diagnostics" list will be automatically cleared.
 
 
     Parameters: ~
-        {diag_opts}    (qf-rancher.diag.DiagOpts)
-        {output_opts}  (QfrOutputOpts) See |qfr-output-opts|
+        {src_win}     (integer|nil) Location list window context. Nil for
+                      qflist
+        {action}      (qf-rancher.types.Action) See |setqflist-action|
+        {what?}       (qf-rancher.types.What) See |setqflist-what|
+        {diag_opts?}  (qf-rancher.diag.DiagOpts) See |qf-rancher.diag.DiagOpts|
 
     Returns: ~
         (nil)
@@ -1531,15 +1536,21 @@ count = 0, nargs = "*", and bang = true to be in the user_command table.
 
 Qdiag checks all open buffers. Ldiag checks the current buffer
 
-They accept the following options:
+They accept the following option:
 - A diagnostic severity ("error"|"warn"|"hint"|"info") or "top"
-- A |setqflist-action| (default " ")
 
 If a bang is provided, only the specified severity will be shown
 
+If a count is provided, then [count] list will be overwritten. Otherwise, a
+new list will be created at the end of the stack.
+
+The output list will be given the title "Diagnostics". If no count is
+provided, g:qfr_reuse_title is true, and a list with that title exists, it
+will be reused.
+
 Examples:
 Qdiag error [show all errors]
-Ldiag! warn only [show only warnings from the current buffer]
+Ldiag! warn [show only warnings from the current buffer]
 
 Diag.q_diag_cmd({cargs})                                       *Diag.q_diag_cmd*
 

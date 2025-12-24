@@ -10,7 +10,7 @@
 --- @class qf-rancher.Types
 local Types = {}
 
--- LOW: Create validations for the get and ret what tables
+-- LOW: Create types for the what get and ret tables
 -- PR: The built-in what annotation does not contain the user_data field
 
 ---@class qf-rancher.types.What : vim.fn.setqflist.what
@@ -21,8 +21,6 @@ local Types = {}
 ---@alias qf-rancher.types.Action 'a'|'f'|'r'|'u'|' '
 
 ---@alias qf-rancher.types.Case 'insensitive'|'sensitive'|'smartcase'|'vimcase'
-
--- TODO:  Move this to system and attach it to the system_do function
 
 ---@export Types
 
@@ -409,21 +407,6 @@ end
 ---@field skip_zzze? boolean
 ---@field win? integer
 
--- =========================
--- == CUSTOM TYPES - DIAG ==
--- =========================
-
----@alias qf-rancher.diag.DisplayFunc fun(vim.Diagnostic):vim.quickfix.entry
-
----@param diag_opts qf-rancher.diag.DiagOpts
----@return nil
-function Types._validate_diag_opts(diag_opts)
-    vim.validate("diag_opts", diag_opts, "table")
-    vim.validate("diag_opts.disp_func", diag_opts.disp_func, "callable", true)
-    vim.validate("diag_opts.top", diag_opts.top, "boolean", true)
-    Types._validate_diag_getopts(diag_opts.getopts, true)
-end
-
 ---@param severity integer|nil
 ---@param optional? boolean
 ---@return nil
@@ -457,6 +440,7 @@ function Types._validate_diag_getopts(diag_getopts, optional)
     if type(ns) == "number" then
         Types._validate_uint(ns)
     end
+
     ---@diagnostic disable-next-line: param-type-mismatch
     if type(ns) == "table" then
         Types._validate_list(ns, { item_type = "number" })
@@ -525,5 +509,3 @@ return Types
 -- TODO: Stuff that's only used in one module needs to be moved to the module it's used in
 -- TODO: Once broader refactoring is done, move the stuff that needs to be documented into the
 -- public doc area.
-
--- LOW: Create a type and validation for getqflist returns

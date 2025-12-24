@@ -72,18 +72,8 @@ local function get_output_opts(src_win, action)
 end
 
 ---@return QfrOutputOpts
-local function new_qflist()
-    return get_output_opts(nil, " ")
-end
-
----@return QfrOutputOpts
 local function replace_qflist()
     return get_output_opts(nil, "u")
-end
-
----@return QfrOutputOpts
-local function new_loclist()
-    return get_output_opts(cur_win(), " ")
 end
 
 ---@return QfrOutputOpts
@@ -328,32 +318,31 @@ M.bufevent_tbls[#M.bufevent_tbls + 1] = M.qfr_grep_buf_maps
 M.cmd_tbls[#M.cmd_tbls + 1] = M.qfr_grep_cmds
 M.doc_tbls[#M.doc_tbls + 1] = { rg_str, all_greps, M.qfr_grep_cmds }
 
--- TODO: When these interfaces are re-done, use the nocount_end function for count
 
 -- stylua: ignore
 ---@type QfrMapData[]
 M.qfr_diag_maps = {
-{ nn, "<Plug>(qfr-Qdiags-hint)",       ql..dp.."n", "All diagnostics to quickfix",                   function() rd.diags_to_list({ getopts = { severity = nil } }, new_qflist()) end },
-{ nn, "<Plug>(qfr-Qdiags-info)",       ql..dp.."f", "Diagnostics to quickfix, min info",             function() rd.diags_to_list({ getopts = { severity = { min = 3 } } }, new_qflist()) end },
-{ nn, "<Plug>(qfr-Qdiags-warn)",       ql..dp.."w", "Diagnostics to quickfix, min warn",             function() rd.diags_to_list({ getopts = { severity = { min = 2 } } }, new_qflist()) end },
-{ nn, "<Plug>(qfr-Qdiags-error)",      ql..dp.."e", "Diagnostics to quickfix, min error",            function() rd.diags_to_list({ getopts = { severity = { min = 1 } } }, new_qflist()) end },
-{ nn, "<Plug>(qfr-Qdiags-top)",        ql..dp.."t", "Diagnostics to quickfix, top severity",         function() rd.diags_to_list({ top = true }, new_qflist()) end },
+{ nn, "<Plug>(qfr-Qdiags-hint)",       ql..dp.."n", "All diagnostics to quickfix",                   function() rd.diags_to_list(nil, nocount_new(), { nr = nocount_end() }, { getopts = { severity = nil } }) end },
+{ nn, "<Plug>(qfr-Qdiags-info)",       ql..dp.."f", "Diagnostics to quickfix, min info",             function() rd.diags_to_list(nil, nocount_new(), { nr = nocount_end() }, { getopts = { severity = { min = 3 } } }) end },
+{ nn, "<Plug>(qfr-Qdiags-warn)",       ql..dp.."w", "Diagnostics to quickfix, min warn",             function() rd.diags_to_list(nil, nocount_new(), { nr = nocount_end() }, { getopts = { severity = { min = 2 } } }) end },
+{ nn, "<Plug>(qfr-Qdiags-error)",      ql..dp.."e", "Diagnostics to quickfix, min error",            function() rd.diags_to_list(nil, nocount_new(), { nr = nocount_end() }, { getopts = { severity = { min = 1 } } }) end },
+{ nn, "<Plug>(qfr-Qdiags-top)",        ql..dp.."t", "Diagnostics to quickfix, top severity",         function() rd.diags_to_list(nil, nocount_new(), { nr = nocount_end() }, { top = true }) end },
 
-{ nn, "<Plug>(qfr-Qdiags-hint-only)",  ql..dp.."N", "Diagnostics to quickfix, only hints",           function() rd.diags_to_list({ getopts = { severity = 4 } }, new_qflist()) end },
-{ nn, "<Plug>(qfr-Qdiags-info-only)",  ql..dp.."F", "Diagnostics to quickfix, only info",            function() rd.diags_to_list({ getopts = { severity = 3 } }, new_qflist()) end },
-{ nn, "<Plug>(qfr-Qdiags-warn-only)",  ql..dp.."W", "Diagnostics to quickfix, only warnings",        function() rd.diags_to_list({ getopts = { severity = 2 } }, new_qflist()) end },
-{ nn, "<Plug>(qfr-Qdiags-error-only)", ql..dp.."E", "Diagnostics to quickfix, only errors",          function() rd.diags_to_list({ getopts = { severity = 1 } }, new_qflist()) end },
+{ nn, "<Plug>(qfr-Qdiags-hint-only)",  ql..dp.."N", "Diagnostics to quickfix, only hints",           function() rd.diags_to_list(nil, nocount_new(), { nr = nocount_end() }, { getopts = { severity = 4 } }) end },
+{ nn, "<Plug>(qfr-Qdiags-info-only)",  ql..dp.."F", "Diagnostics to quickfix, only info",            function() rd.diags_to_list(nil, nocount_new(), { nr = nocount_end() }, { getopts = { severity = 3 } }) end },
+{ nn, "<Plug>(qfr-Qdiags-warn-only)",  ql..dp.."W", "Diagnostics to quickfix, only warnings",        function() rd.diags_to_list(nil, nocount_new(), { nr = nocount_end() }, { getopts = { severity = 2 } }) end },
+{ nn, "<Plug>(qfr-Qdiags-error-only)", ql..dp.."E", "Diagnostics to quickfix, only errors",          function() rd.diags_to_list(nil, nocount_new(), { nr = nocount_end() }, { getopts = { severity = 1 } }) end },
 
-{ nn, "<Plug>(qfr-Ldiags-hint)",       ll..dp.."n", "All cur buf diagnostics to loclist",            function() rd.diags_to_list({ getopts = { severity = nil } }, new_loclist()) end },
-{ nn, "<Plug>(qfr-Ldiags-info)",       ll..dp.."f", "Cur buf diagnostics to loclist, min info",      function() rd.diags_to_list({ getopts = { severity = { min = 3 } } }, new_loclist()) end },
-{ nn, "<Plug>(qfr-Ldiags-warn)",       ll..dp.."w", "Cur buf diagnostics to loclist, min warn",      function() rd.diags_to_list({ getopts = { severity = { min = 2 } } }, new_loclist()) end },
-{ nn, "<Plug>(qfr-Ldiags-error)",      ll..dp.."e", "Cur buf diagnostics to loclist, min error",     function() rd.diags_to_list({ getopts = { severity = { min = 1 } } }, new_loclist()) end },
-{ nn, "<Plug>(qfr-Ldiags-top)",        ll..dp.."t", "Cur buf diagnostics to loclist, top severity",  function() rd.diags_to_list({ top = true }, new_loclist()) end },
+{ nn, "<Plug>(qfr-Ldiags-hint)",       ll..dp.."n", "All cur buf diagnostics to loclist",            function() rd.diags_to_list(cur_win(), nocount_new(), { nr = nocount_end() }, { getopts = { severity = nil } }) end },
+{ nn, "<Plug>(qfr-Ldiags-info)",       ll..dp.."f", "Cur buf diagnostics to loclist, min info",      function() rd.diags_to_list(cur_win(), nocount_new(), { nr = nocount_end() }, { getopts = { severity = { min = 3 } } }) end },
+{ nn, "<Plug>(qfr-Ldiags-warn)",       ll..dp.."w", "Cur buf diagnostics to loclist, min warn",      function() rd.diags_to_list(cur_win(), nocount_new(), { nr = nocount_end() }, { getopts = { severity = { min = 2 } } }) end },
+{ nn, "<Plug>(qfr-Ldiags-error)",      ll..dp.."e", "Cur buf diagnostics to loclist, min error",     function() rd.diags_to_list(cur_win(), nocount_new(), { nr = nocount_end() }, { getopts = { severity = { min = 1 } } }) end },
+{ nn, "<Plug>(qfr-Ldiags-top)",        ll..dp.."t", "Cur buf diagnostics to loclist, top severity",  function() rd.diags_to_list(cur_win(), nocount_new(), { nr = nocount_end() }, { top = true }) end },
 
-{ nn, "<Plug>(qfr-Ldiags-hint-only)",  ll..dp.."N", "Cur buf diagnostics to loclist, only hints",    function() rd.diags_to_list({ getopts = { severity = 4 } }, new_loclist()) end },
-{ nn, "<Plug>(qfr-Ldiags-info-only)",  ll..dp.."F", "Cur buf diagnostics to loclist, only info",     function() rd.diags_to_list({ getopts = { severity = 3 } }, new_loclist()) end },
-{ nn, "<Plug>(qfr-Ldiags-warn-only)",  ll..dp.."W", "Cur buf diagnostics to loclist, only warnings", function() rd.diags_to_list({ getopts = { severity = 2 } }, new_loclist()) end },
-{ nn, "<Plug>(qfr-Ldiags-error-only)", ll..dp.."E", "Cur buf diagnostics to loclist, only errors",   function() rd.diags_to_list({ getopts = { severity = 1 } }, new_loclist()) end },
+{ nn, "<Plug>(qfr-Ldiags-hint-only)",  ll..dp.."N", "Cur buf diagnostics to loclist, only hints",    function() rd.diags_to_list(cur_win(), nocount_new(), { nr = nocount_end() }, { getopts = { severity = 4 } }) end },
+{ nn, "<Plug>(qfr-Ldiags-info-only)",  ll..dp.."F", "Cur buf diagnostics to loclist, only info",     function() rd.diags_to_list(cur_win(), nocount_new(), { nr = nocount_end() }, { getopts = { severity = 3 } }) end },
+{ nn, "<Plug>(qfr-Ldiags-warn-only)",  ll..dp.."W", "Cur buf diagnostics to loclist, only warnings", function() rd.diags_to_list(cur_win(), nocount_new(), { nr = nocount_end() }, { getopts = { severity = 2 } }) end },
+{ nn, "<Plug>(qfr-Ldiags-error-only)", ll..dp.."E", "Cur buf diagnostics to loclist, only errors",   function() rd.diags_to_list(cur_win(), nocount_new(), { nr = nocount_end() }, { getopts = { severity = 1 } }) end },
 }
 
 -- stylua: ignore

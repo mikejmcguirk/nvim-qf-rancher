@@ -46,7 +46,7 @@ function M._resolve_title_reuse(src_win, cur_action, what)
     end
 
     what.nr = cur_list
-    return "u", what
+    return "r", what
 end
 
 ---@param src_win integer|nil
@@ -126,6 +126,9 @@ function M._set_list(src_win, action, what)
     local set_nr = get_result(src_win, what_set.nr, action)
     return set_nr
 end
+
+-- MID: This function should go to an active list. It should also handle freeing the stack and
+-- closing the list if the list being cleared is the list one with items.
 
 ---@param src_win integer|nil
 ---@param list_nr integer|"$"|nil
@@ -262,6 +265,8 @@ return M
 -- A simple/useful cmd/keymap I think would be like Qhygiene or something, where you could
 -- consolidate lists to remove gaps, then do a " " write at the end with the last list to clear
 -- everything afterwards. If all lists are empty, just run setlist("f")
+-- A good behavior to have behind an opt (default on), would be if we see the last list is empty,
+-- always use a " " set to trim it
 
 -- FUTURE: If there's ever any type of quickfixchanged autocmd, add a g:var to automatically free
 -- the stack if all lists have zero items
